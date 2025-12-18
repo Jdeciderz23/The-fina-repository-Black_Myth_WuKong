@@ -25,6 +25,7 @@
 #include "AppDelegate.h"
 #include "GameApp.h"
 #include "SceneManager.h"
+#include "scene_ui/UIManager.h"
 
 // #define USE_AUDIO_ENGINE 1
 
@@ -115,8 +116,8 @@ bool AppDelegate::applicationDidFinishLaunching() {
         return false;
     }
 
-    // For now, use a simple scene since we haven't implemented custom scenes yet
-    auto scene = Scene::create();
+    // Run the Start Menu Scene created by UIManager
+    auto scene = UIManager::getInstance()->createStartMenuScene();
     director->runWithScene(scene);
 
     return true;

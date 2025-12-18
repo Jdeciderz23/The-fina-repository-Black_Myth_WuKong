@@ -1,5 +1,6 @@
 #ifndef BASESTATE_H
 #define BASESTATE_H
+#include <string>
 
 /**
  * @class BaseState
