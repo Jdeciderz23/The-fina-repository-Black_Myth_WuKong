@@ -1,6 +1,8 @@
 #ifndef BASESTATE_H
 #define BASESTATE_H
 
+
+#include<string>
 /**
  * @class BaseState
  * @brief 状态机的基类，所有状态都需要继承自此类
