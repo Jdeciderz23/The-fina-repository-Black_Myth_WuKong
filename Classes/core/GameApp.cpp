@@ -1,4 +1,6 @@
-#include "GameApp.h"
+#include "GameApp.h"                                   // 游戏应用主类
+#include "scene_ui/UIManager.h"                        // UI 管理器（用于注册标题场景）
+#include "scene_ui/BaseScene.h"                        // 第一个游戏场景
 
 // 初始化单例指针
 GameApp* GameApp::_instance = nullptr;
@@ -61,6 +63,14 @@ bool GameApp::init(Director* director) {
         _sceneManager = nullptr;
         return false;
     }
+    // 注册标题场景（开始菜单）
+    _sceneManager->registerScene(SceneManager::SceneType::TITLE, []() {
+        return UIManager::getInstance()->createStartMenuScene();
+    });
+    // 注册第一个游戏场景（使用 BaseScene）
+    _sceneManager->registerScene(SceneManager::SceneType::GAMEPLAY, []() {
+        return BaseScene::createScene();
+    });
     
     // 创建事件管理器
     _eventManager = new EventManager();
