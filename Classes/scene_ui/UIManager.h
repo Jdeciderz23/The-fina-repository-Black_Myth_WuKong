@@ -1,74 +1,74 @@
-#ifndef __UI_MANAGER_H__                         // Í·ÎÄ¼ş·ÀÖØ¶¨Òåºê¿ªÊ¼
-#define __UI_MANAGER_H__                         // ¶¨Òå·ÀÖØºê
+#ifndef __UI_MANAGER_H__                         // å¤´æ–‡ä»¶é˜²é‡å®šä¹‰å®å¼€å§‹
+#define __UI_MANAGER_H__                         // å®šä¹‰é˜²é‡å®
 
-#pragma execution_character_set("utf-8")         // Ö¸Ê¾ MSVC °´ UTF-8 ½âÊÍÔ´ÎÄ¼şÖĞµÄ×Ö·û´®×ÖÃæÁ¿
+#pragma execution_character_set("utf-8")         // æŒ‡ç¤º MSVC æŒ‰ UTF-8 è§£é‡Šæºæ–‡ä»¶ä¸­çš„å­—ç¬¦ä¸²å­—é¢é‡
 
-#include "cocos2d.h"                             // ÒıÈë cocos2d ºËĞÄÍ·ÎÄ¼ş
-#include "ui/CocosGUI.h"                         // ÒıÈë Cocos UI ×é¼şÍ·ÎÄ¼ş
+#include "cocos2d.h"                             // å¼•å…¥ cocos2d æ ¸å¿ƒå¤´æ–‡ä»¶
+#include "ui/CocosGUI.h"                         // å¼•å…¥ Cocos UI ç»„ä»¶å¤´æ–‡ä»¶
 
 /**
  * @class UIManager
- * @brief UI ¹ÜÀíÆ÷
- * @details ¹ÜÀíÓÎÏ·ÖĞµÄ¸÷Àà UI£¨¿ªÊ¼²Ëµ¥¡¢HUD¡¢ÔİÍ£²Ëµ¥µÈ£©£¬²ÉÓÃµ¥ÀıÄ£Ê½±ãÓÚÈ«¾Ö·ÃÎÊ
+ * @brief UI ç®¡ç†å™¨
+ * @details ç®¡ç†æ¸¸æˆä¸­çš„å„ç±» UIï¼ˆå¼€å§‹èœå•ã€HUDã€æš‚åœèœå•ç­‰ï¼‰ï¼Œé‡‡ç”¨å•ä¾‹æ¨¡å¼ä¾¿äºå…¨å±€è®¿é—®
  */
 class UIManager {
 public:
     /**
-     * @brief »ñÈ¡ UIManager µ¥ÀıÊµÀı
-     * @return UIManager* µ¥ÀıÖ¸Õë
+     * @brief è·å– UIManager å•ä¾‹å®ä¾‹
+     * @return UIManager* å•ä¾‹æŒ‡é’ˆ
      */
     static UIManager* getInstance();
 
     /**
-     * @brief Ïú»Ù UIManager µ¥ÀıÊµÀı
-     * @details ÔÚÓÎÏ·½áÊø»òÖØÆôÊ±µ÷ÓÃ£¬ÓÃÓÚÊÍ·ÅÄÚ´æ
+     * @brief é”€æ¯ UIManager å•ä¾‹å®ä¾‹
+     * @details åœ¨æ¸¸æˆç»“æŸæˆ–é‡å¯æ—¶è°ƒç”¨ï¼Œç”¨äºé‡Šæ”¾å†…å­˜
      */
     static void destroyInstance();
 
     /**
-     * @brief ´´½¨¡°¿ªÊ¼²Ëµ¥¡±³¡¾°
-     * @details °üº¬±³¾°Í¼Æ¬ÓëÖ÷²Ëµ¥°´Å¥£¨¿ªÊ¼ÓÎÏ· / ÉèÖÃ / ÍË³ö£©
-     * @return cocos2d::Scene* ´´½¨ºÃµÄ³¡¾°¶ÔÏó
+     * @brief åˆ›å»ºâ€œå¼€å§‹èœå•â€åœºæ™¯
+     * @details åŒ…å«èƒŒæ™¯å›¾ç‰‡ä¸ä¸»èœå•æŒ‰é’®ï¼ˆå¼€å§‹æ¸¸æˆ / è®¾ç½® / é€€å‡ºï¼‰
+     * @return cocos2d::Scene* åˆ›å»ºå¥½çš„åœºæ™¯å¯¹è±¡
      */
     cocos2d::Scene* createStartMenuScene();
 
-    // ºóĞø¿ÉÀ©Õ¹£ºÏÔÊ¾ HUD¡¢¸üĞÂÍæ¼ÒÑªÁ¿µÈ
+    // åç»­å¯æ‰©å±•ï¼šæ˜¾ç¤º HUDã€æ›´æ–°ç©å®¶è¡€é‡ç­‰
     // void showHUD();
     // void updatePlayerHP(float percent);
 
 private:
     /**
-     * @brief ¹¹Ôìº¯Êı£¨Ë½ÓĞ£©
-     * @details ·ÀÖ¹Íâ²¿Ö±½ÓÊµÀı»¯£¬½öÍ¨¹ı getInstance »ñÈ¡
+     * @brief æ„é€ å‡½æ•°ï¼ˆç§æœ‰ï¼‰
+     * @details é˜²æ­¢å¤–éƒ¨ç›´æ¥å®ä¾‹åŒ–ï¼Œä»…é€šè¿‡ getInstance è·å–
      */
     UIManager();
 
     /**
-     * @brief Îö¹¹º¯Êı£¨Ë½ÓĞ£©
+     * @brief ææ„å‡½æ•°ï¼ˆç§æœ‰ï¼‰
      */
     ~UIManager();
     
-    static UIManager* _instance;                 // µ¥ÀıÖ¸Õë
+    static UIManager* _instance;                 // å•ä¾‹æŒ‡é’ˆ
 
-    // ---------------- ²Ëµ¥°´Å¥»Øµ÷ ----------------
+    // ---------------- èœå•æŒ‰é’®å›è°ƒ ----------------
 
     /**
-     * @brief ¡°¿ªÊ¼ÓÎÏ·¡±°´Å¥µã»÷»Øµ÷
-     * @param sender ´¥·¢ÊÂ¼şµÄ½Úµã¶ÔÏó
+     * @brief â€œå¼€å§‹æ¸¸æˆâ€æŒ‰é’®ç‚¹å‡»å›è°ƒ
+     * @param sender è§¦å‘äº‹ä»¶çš„èŠ‚ç‚¹å¯¹è±¡
      */
     void onStartGame(cocos2d::Ref* sender);
 
     /**
-     * @brief ¡°ÉèÖÃ¡±°´Å¥µã»÷»Øµ÷
-     * @param sender ´¥·¢ÊÂ¼şµÄ½Úµã¶ÔÏó
+     * @brief â€œè®¾ç½®â€æŒ‰é’®ç‚¹å‡»å›è°ƒ
+     * @param sender è§¦å‘äº‹ä»¶çš„èŠ‚ç‚¹å¯¹è±¡
      */
     void onSettings(cocos2d::Ref* sender);
 
     /**
-     * @brief ¡°ÍË³ö¡±°´Å¥µã»÷»Øµ÷
-     * @param sender ´¥·¢ÊÂ¼şµÄ½Úµã¶ÔÏó
+     * @brief â€œé€€å‡ºâ€æŒ‰é’®ç‚¹å‡»å›è°ƒ
+     * @param sender è§¦å‘äº‹ä»¶çš„èŠ‚ç‚¹å¯¹è±¡
      */
     void onExitGame(cocos2d::Ref* sender);
 };
 
-#endif // __UI_MANAGER_H__                        // ·ÀÖØºê½áÊø
+#endif // __UI_MANAGER_H__                        // é˜²é‡å®ç»“æŸ
