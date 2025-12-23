@@ -1,11 +1,16 @@
 #pragma execution_character_set("utf-8")
 #include "BaseScene.h"
+#include "GameApp.h"
+#include "SceneManager.h"
+#include "3d/CCSprite3D.h"
+#include "3d/CCTerrain.h"
+#include "renderer/CCTexture2D.h"
 #include "2d/CCLight.h"
 
 USING_NS_CC;
 
 // 相机投影参数（文件内静态变量，避免因头文件差异导致未声明错误）
-static float s_fov = 30.0f;          // 视野角（度，调小以增强“空间巨大”的感觉）
+static float s_fov = 10.0f;          // 视野角（度，调小以增强“空间巨大”的感觉）
 static float s_aspect = 1.0f;        // 宽高比
 static float s_nearPlane = 1.0f;     // 近裁剪面（适当拉近）
 static float s_farPlane = 2000.0f;   // 远裁剪面（适当拉远）
@@ -56,13 +61,13 @@ void BaseScene::initSkybox()
 bool BaseScene::chooseSkyboxFaces(std::array<std::string, 6>& outFaces)
 {
     auto fu = FileUtils::getInstance();                        // 文件工具
-    
+
     // 方案一：常见命名（右、左、上、下、前、后）
     std::array<std::string, 6> set1 = {
         "Skybox_right.png", "Skybox_left.png", "Skybox_top.png",
         "Skybox_bottom.png", "Skybox_front.png", "Skybox_back.png"
     };
-    
+
 
     // 检查一组文件是否全部存在
     auto existsAll = [&](const std::array<std::string, 6>& s) -> bool {
@@ -72,7 +77,7 @@ bool BaseScene::chooseSkyboxFaces(std::array<std::string, 6>& outFaces)
                 return false;
         }
         return true;
-    };
+        };
 
     if (existsAll(set1)) { outFaces = set1; return true; }
     return false;                                          // 都不存在则返回失败
@@ -87,7 +92,7 @@ bool BaseScene::verifyCubeFacesSquare(const std::array<std::string, 6>& faces)
         std::string full = FileUtils::getInstance()->fullPathForFilename(faces[i]); // 解析完整路径
         if (full.empty())
             return false;
-        
+
         auto img = new (std::nothrow) Image();                       // 加载图片以检查尺寸
         if (!img || !img->initWithImageFile(full))
         {
@@ -307,4 +312,69 @@ void BaseScene::initDebugObjects()
     bb->setScale(2.0f);
     bb->setCameraMask((unsigned short)CameraFlag::USER1);
     addChild(bb);
+}
+
+Scene* CampScene::createScene()
+{
+    return CampScene::create();
+}
+
+bool CampScene::init()
+{
+    if (!BaseScene::init())
+        return false;
+
+    // 使用3D模型作为地形
+    auto terrain = Sprite3D::create("terrain.obj");
+
+    // 设置地形位置和缩放
+    terrain->setPosition3D(Vec3(0, 0, 0));
+    terrain->setScale(100.0f);  // 根据实际模型大小调整缩放比例
+
+    // 设置渲染相机
+    terrain->setCameraMask((unsigned short)CameraFlag::USER1);
+    addChild(terrain);
+
+    auto kb = EventListenerKeyboard::create();
+    kb->onKeyPressed = [](EventKeyboard::KeyCode code, Event*)
+        {
+            if (code == EventKeyboard::KeyCode::KEY_B)
+            {
+                auto mgr = GameApp::getInstance()->getSceneManager();
+                if (mgr) mgr->switchScene(SceneManager::SceneType::BOSS_FIGHT, true);
+            }
+        };
+    _eventDispatcher->addEventListenerWithSceneGraphPriority(kb, this);
+
+    return true;
+}
+
+Scene* BossScene::createScene()
+{
+    return BossScene::create();
+}
+
+bool BossScene::init()
+{
+    if (!BaseScene::init())
+        return false;
+
+    auto banner = BillBoard::create("1.png", BillBoard::Mode::VIEW_POINT_ORIENTED);
+    banner->setPosition3D(Vec3(-50, 0, -250));
+    banner->setScale(2.5f);
+    banner->setCameraMask((unsigned short)CameraFlag::USER1);
+    addChild(banner);
+
+    auto kb = EventListenerKeyboard::create();
+    kb->onKeyPressed = [](EventKeyboard::KeyCode code, Event*)
+        {
+            if (code == EventKeyboard::KeyCode::KEY_C)
+            {
+                auto mgr = GameApp::getInstance()->getSceneManager();
+                if (mgr) mgr->switchScene(SceneManager::SceneType::GAMEPLAY, true);
+            }
+        };
+    _eventDispatcher->addEventListenerWithSceneGraphPriority(kb, this);
+
+    return true;
 }
