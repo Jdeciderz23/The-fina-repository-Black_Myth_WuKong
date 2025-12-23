@@ -67,9 +67,11 @@ bool GameApp::init(Director* director) {
     _sceneManager->registerScene(SceneManager::SceneType::TITLE, []() {
         return UIManager::getInstance()->createStartMenuScene();
     });
-    // 注册第一个游戏场景（使用 BaseScene）
     _sceneManager->registerScene(SceneManager::SceneType::GAMEPLAY, []() {
-        return BaseScene::createScene();
+        return CampScene::createScene();
+    });
+    _sceneManager->registerScene(SceneManager::SceneType::BOSS_FIGHT, []() {
+        return BossScene::createScene();
     });
     
     // 创建事件管理器
