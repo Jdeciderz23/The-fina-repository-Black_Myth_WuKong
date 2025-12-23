@@ -62,4 +62,20 @@ protected:
     bool _hasLastMouse = false;
 };
 
+class CampScene : public BaseScene
+{
+public:
+    static cocos2d::Scene* createScene();
+    virtual bool init() override;
+    CREATE_FUNC(CampScene);
+};
+
+class BossScene : public BaseScene
+{
+public:
+    static cocos2d::Scene* createScene();
+    virtual bool init() override;
+    CREATE_FUNC(BossScene);
+};
+
 #endif // __BASE_SCENE_H__
