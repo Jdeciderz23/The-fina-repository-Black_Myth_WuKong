@@ -4,8 +4,10 @@
 
 #include "BaseState.h"
 #include "Character.h"
+#include "Wukong.h"
 #include <string>
 #include <cmath>
+#include <unordered_map>
 
 /**
  * @class IdleState
@@ -88,35 +90,73 @@ public:
  * @class JumpState
  * @brief 跳跃状态：播放 jump，落地后切回 Idle/Move
  */
+//class JumpState : public BaseState<Character> {
+//public:
+//    void onEnter(Character* entity) override {
+//        if (!entity) return;
+//        entity->playAnim("jump", false);
+//    }
+//
+//    void onUpdate(Character* entity, float deltaTime) override {
+//        (void)deltaTime;
+//        if (!entity) return;
+//
+//        if (entity->isOnGround()) {
+//            const auto intent = entity->getMoveIntent();
+//            if (intent.dirWS.lengthSquared() > 1e-6f) {
+//                entity->getStateMachine().changeState("Move");
+//            }
+//            else {
+//                entity->getStateMachine().changeState("Idle");
+//            }
+//        }
+//    }
+//
+//    void onExit(Character* entity) override {
+//        (void)entity;
+//    }
+//
+//    std::string getStateName() const override {
+//        return "Jump";
+//    }
+//};
 class JumpState : public BaseState<Character> {
 public:
+    JumpState() : _landTriggered(false), _t(0.0f) {}
+
     void onEnter(Character* entity) override {
         if (!entity) return;
-        entity->playAnim("jump", false);
+        _landTriggered = false;
+        _t = 0.0f;
+
+        // 进入跳跃：Pad -> Start -> Apex(循环)
+        static_cast<Wukong*>(entity)->startJumpAnim();
     }
 
     void onUpdate(Character* entity, float deltaTime) override {
-        (void)deltaTime;
         if (!entity) return;
+        _t += deltaTime;
+
+        // 防止刚切进 JumpState 的第一帧地面判定还没更新，导致立刻触发落地
+        if (_t < 0.05f) return;
+
+        if (_landTriggered) return;
 
         if (entity->isOnGround()) {
-            const auto intent = entity->getMoveIntent();
-            if (intent.dirWS.lengthSquared() > 1e-6f) {
-                entity->getStateMachine().changeState("Move");
-            }
-            else {
-                entity->getStateMachine().changeState("Idle");
-            }
+            _landTriggered = true;
+
+            // 落地：Land -> Recovery -> 最后回 Idle/Move（在 Wukong::onJumpLanded 里做）
+            static_cast<Wukong*>(entity)->onJumpLanded();
         }
     }
 
-    void onExit(Character* entity) override {
-        (void)entity;
-    }
+    void onExit(Character* entity) override { (void)entity; }
 
-    std::string getStateName() const override {
-        return "Jump";
-    }
+    std::string getStateName() const override { return "Jump"; }
+
+private:
+    bool  _landTriggered;
+    float _t;
 };
 
 /**
