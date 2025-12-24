@@ -15,11 +15,18 @@ bool Wukong::init() {
         return false;
     }
 
-    _model = nullptr;
+    _model = cocos2d::Sprite3D::create("wukong.c3b");
     // TODO: 有模型资源时再加载，例如：
     // _model = cocos2d::Sprite3D::create("models/wukong.c3b");
     // if (_model) { _visualRoot->addChild(_model); }
-
+    if (_model) {
+        _model->setScale(0.01f);              // 常见：模型太大/太小，需要调
+        _model->setPosition3D({ 0, 0, 0 });
+        _visualRoot->addChild(_model);
+    }
+    else {
+        cocos2d::log("[Wukong] load model failed!");
+    }
     return true;
 }
 
