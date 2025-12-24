@@ -1,3 +1,11 @@
+include_directories(
+    Classes
+    Classes/core
+    Classes/player
+    Classes/combat
+    Classes/enemy
+    Classes/scene_ui
+)
 #/****************************************************************************
 # Copyright (c) 2013-2014 cocos2d-x.org
 # Copyright (c) 2015-2017 Chukong Technologies Inc.
@@ -57,12 +65,87 @@ endif()
 # add cross-platforms source files and header files 
 list(APPEND GAME_SOURCE
      Classes/AppDelegate.cpp
-     Classes/HelloWorldScene.cpp
      )
 list(APPEND GAME_HEADER
      Classes/AppDelegate.h
-     Classes/HelloWorldScene.h
      )
+# =========================
+# Core（核心框架，A负责）
+# =========================
+list(APPEND GAME_SOURCE
+    Classes/core/GameApp.cpp
+    Classes/core/SceneManager.cpp
+    Classes/core/EventManager.cpp
+)
+
+list(APPEND GAME_HEADER
+    Classes/core/GameApp.h
+    Classes/core/SceneManager.h
+    Classes/core/EventManager.h
+    Classes/core/BaseState.h
+    Classes/core/StateMachine.h
+)
+
+# =========================
+# Player（角色系统，A负责）
+# =========================
+list(APPEND GAME_SOURCE
+    Classes/player/Wukong.cpp
+    Classes/player/InputController.cpp
+    Classes/player/Character.cpp
+)
+
+list(APPEND GAME_HEADER
+    Classes/player/Character.h
+    Classes/player/Wukong.h
+    Classes/player/InputController.h
+    Classes/player/WukongStates.h
+)
+
+# =========================
+# Combat（战斗系统，B负责）
+# =========================
+list(APPEND GAME_SOURCE
+    Classes/combat/CombatComponent.cpp
+    Classes/combat/HealthComponent.cpp
+    Classes/combat/Collider.cpp
+)
+
+list(APPEND GAME_HEADER
+    Classes/combat/CombatComponent.h
+    Classes/combat/HealthComponent.h
+    Classes/combat/Skill.h
+    Classes/combat/Collider.h
+)
+
+# =========================
+# Enemy（敌人系统，C负责）
+# =========================
+list(APPEND GAME_SOURCE
+    Classes/enemy/Boss.cpp
+    Classes/enemy/EnemyAI.cpp
+)
+
+list(APPEND GAME_HEADER
+    Classes/enemy/Enemy.h
+    Classes/enemy/Boss.h
+    Classes/enemy/EnemyAI.h
+)
+
+# =========================
+# Scene & UI（场景/UI，D负责）
+# =========================
+list(APPEND GAME_SOURCE
+    Classes/scene_ui/BaseScene.cpp
+    Classes/scene_ui/UIManager.cpp
+    Classes/scene_ui/AudioManager.cpp
+)
+
+list(APPEND GAME_HEADER
+    Classes/scene_ui/BaseScene.h
+    Classes/scene_ui/UIManager.h
+    Classes/scene_ui/AudioManager.h
+)
 
 if(ANDROID)
     # change APP_NAME to the share library name for Android, it's value depend on AndroidManifest.xml
