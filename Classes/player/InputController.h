@@ -38,6 +38,12 @@ public:
      */
     void update(float dt) override;
 
+    /**
+    * @brief 随相对镜头移动
+    * @param cam
+    */
+    void setCamera(cocos2d::Camera* cam) { _cam = cam; }
+
 private:
     /**
      * @brief 绑定键盘事件监听
@@ -46,6 +52,7 @@ private:
 
 private:
     Wukong* _target; ///< 目标角色（不拥有）
+    cocos2d::Camera* _cam = nullptr;
 
     bool _w;   ///< W 是否按下
     bool _a;   ///< A 是否按下

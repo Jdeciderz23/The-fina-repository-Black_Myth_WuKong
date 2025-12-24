@@ -123,13 +123,16 @@ list(APPEND GAME_HEADER
 # =========================
 list(APPEND GAME_SOURCE
     Classes/enemy/Boss.cpp
+    Classes/enemy/Enemy.cpp
     Classes/enemy/EnemyAI.cpp
+    Classes/enemy/EnemyStates.cpp
 )
 
 list(APPEND GAME_HEADER
     Classes/enemy/Enemy.h
     Classes/enemy/Boss.h
     Classes/enemy/EnemyAI.h
+    Classes/enemy/EnemyStates.h
 )
 
 # =========================
