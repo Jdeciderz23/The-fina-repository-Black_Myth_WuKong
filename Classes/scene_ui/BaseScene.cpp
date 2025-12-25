@@ -67,8 +67,8 @@ bool BaseScene::chooseSkyboxFaces(std::array<std::string, 6>& outFaces)
 
     // 方案一：常见命名（右、左、上、下、前、后）
     std::array<std::string, 6> set1 = {
-        "Skybox_right.png", "Skybox_left.png", "Skybox_top.png",
-        "Skybox_bottom.png", "Skybox_front.png", "Skybox_back.png"
+        "SkyBox/Skybox_right.png", "SkyBox/Skybox_left.png", "SkyBox/Skybox_top.png",
+        "SkyBox/Skybox_bottom.png", "SkyBox/Skybox_front.png", "SkyBox/Skybox_back.png"
     };
 
 
@@ -298,7 +298,7 @@ bool CampScene::init()
         return false;
 
     // 使用3D模型作为地形
-    auto terrain = Sprite3D::create("terrain.obj");
+    auto terrain = Sprite3D::create("scene/terrain.obj");
 
     // 设置地形位置和缩放
     terrain->setPosition3D(Vec3(0, 0, 0));

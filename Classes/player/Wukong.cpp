@@ -17,11 +17,11 @@ bool Wukong::init() {
     }
 
     this->setCameraMask((unsigned short)cocos2d::CameraFlag::USER1, true);
-    auto full = cocos2d::FileUtils::getInstance()->fullPathForFilename("wukong.c3b");
+    auto full = cocos2d::FileUtils::getInstance()->fullPathForFilename("WuKong/wukong.c3b");
     cocos2d::log("[Wukong] fullPath=%s", full.c_str());
 
     //加载模型
-    _model = cocos2d::Sprite3D::create("wukong.c3b");
+    _model = cocos2d::Sprite3D::create("WuKong/wukong.c3b");
     auto aabb = _model->getAABB();
     auto center = (aabb._min + aabb._max) * 0.5f;
 
@@ -42,13 +42,13 @@ bool Wukong::init() {
         _visualRoot->addChild(_model);
 
         // 预加载最基础两套
-        _anims["idle"] = cocos2d::Animation3D::create("Idle.c3b");
-        _anims["run"] = cocos2d::Animation3D::create("Jog_Fwd.c3b");
-        _anims["jump_pad"] = cocos2d::Animation3D::create("Jump_Pad.c3b");
-        _anims["jump_start"] = cocos2d::Animation3D::create("Jump_Start.c3b");
-        _anims["jump_apex"] = cocos2d::Animation3D::create("Jump_Apex.c3b");
-        _anims["jump_land"] = cocos2d::Animation3D::create("Jump_Land.c3b");
-        _anims["jump_recovery"] = cocos2d::Animation3D::create("Jump_Recovery.c3b");
+        _anims["idle"] = cocos2d::Animation3D::create("WuKong/Idle.c3b");
+        _anims["run"] = cocos2d::Animation3D::create("WuKong/Jog_Fwd.c3b");
+        _anims["jump_pad"] = cocos2d::Animation3D::create("WuKong/Jump_Pad.c3b");
+        _anims["jump_start"] = cocos2d::Animation3D::create("WuKong/Jump_Start.c3b");
+        _anims["jump_apex"] = cocos2d::Animation3D::create("WuKong/Jump_Apex.c3b");
+        _anims["jump_land"] = cocos2d::Animation3D::create("WuKong/Jump_Land.c3b");
+        _anims["jump_recovery"] = cocos2d::Animation3D::create("WuKong/Jump_Recovery.c3b");
         playAnim("idle", true);
         playAnim("run", true);
         playAnim("jump", false);
