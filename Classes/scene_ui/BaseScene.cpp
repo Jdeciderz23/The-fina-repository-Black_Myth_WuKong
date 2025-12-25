@@ -6,11 +6,13 @@
 #include "3d/CCTerrain.h"
 #include "renderer/CCTexture2D.h"
 #include "2d/CCLight.h"
+#include "Wukong.h"
+#include"InputController.h"
 
 USING_NS_CC;
 
 // 相机投影参数（文件内静态变量，避免因头文件差异导致未声明错误）
-static float s_fov = 10.0f;          // 视野角（度，调小以增强“空间巨大”的感觉）
+static float s_fov = 30.0f;          // 视野角（度，调小以增强“空间巨大”的感觉）
 static float s_aspect = 1.0f;        // 宽高比
 static float s_nearPlane = 1.0f;     // 近裁剪面（适当拉近）
 static float s_farPlane = 2000.0f;   // 远裁剪面（适当拉远）
@@ -28,6 +30,7 @@ bool BaseScene::init()
     initCamera();
     initSkybox();
     initLights();                                       // 初始化光照（环境光 + 平行光）
+    initPlayer();
     // initDebugObjects();                              // 调试用的参照物（会使用 StartMenu.png），这里先关闭
     initInput();                                        // 初始化输入（键盘 + 鼠标）
 
@@ -127,8 +130,8 @@ void BaseScene::initCamera()
     auto vs = Director::getInstance()->getVisibleSize();
     s_aspect = vs.width / std::max(1.0f, vs.height);              // 计算可视区域宽高比（避免除零）
     s_fov = 30.0f;                                                // 初始视野角（较小视角）
-    s_nearPlane = 1.0f;                                           // 初始近裁剪面
-    s_farPlane = 2000.0f;                                         // 初始远裁剪面
+    s_nearPlane = 0.1f;                                           // 初始近裁剪面
+    s_farPlane = 10000.0f;                                         // 初始远裁剪面
 
     _mainCamera = Camera::createPerspective(s_fov, s_aspect, s_nearPlane, s_farPlane);
     _mainCamera->setCameraFlag(CameraFlag::USER1);
@@ -137,6 +140,9 @@ void BaseScene::initCamera()
     _mainCamera->lookAt(_camPos + _camFront, Vec3::UNIT_Y);
 
     addChild(_mainCamera);
+    // 关掉默认相机
+    this->getDefaultCamera()->setVisible(false);
+
 }
 
 /* ==================== Lights ==================== */
@@ -160,28 +166,6 @@ void BaseScene::initLights()
 
 void BaseScene::initInput()
 {
-    // ---------- Keyboard ----------
-    auto kb = EventListenerKeyboard::create();
-    kb->onKeyPressed = [this](EventKeyboard::KeyCode code, Event*)
-        {
-            if (code == EventKeyboard::KeyCode::KEY_W) _keyW = true;
-            if (code == EventKeyboard::KeyCode::KEY_S) _keyS = true;
-            if (code == EventKeyboard::KeyCode::KEY_A) _keyA = true;
-            if (code == EventKeyboard::KeyCode::KEY_D) _keyD = true;
-            if (code == EventKeyboard::KeyCode::KEY_Q) _keyQ = true;
-            if (code == EventKeyboard::KeyCode::KEY_E) _keyE = true;
-        };
-    kb->onKeyReleased = [this](EventKeyboard::KeyCode code, Event*)
-        {
-            if (code == EventKeyboard::KeyCode::KEY_W) _keyW = false;
-            if (code == EventKeyboard::KeyCode::KEY_S) _keyS = false;
-            if (code == EventKeyboard::KeyCode::KEY_A) _keyA = false;
-            if (code == EventKeyboard::KeyCode::KEY_D) _keyD = false;
-            if (code == EventKeyboard::KeyCode::KEY_Q) _keyQ = false;
-            if (code == EventKeyboard::KeyCode::KEY_E) _keyE = false;
-        };
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(kb, this);
-
     // ---------- Mouse ----------
     auto mouse = EventListenerMouse::create();
 
@@ -257,49 +241,38 @@ void BaseScene::update(float dt)
 
 void BaseScene::updateCamera(float dt)
 {
-    Vec3 move(0, 0, 0);                                  // 累积移动向量
+    if (!_mainCamera || !_player) return;
 
-    // 为了让前后/左右移动更符合直觉（仅在水平面上移动），
-    // 将前向向量投影到 XZ 平面，避免抬头/低头时产生“斜着飞”的感觉
-    Vec3 frontXZ(_camFront.x, 0.0f, _camFront.z);         // 前向在水平面的投影
-    if (frontXZ.lengthSquared() < 1e-6f)
-        frontXZ = Vec3(0.0f, 0.0f, -1.0f);                // 极端情况兜底
-    frontXZ.normalize();                                  // 归一化
+    // 目标点：人物位置 + 头部高度
+    cocos2d::Vec3 playerPos = _player->getPosition3D();
+    cocos2d::Vec3 target = playerPos + cocos2d::Vec3(0.0f, _followHeight, 0.0f);
 
-    // 计算水平面的右向向量（始终与世界上方向量正交）
-    Vec3 right;
-    Vec3::cross(frontXZ, Vec3::UNIT_Y, &right);           // right = frontXZ × upWorld
-    right.normalize();
+    // 根据 yaw/pitch 得到相机“朝向”
+    float yawRad = CC_DEGREES_TO_RADIANS(_yaw);
+    float pitchRad = CC_DEGREES_TO_RADIANS(_pitch);
 
-    // 计算用于 lookAt 的上方向量（保证三个基向量正交）
-    Vec3 upLook;
-    Vec3::cross(right, _camFront, &upLook);               // upLook = right × camFront
-    upLook.normalize();
-    _camUp = upLook;                                      // 用于相机的 up（避免万向节问题）
+    cocos2d::Vec3 front(
+        cosf(yawRad) * cosf(pitchRad),
+        sinf(pitchRad),
+        sinf(yawRad) * cosf(pitchRad)
+    );
+    front.normalize();
 
-    // 键盘移动：W/S 沿水平前向移动，A/D 平移（水平右向），E/Q 沿世界 Y 轴上下
-    if (_keyW) move += frontXZ;
-    if (_keyS) move -= frontXZ;
-    if (_keyD) move += right;
-    if (_keyA) move -= right;
-    if (_keyE) move += Vec3::UNIT_Y;
-    if (_keyQ) move -= Vec3::UNIT_Y;
+    // 相机期望位置：在人物“后方”一定距离
+    cocos2d::Vec3 desiredPos = target - front *_followDistance;
 
-    // 应用移动：按速度缩放并更新相机位置
-    if (move.lengthSquared() > 0.0f) {
-        move.normalize();
-        _camPos += move * (_moveSpeed * dt);
-    }
+    // 平滑跟随（指数插值，帧率稳定）
+    float t = 1.0f - expf(-_followSmooth * dt);
+    _camPos = _camPos.lerp(desiredPos, t);
 
-    // 刷新主相机的位置与朝向
     _mainCamera->setPosition3D(_camPos);
-    _mainCamera->lookAt(_camPos + _camFront, _camUp);
+    _mainCamera->lookAt(target, cocos2d::Vec3::UNIT_Y);
 
-    // 让天空盒跟随相机位置（天空盒本质是背景，保持无旋转）
     if (_skybox) {
         _skybox->setPosition3D(_camPos);
-        _skybox->setRotation3D(Vec3::ZERO);
+        _skybox->setRotation3D(cocos2d::Vec3::ZERO);
     }
+
 }
 
 
@@ -377,4 +350,25 @@ bool BossScene::init()
     _eventDispatcher->addEventListenerWithSceneGraphPriority(kb, this);
 
     return true;
+}
+
+/* ---------- Player ---------- */
+
+void BaseScene::initPlayer()
+{
+    _player = Wukong::create();
+    if (!_player) {
+        CCLOG("Error: Wukong create failed!");
+        return;
+    }
+
+    // 放到场景中心，地面 y=0（你当前重力/落地简化也是 y=0）
+    _player->setPosition3D(cocos2d::Vec3(0.0f, 0.0f, 0.0f));
+    _player->setRotation3D(cocos2d::Vec3::ZERO); 
+
+    addChild(_player, 10);
+    // 绑定键盘控制（WASD/Shift/Space/J/K）
+    auto controller = PlayerController::create(_player);
+    controller->setCamera(_mainCamera);
+    addChild(controller, 20);
 }

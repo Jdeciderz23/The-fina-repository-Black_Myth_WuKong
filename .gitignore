@@ -361,3 +361,16 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+/build/
+/.vs/
+/.cmake/
+**/_cmake/
+CMakeFiles/
+CMakeCache.txt
+
+/proj.win32/bin/
+/proj.win32/obj/
+/proj.win32/CMakeFiles/
+/proj.win32/CMakeCache.txt
+/proj.win32/.vs/

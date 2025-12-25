@@ -3,7 +3,9 @@
 
 #include "cocos2d.h"
 #include <array>
+#include"Wukong.h"
 
+class Wukong;
 class BaseScene : public cocos2d::Scene
 {
 public:
@@ -27,6 +29,9 @@ protected:
     bool chooseSkyboxFaces(std::array<std::string, 6>& outFaces);
     bool verifyCubeFacesSquare(const std::array<std::string, 6>& faces);
 
+    /* ---------- Player ---------- */
+    void initPlayer();
+
 protected:
     /* ---------- Camera ---------- */
     cocos2d::Camera* _mainCamera = nullptr;
@@ -37,7 +42,7 @@ protected:
     cocos2d::Vec3 _camUp = cocos2d::Vec3::UNIT_Y;
 
     float _yaw = -90.0f;
-    float _pitch = 0.0f;
+    float _pitch = -15.0f;
 
     float _moveSpeed = 200.0f;
     float _mouseSensitivity = 0.15f;
@@ -47,6 +52,10 @@ protected:
     float _aspect = 1.0f;      // 宽高比
     float _nearPlane = 1.0f;   // 近裁剪面
     float _farPlane = 1000.0f; // 远裁剪面
+    float _followDistance = 1000.0f;   // 相机离人物距离
+    float _followHeight = 150.0f;    // 看向人物的高度（头部高度）
+    float _followSmooth = 10.0f;    // 跟随平滑（越大越跟手）
+
 
     /* ---------- Input ---------- */
     bool _keyW = false;
@@ -60,6 +69,9 @@ protected:
 
     cocos2d::Vec2 _lastMousePos;
     bool _hasLastMouse = false;
+
+    /* ---------- Player ---------- */
+    Wukong* _player = nullptr;
 };
 
 class CampScene : public BaseScene
