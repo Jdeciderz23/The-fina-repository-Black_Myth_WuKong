@@ -363,14 +363,14 @@ MigrationBackup/
 FodyWeavers.xsd
 
 /build/
-/proj.win32/bin/
-/proj.win32/obj/
-/proj.win32/.vs/
 /.vs/
 /.cmake/
-/CMakeFiles/
+**/_cmake/
+CMakeFiles/
 CMakeCache.txt
-/proj.win32
-/.gitignore
-/.gitignore
-/CMakeLists.txt
+
+/proj.win32/bin/
+/proj.win32/obj/
+/proj.win32/CMakeFiles/
+/proj.win32/CMakeCache.txt
+/proj.win32/.vs/
