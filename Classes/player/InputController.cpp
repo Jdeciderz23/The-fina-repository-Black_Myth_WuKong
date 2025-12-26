@@ -109,32 +109,32 @@ void PlayerController::bindKeyboard() {
 
     listener->onKeyPressed = [this](cocos2d::EventKeyboard::KeyCode code, cocos2d::Event*) {
         switch (code) {
-        case cocos2d::EventKeyboard::KeyCode::KEY_W: _w = true; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_A: _a = true; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_S: _s = true; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_D: _d = true; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_SHIFT: _run = true; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_SPACE:
-            if (_target) _target->jump();
-            break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_J:
-            if (_target) _target->attackLight();
-            break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_K:
-            if (_target) _target->roll();
-            break;
-        default: break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_W: _w = true; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_A: _a = true; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_S: _s = true; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_D: _d = true; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_SHIFT: _run = true; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_SPACE:
+                if (_target) _target->jump();
+                break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_J:
+                if (_target) _target->attackLight();
+                break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_K:
+                if (_target) _target->roll();
+                break;
+            default: break;
         }
         };
 
     listener->onKeyReleased = [this](cocos2d::EventKeyboard::KeyCode code, cocos2d::Event*) {
         switch (code) {
-        case cocos2d::EventKeyboard::KeyCode::KEY_W: _w = false; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_A: _a = false; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_S: _s = false; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_D: _d = false; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_SHIFT: _run = false; break;
-        default: break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_W: _w = false; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_A: _a = false; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_S: _s = false; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_D: _d = false; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_SHIFT: _run = false; break;
+            default: break;
         }
         };
 

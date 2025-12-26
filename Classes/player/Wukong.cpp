@@ -20,13 +20,13 @@ bool Wukong::init() {
     auto full = cocos2d::FileUtils::getInstance()->fullPathForFilename("WuKong/wukong.c3b");
     cocos2d::log("[Wukong] fullPath=%s", full.c_str());
 
-    //¼ÓÔØÄ£ÐÍ
+    //ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½
     _model = cocos2d::Sprite3D::create("WuKong/wukong.c3b");
     auto aabb = _model->getAABB();
     auto center = (aabb._min + aabb._max) * 0.5f;
 
 
-    // XZ ¾ÓÖÐ£¬Y ·½Ïò°Ñ½Åµ×Ì§µ½ y=0
+    // XZ ï¿½ï¿½ï¿½Ð£ï¿½Y ï¿½ï¿½ï¿½ï¿½Ñ½Åµï¿½Ì§ï¿½ï¿½ y=0
     //_model->setPosition3D(cocos2d::Vec3(-center.x, -aabb._min.y, -center.z));
 
     _model->setCameraMask((unsigned short)cocos2d::CameraFlag::USER1, true);
@@ -35,13 +35,13 @@ bool Wukong::init() {
         _model->setScale(1.0f);
         _model->setPosition3D(cocos2d::Vec3::ZERO);
         _model->setRotation3D(cocos2d::Vec3(0.0f, 0.0f, 180.0f));
-       // _model->setRotation3D(cocos2d::Vec3::ZERO);
+        // _model->setRotation3D(cocos2d::Vec3::ZERO);
         _model->setCameraMask((unsigned short)cocos2d::CameraFlag::USER1, true);
         _model->setForceDepthWrite(true);
         _model->setCullFaceEnabled(false);
         _visualRoot->addChild(_model);
 
-        // Ô¤¼ÓÔØ×î»ù´¡Á½Ì×
+        // Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         _anims["idle"] = cocos2d::Animation3D::create("WuKong/Idle.c3b");
         _anims["run"] = cocos2d::Animation3D::create("WuKong/Jog_Fwd.c3b");
         _anims["jump_pad"] = cocos2d::Animation3D::create("WuKong/Jump_Pad.c3b");
@@ -63,11 +63,11 @@ bool Wukong::init() {
 void Wukong::loadAnimIfNeeded(const std::string& key,
     const std::string& c3bPath)
 {
-    if (_anims.count(key)) 
+    if (_anims.count(key))
         return;
 
-    // Äã°ÑÎÄ¼þ·ÅÄÄ£¬¾Í°ÑÕâÀïÂ·¾¶¸Ä³É¶ÔÓ¦ Resources Â·¾¶
-    // ±ÈÈç "Models/Wukong/Idle.FBX"
+    // ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½Í°ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½Ä³É¶ï¿½Ó¦ Resources Â·ï¿½ï¿½
+    // ï¿½ï¿½ï¿½ï¿½ "Models/Wukong/Idle.FBX"
     cocos2d::Animation3D* anim = cocos2d::Animation3D::create(c3bPath);
     _anims[key] = anim;
 
@@ -120,7 +120,7 @@ void Wukong::startJumpAnim()
     _curAnim = "jump";
     _model->stopActionByTag(_animTag);
 
-    // Pad -> Start -> Apex(Ñ­»·£¬Ö±µ½ÂäµØ±» stop)
+    // Pad -> Start -> Apex(Ñ­ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½Ø±ï¿½ stop)
     auto apexLoop = cocos2d::RepeatForever::create(apex);
     auto seq = cocos2d::Sequence::create(pad, start, apexLoop, nullptr);
 
@@ -135,10 +135,10 @@ void Wukong::onJumpLanded()
     auto land = makeAnimate("jump_land");
     auto rec = makeAnimate("jump_recovery");
 
-    // ÏÈÍ£µô¿ÕÖÐÑ­»·£¨»òÕßÕýÔÚÅÜµÄÌøÔ¾ÐòÁÐ£©
+    // ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Üµï¿½ï¿½ï¿½Ô¾ï¿½ï¿½ï¿½Ð£ï¿½
     _model->stopActionByTag(_animTag);
 
-    // Èç¹ûÈ±¶¯»­£¬ÖÁÉÙ±ð¿¨ËÀ£ºÖ±½Ó»Ø Idle/Move
+    // ï¿½ï¿½ï¿½È±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù±ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½Ó»ï¿½ Idle/Move
     if (!land || !rec) {
         const auto intent = this->getMoveIntent();
         if (intent.dirWS.lengthSquared() > 1e-6f) this->getStateMachine().changeState("Move");
@@ -152,7 +152,7 @@ void Wukong::onJumpLanded()
         else this->getStateMachine().changeState("Idle");
         });
 
-    // Land -> Recovery -> »Øµ½ Idle/Move
+    // Land -> Recovery -> ï¿½Øµï¿½ Idle/Move
     auto seq = cocos2d::Sequence::create(land, rec, backToLocomotion, nullptr);
     seq->setTag(_animTag);
     _model->runAction(seq);

@@ -22,8 +22,19 @@ void EnemyIdleState::onEnter(Enemy* enemy) {
     // 随机设置最大待机时间（1-3秒）
     _maxIdleTime = RandomHelper::random_real(1.0f, 3.0f);
     
-    // 待机动画（如果有）
-    // enemy->_sprite->runAction(Animation3D::create(...));
+    // 播放待机动画
+    if (enemy->getSprite()) {
+        // 停止当前所有动作
+        enemy->getSprite()->stopAllActions();
+        
+        // 暂时移除待机动画，专注于基础模型显示
+        // auto animation = Animation3D::create("Enemy/idle.c3b");
+        // if (animation) {
+        //     auto animate = Animate3D::create(animation);
+        //     auto repeat = RepeatForever::create(animate);
+        //     enemy->getSprite()->runAction(repeat);
+        // }
+    }
 }
 
 void EnemyIdleState::onUpdate(Enemy* enemy, float deltaTime) {
@@ -50,6 +61,11 @@ void EnemyIdleState::onUpdate(Enemy* enemy, float deltaTime) {
 
 void EnemyIdleState::onExit(Enemy* enemy) {
     CCLOG("Enemy exited idle state");
+    
+    // 清理待机动画（可选，因为下一个状态会停止并替换）
+    if (enemy->getSprite()) {
+        // 不需要在这里停止所有动作，因为下一个状态的onEnter会调用stopAllActions
+    }
 }
 
 std::string EnemyIdleState::getStateName() const {
@@ -77,13 +93,25 @@ void EnemyPatrolState::onEnter(Enemy* enemy) {
     _maxPatrolTime = RandomHelper::random_real(3.0f, 7.0f);
     
     // 在当前位置附近随机生成巡逻目标点
-    Vec3 currentPos = enemy->getPosition3D();
-    _patrolTarget.x = currentPos.x + RandomHelper::random_real(-100.0f, 100.0f);
-    _patrolTarget.y = currentPos.y;
-    _patrolTarget.z = currentPos.z + RandomHelper::random_real(-100.0f, 100.0f);
+    Vec3 birthPos = enemy->getBirthPosition();
+
+    float patrolRadius = 100.0f;
+    float angle = RandomHelper::random_real(0.0f, (float)M_PI * 2);
+
+    _patrolTarget.x = birthPos.x + cosf(angle) * patrolRadius;
+    _patrolTarget.y = birthPos.y;
+    _patrolTarget.z = birthPos.z + sinf(angle) * patrolRadius;
     
-    // 巡逻动画（如果有）
-    // enemy->_sprite->runAction(Animation3D::create(...));
+    // 暂时移除巡逻动画，专注于基础模型显示
+    // if (enemy->getSprite()) {
+    //     enemy->getSprite()->stopAllActions();
+    //     auto animation = Animation3D::create("Enemy/patrol.c3b");
+    //     if (animation) {
+    //         auto animate = Animate3D::create(animation);
+    //         auto repeat = RepeatForever::create(animate);
+    //         enemy->getSprite()->runAction(repeat);
+    //     }
+    // }
 }
 
 void EnemyPatrolState::onUpdate(Enemy* enemy, float deltaTime) {
@@ -103,8 +131,15 @@ void EnemyPatrolState::onUpdate(Enemy* enemy, float deltaTime) {
         
         if (distance > 10.0f) { // 接近目标点（阈值10单位）
             direction.normalize();
+            
+            // 根据移动方向调整模型朝向（考虑初始180度旋转）
+            if (enemy->getSprite()) {
+                float angle = atan2f(direction.x, direction.z) * 180.0f / M_PI+45.0f;
+                enemy->getSprite()->setRotation3D(Vec3(0, angle, 0));
+            }
+            
             Vec3 newPos = currentPos + direction * enemy->getMoveSpeed() * deltaTime;
-            enemy->setPosition(newPos);
+            enemy->setPosition3D(newPos);
         } else {
             // 到达目标点，切换到待机状态
             enemy->getStateMachine()->changeState("Idle");
@@ -159,16 +194,21 @@ void EnemyChaseState::onUpdate(Enemy* enemy, float deltaTime) {
     }
     
     _chaseTimer += deltaTime;
-    
-    // TODO: 获取玩家位置
-    Vec3 playerPosition = Vec3::ZERO; // 临时值，需要替换为实际玩家位置
+    Vec3 currentPos = enemy->getPosition3D();
     
     // 计算与玩家的距离
-    Vec3 currentPos = enemy->getPosition3D();
-    float distance = currentPos.distance(playerPosition);
-    
+    float distanceFromBirth = currentPos.distance(enemy->getBirthPosition());
+    if (distanceFromBirth > enemy->getMaxChaseRange()) {
+        // 追得太远，强制回家
+        enemy->getStateMachine()->changeState("Return");
+        return;
+    }
+    // TODO: 获取玩家位置
+    Vec3 playerPosition = Vec3::ZERO; // 临时值，需要替换为实际玩家位置
+    float distanceToPlayer = currentPos.distance(playerPosition);
+
     // 如果玩家在视野范围内且在移动范围内，尝试移动或攻击
-    if (distance <= enemy->getViewRange()) {
+    if (distanceToPlayer <= enemy->getViewRange()) {
         if (enemy->canAttack()) {
             // 进入攻击状态
             enemy->getStateMachine()->changeState("Attack");
@@ -177,13 +217,13 @@ void EnemyChaseState::onUpdate(Enemy* enemy, float deltaTime) {
             Vec3 direction = playerPosition - currentPos;
             direction.normalize();
             Vec3 newPos = currentPos + direction * enemy->getMoveSpeed() * deltaTime;
-            enemy->setPosition(newPos);
+            enemy->setPosition3D(newPos);
             
             // TODO: 实现路径寻找算法，避免障碍物
         }
     } else {
         // 玩家超出视野范围，切换到待机状态
-        enemy->getStateMachine()->changeState("Idle");
+        enemy->getStateMachine()->changeState("Return");
     }
 }
 
@@ -364,3 +404,77 @@ void EnemyDeadState::onExit(Enemy* enemy) {
 std::string EnemyDeadState::getStateName() const {
     return "Dead";
 }
+
+// ==================== ReturnState ====================
+ReturnState::ReturnState()
+    : _returnTarget(Vec3::ZERO) {
+}
+
+ReturnState::~ReturnState() {
+}
+
+void ReturnState::onEnter(Enemy* enemy) {
+    CCLOG("Enemy entered return state");
+
+    // 回家的目标 = 出生点
+    _returnTarget = enemy->getBirthPosition();
+
+    // 暂时移除回家动画，专注于基础模型显示
+    // if (enemy->getSprite()) {
+    //     enemy->getSprite()->stopAllActions();
+    //     auto animation = Animation3D::create("Enemy/patrol.c3b");
+    //     if (animation) {
+    //         enemy->getSprite()->runAction(
+    //             RepeatForever::create(Animate3D::create(animation))
+    //         );
+    //     }
+    // }
+}
+
+void ReturnState::onUpdate(Enemy* enemy, float deltaTime) {
+    // 统一死亡判断
+    if (enemy->isDead()) {
+        enemy->getStateMachine()->changeState("Dead");
+        return;
+    }
+
+    Vec3 currentPos = enemy->getPosition3D();
+    // ===== 玩家重新进入感知范围,立刻追击 =====
+    // TODO: 替换为真实玩家坐标
+    Vec3 playerPosition = Vec3::ZERO;
+    float distanceToPlayer =
+        currentPos.distance(playerPosition);
+
+    if (distanceToPlayer <= enemy->getViewRange()) {
+        enemy->getStateMachine()->changeState("Chase");
+        return;
+    }
+
+    //回家逻辑
+    if (!enemy->canMove()) return;
+
+    Vec3 direction = _returnTarget - currentPos;
+    float distance = direction.length();
+
+    if (distance > 10.0f) {
+        direction.normalize();
+
+        // ===== 临时方案：直线位移（未来替换为寻路） =====
+        Vec3 newPos =currentPos + direction * enemy->getMoveSpeed() * deltaTime;
+        enemy->setPosition3D(newPos);
+    }
+    else {
+        // 到家了 → 开始巡逻
+        enemy->getStateMachine()->changeState("Patrol");
+    }
+}
+
+
+void ReturnState::onExit(Enemy* enemy) {
+    CCLOG("Enemy exited return state");
+}
+
+std::string ReturnState::getStateName() const {
+    return "Return";
+}
+

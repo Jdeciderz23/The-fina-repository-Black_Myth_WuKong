@@ -10,38 +10,38 @@
 
 /**
  * @class Wukong
- * @brief Îò¿Õ½ÇÉ«Àà£¨Character ÅÉÉúÀà£©£¬ÊµÏÖ¶¯»­²¥·ÅÓëÄ£ÐÍ¹ÒÔØ£¨¶àÌ¬ÊµÏÖ£©
+ * @brief ï¿½ï¿½Õ½ï¿½É«ï¿½à£¨Character ï¿½ï¿½ï¿½ï¿½ï¿½à£©ï¿½ï¿½Êµï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½Í¹ï¿½ï¿½Ø£ï¿½ï¿½ï¿½Ì¬Êµï¿½Ö£ï¿½
  */
 class Wukong : public Character {
 public:
     /**
-     * @brief ´´½¨Îò¿ÕÊµÀý£¨cocos2d ¹¤³§º¯Êý£©
-     * @return Wukong* ´´½¨³É¹¦·µ»Ø¶ÔÏóÖ¸Õë£¬Ê§°Ü·µ»Ø nullptr
+     * @brief ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½cocos2d ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+     * @return Wukong* ï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½ï¿½Ø¶ï¿½ï¿½ï¿½Ö¸ï¿½ë£¬Ê§ï¿½Ü·ï¿½ï¿½ï¿½ nullptr
      */
     static Wukong* create();
 
     /**
-     * @brief ³õÊ¼»¯
-     * @return bool ÊÇ·ñ³õÊ¼»¯³É¹¦
+     * @brief ï¿½ï¿½Ê¼ï¿½ï¿½
+     * @return bool ï¿½Ç·ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½É¹ï¿½
      */
     virtual bool init() override;
 
     /**
-     * @brief ²¥·Å¶¯»­£¨ÅÉÉúÀàÊµÏÖ£©
-     * @param name ¶¯»­Ãû
-     * @param loop ÊÇ·ñÑ­»·
+     * @brief ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½Ö£ï¿½
+     * @param name ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+     * @param loop ï¿½Ç·ï¿½Ñ­ï¿½ï¿½
      */
     virtual void playAnim(const std::string& name, bool loop) override;
 
-    // ¶à¶ÎÌøÔ¾£ºPad -> Start -> Apex(Ñ­»·)
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Ô¾ï¿½ï¿½Pad -> Start -> Apex(Ñ­ï¿½ï¿½)
     void startJumpAnim();
 
-    // ÂäµØ£ºÍ£Ö¹Apex -> Land -> Recovery -> »Øµ½Idle/Move
+    // ï¿½ï¿½Ø£ï¿½Í£Ö¹Apex -> Land -> Recovery -> ï¿½Øµï¿½Idle/Move
     void onJumpLanded();
 
 
 private:
-    cocos2d::Sprite3D* _model; ///< ½ÇÉ«Ä£ÐÍ£¨¿ÉÎª¿Õ£©
+    cocos2d::Sprite3D* _model; ///< ï¿½ï¿½É«Ä£ï¿½Í£ï¿½ï¿½ï¿½Îªï¿½Õ£ï¿½
     std::string _curAnim;
     int _animTag = 1001;
     std::unordered_map<std::string, cocos2d::Animation3D*> _anims;

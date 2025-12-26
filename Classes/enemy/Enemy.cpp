@@ -25,7 +25,10 @@ Enemy::Enemy()
     , _canMove(true)
     , _canAttack(true)
     , _sprite(nullptr)
-    , _targetPosition(Vec3::ZERO) {
+    , _targetPosition(Vec3::ZERO)
+    , _birthPosition(0, 100, 0)
+    , _maxChaseRange(1000.0f)
+{
 }
 
 Enemy::~Enemy() {
@@ -39,7 +42,7 @@ bool Enemy::init() {
     if (!Node::init()) {
         return false;
     }
-    
+
     // 初始化状态机
     initStateMachine();
     
@@ -49,13 +52,25 @@ bool Enemy::init() {
     // 初始化战斗组件
     initCombatComponent();
     
-    // 创建3D精灵（使用Cocos2d-x内置的立方体作为占位符）
-    _sprite = Sprite3D::create("cc3d:cube.obj");
-    if (_sprite) {
-        _sprite->setColor(Color3B::RED);
-        this->addChild(_sprite);
+    // 创建3D精灵
+    _birthPosition = this->getPosition3D();
+
+    _sprite = nullptr;
+    _sprite = cocos2d::Sprite3D::create("Enemy/enemy1.c3b");
+    if (!_sprite) {
+        CCLOG("错误: 无法加载敌人模型");
+        return false;
     }
-    
+    _sprite->setScale(1.0f);
+    // 暂时移除初始180度旋转，让模型自然朝向正前方
+    _sprite->setRotation3D(Vec3(0, 0, 0));
+    _sprite->setPosition3D(Vec3(0.0f, 0.0f, 0.0f));
+    _sprite->setCameraMask((unsigned short)CameraFlag::USER1); // 设置相机遮罩，与主相机一致
+    _sprite->setForceDepthWrite(true); // 启用深度写入，防止渲染异常
+    _sprite->setCullFaceEnabled(false); // 禁用面剔除，防止模型部分不可见
+    this->addChild(_sprite);
+
+
     // 开启更新循环
     this->scheduleUpdate();
     
@@ -110,11 +125,6 @@ void Enemy::setEnemyType(EnemyType type) {
             _rotateSpeed = 180.0f;
             _viewRange = 200.0f;
             break;
-        case EnemyType::ELITE:
-            _moveSpeed = 70.0f;
-            _rotateSpeed = 240.0f;
-            _viewRange = 250.0f;
-            break;
         case EnemyType::BOSS:
             _moveSpeed = 40.0f;
             _rotateSpeed = 120.0f;
@@ -123,12 +133,10 @@ void Enemy::setEnemyType(EnemyType type) {
     }
 }
 
-void Enemy::setPosition(const Vec3& position) {
+void Enemy::setPosition3D(const Vec3& position) {
     Node::setPosition3D(position);
-    if (_sprite) {
-        _sprite->setPosition3D(position);
-    }
 }
+
 
 Vec3 Enemy::getPosition3D() const {
     return Node::getPosition3D();
@@ -142,6 +150,20 @@ Sprite3D* Enemy::getSprite() const {
     return _sprite;
 }
 
+// 设置出生点
+void Enemy::setBirthPosition(const Vec3& pos) {
+    _birthPosition = pos;
+}
+
+// 获取出生点
+const Vec3& Enemy::getBirthPosition() const {
+    return _birthPosition;
+}
+
+// 获取最大追击距离
+float Enemy::getMaxChaseRange() const {
+    return _maxChaseRange;
+}
 void Enemy::initStateMachine() {
     // 创建状态机实例
     _stateMachine = new StateMachine<Enemy>(this);
@@ -153,9 +175,10 @@ void Enemy::initStateMachine() {
     _stateMachine->registerState(new EnemyAttackState());
     _stateMachine->registerState(new EnemyHitState());
     _stateMachine->registerState(new EnemyDeadState());
-    
-    // 初始化为待机状态
-    _stateMachine->init(new EnemyIdleState());
+    _stateMachine->registerState(new ReturnState());
+
+    // 初始化为待机状态（使用已注册的状态）
+    _stateMachine->changeState("Idle");
 }
 
 void Enemy::initHealthComponent() {
@@ -174,7 +197,7 @@ void Enemy::initCombatComponent() {
     // 创建战斗组件
     _combat = CombatComponent::create();
     if (_combat) {
-        this->addComponent(_combat);
+        //this->addComponent(_combat);
     }
 }
 
@@ -216,3 +239,13 @@ void Enemy::onDeadCallback(Node* attacker) {
         _stateMachine->changeState("Dead");
     }
 }
+
+bool Enemy::isLowHealth() const {
+    if (!_health) return false;
+    return _health->getHealthPercentage() <= 0.3f;
+}
+
+float Enemy::getHealthRatio() const {
+    return _health ? _health->getHealthPercentage() : 1.0f;
+}
+
