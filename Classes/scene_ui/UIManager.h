@@ -31,6 +31,7 @@ public:
      * @return cocos2d::Scene* 创建好的场景对象
      */
     cocos2d::Scene* createStartMenuScene();
+    void showPauseMenu();
 
     // 后续可扩展：显示 HUD、更新玩家血量等
     // void showHUD();
@@ -69,6 +70,11 @@ private:
      * @param sender 触发事件的节点对象
      */
     void onExitGame(cocos2d::Ref* sender);
+
+    void onPauseHeal(cocos2d::Ref* sender);
+    void onPauseTeleport(cocos2d::Ref* sender);
+    void onPauseResume(cocos2d::Ref* sender);
+    void onPauseReturnTitle(cocos2d::Ref* sender);
 };
 
 #endif // __UI_MANAGER_H__                        // 防重宏结束
