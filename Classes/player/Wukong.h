@@ -38,7 +38,7 @@ public:
 
     // ��أ�ֹͣApex -> Land -> Recovery -> �ص�Idle/Move
     void onJumpLanded();
- 
+
 
 private:
     cocos2d::Sprite3D* _model; ///< ��ɫģ�ͣ���Ϊ�գ�

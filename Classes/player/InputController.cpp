@@ -36,24 +36,24 @@ void PlayerController::update(float dt) {
     if (_a) raw.x -= 1.0f;
     if (_d) raw.x += 1.0f;*/
 
-    // 1) æ”¶é›†è¾“å…¥ï¼šA/D -> x, W/S -> z
+    // 1) ÊÕ¼¯ÊäÈë£ºA/D -> x, W/S -> z
     float x = 0.0f;
     float z = 0.0f;
     if (_a) x -= 1.0f;
     if (_d) x += 1.0f;
-    if (_w) z += 1.0f;   // W å‰
-    if (_s) z -= 1.0f;   // S åŽ
+    if (_w) z += 1.0f;   // W Ç°
+    if (_s) z -= 1.0f;   // S ºó
 
     cocos2d::Vec3 moveWS = cocos2d::Vec3::ZERO;
 
-    // 2) æœ‰è¾“å…¥æ‰ç®—æ–¹å‘
+    // 2) ÓÐÊäÈë²ÅËã·½Ïò
     if (fabsf(x) > 1e-6f || fabsf(z) > 1e-6f)
     {
-        // æ–œå‘ç§»åŠ¨ä¸åŠ é€Ÿï¼šå½’ä¸€åŒ–è¾“å…¥
+        // Ð±ÏòÒÆ¶¯²»¼ÓËÙ£º¹éÒ»»¯ÊäÈë
         float len = sqrtf(x * x + z * z);
         x /= len; z /= len;
 
-        // 3) å–ç›¸æœºæœå‘ï¼ˆæŠ•å½±åˆ°åœ°é¢ï¼‰
+        // 3) È¡Ïà»ú³¯Ïò£¨Í¶Ó°µ½µØÃæ£©
         cocos2d::Vec3 forward = cocos2d::Vec3(0, 0, 1);
         if (_cam)
         {
@@ -62,7 +62,7 @@ void PlayerController::update(float dt) {
             if (camToPlayer.lengthSquared() > 1e-6f)
             {
                 camToPlayer.normalize();
-                forward = camToPlayer; // é•œå¤´æŒ‡å‘è§’è‰²çš„æ–¹å‘ä½œä¸ºâ€œå‰â€
+                forward = camToPlayer; // ¾µÍ·Ö¸Ïò½ÇÉ«µÄ·½Ïò×÷Îª¡°Ç°¡±
             }
         }
 
@@ -70,36 +70,36 @@ void PlayerController::update(float dt) {
         cocos2d::Vec3::cross(forward, cocos2d::Vec3::UNIT_Y, &right);
         right.normalize();
 
-        // 4) ç»„åˆï¼šå‰åŽ + å·¦å³
+        // 4) ×éºÏ£ºÇ°ºó + ×óÓÒ
         moveWS = forward * z + right * (-x);
     }
 
-    // 5) äº¤ç»™è§’è‰²
+    // 5) ½»¸ø½ÇÉ«
     Character::MoveIntent intent;
-    intent.dirWS = moveWS;      // Vec3::ZERO è¡¨ç¤ºä¸ç§»åŠ¨
-    intent.run = _run;          // ä½ å·²æœ‰çš„ Shift/è·‘æ­¥æ ‡è®°
+    intent.dirWS = moveWS;      // Vec3::ZERO ±íÊ¾²»ÒÆ¶¯
+    intent.run = _run;          // ÄãÒÑÓÐµÄ Shift/ÅÜ²½±ê¼Ç
     _target->setMoveIntent(intent);
     //cocos2d::Vec3 raw = cocos2d::Vec3::ZERO;
     // cocos2d::Vec3 worldDir = raw;
 
-    //// å…³é”®ï¼šç›¸å¯¹é•œå¤´
+    //// ¹Ø¼ü£ºÏà¶Ô¾µÍ·
     //if (_cam && raw.lengthSquared() > 1e-6f) {
     //    cocos2d::Vec3 camToPlayer = (_target->getPosition3D() - _cam->getPosition3D());
     //    camToPlayer.y = 0.0f;
     //    if (camToPlayer.lengthSquared() > 1e-6f) camToPlayer.normalize();
     //    else camToPlayer = cocos2d::Vec3(0, 0, -1);
 
-    //    cocos2d::Vec3 forward = camToPlayer;                 // é•œå¤´â€œæœå‘è§’è‰²â€çš„æ°´å¹³å‰æ–¹
+    //    cocos2d::Vec3 forward = camToPlayer;                 // ¾µÍ·¡°³¯Ïò½ÇÉ«¡±µÄË®Æ½Ç°·½
     //    cocos2d::Vec3 right;
     //    cocos2d::Vec3::cross(forward, cocos2d::Vec3::UNIT_Y, &right);
     //    right.normalize();
 
-    //    // raw.z: W=-1  S=+1ï¼Œæ‰€ä»¥ç”¨ -raw.z
+    //    // raw.z: W=-1  S=+1£¬ËùÒÔÓÃ -raw.z
     //    worldDir = forward * (-raw.z) + right * (raw.x);
     //}
 
     //Character::MoveIntent intent;
-    //intent.dirWS = worldDir;   // çŽ°åœ¨æ˜¯ä¸–ç•Œæ–¹å‘ï¼Œä½†ä¸Žé•œå¤´ä¸€è‡´
+    //intent.dirWS = worldDir;   // ÏÖÔÚÊÇÊÀ½ç·½Ïò£¬µ«Óë¾µÍ·Ò»ÖÂ
     //intent.run = _run;
     //_target->setMoveIntent(intent);
 }
@@ -109,32 +109,32 @@ void PlayerController::bindKeyboard() {
 
     listener->onKeyPressed = [this](cocos2d::EventKeyboard::KeyCode code, cocos2d::Event*) {
         switch (code) {
-        case cocos2d::EventKeyboard::KeyCode::KEY_W: _w = true; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_A: _a = true; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_S: _s = true; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_D: _d = true; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_SHIFT: _run = true; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_SPACE:
-            if (_target) _target->jump();
-            break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_J:
-            if (_target) _target->attackLight();
-            break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_K:
-            if (_target) _target->roll();
-            break;
-        default: break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_W: _w = true; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_A: _a = true; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_S: _s = true; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_D: _d = true; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_SHIFT: _run = true; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_SPACE:
+                if (_target) _target->jump();
+                break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_J:
+                if (_target) _target->attackLight();
+                break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_K:
+                if (_target) _target->roll();
+                break;
+            default: break;
         }
         };
 
     listener->onKeyReleased = [this](cocos2d::EventKeyboard::KeyCode code, cocos2d::Event*) {
         switch (code) {
-        case cocos2d::EventKeyboard::KeyCode::KEY_W: _w = false; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_A: _a = false; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_S: _s = false; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_D: _d = false; break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_SHIFT: _run = false; break;
-        default: break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_W: _w = false; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_A: _a = false; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_S: _s = false; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_D: _d = false; break;
+            case cocos2d::EventKeyboard::KeyCode::KEY_SHIFT: _run = false; break;
+            default: break;
         }
         };
 

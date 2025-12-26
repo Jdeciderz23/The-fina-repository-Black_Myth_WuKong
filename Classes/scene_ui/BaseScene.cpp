@@ -10,6 +10,7 @@
 #include "InputController.h"
 #include "scene_ui/UIManager.h"
 #include "../combat/Collider.h"
+#include "Enemy.h"
 
 USING_NS_CC;
 
@@ -34,7 +35,7 @@ bool BaseScene::init()
     initLights();                                       
     initPlayer();
     initInput();                                        
-
+    initEnemy();
 
     auto vs = Director::getInstance()->getVisibleSize(); // 获取屏幕可见区域大小
     Vec2 origin = Director::getInstance()->getVisibleOrigin(); // 获取可见区域原点坐标
@@ -367,4 +368,16 @@ void BaseScene::initPlayer()
     auto controller = PlayerController::create(_player);
     controller->setCamera(_mainCamera);
     addChild(controller, 20);
+}
+void BaseScene::initEnemy()
+{
+    auto enemy = Enemy::create();
+    if (!enemy) {
+        CCLOG("Failed to create enemy instance");
+        return;
+    }
+
+    enemy->setPosition3D(Vec3(0, 100, 0));
+
+    this->addChild(enemy);
 }

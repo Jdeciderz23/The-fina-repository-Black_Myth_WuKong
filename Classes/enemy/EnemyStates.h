@@ -29,9 +29,9 @@ class EnemyIdleState : public BaseState<Enemy> {
 public:
     EnemyIdleState();
     virtual ~EnemyIdleState();
-    virtual void onEnter(Enemy* enemy) override;
-    virtual void onUpdate(Enemy* enemy, float deltaTime) override;
-    virtual void onExit(Enemy* enemy) override;
+    virtual void onEnter(Enemy* enemy) override;                    //刚进入这个状态做什么
+    virtual void onUpdate(Enemy* enemy, float deltaTime) override;  //每一帧这个状态下应该做什么
+    virtual void onExit(Enemy* enemy) override;                     //离开这个状态之前做什么
     virtual std::string getStateName() const override;
     
 private:
@@ -126,4 +126,24 @@ public:
     
 private:
     bool _isDeadProcessed;  ///< 死亡处理是否完成
+};
+
+/**
+ * @class ReturnState
+ * @brief 敌人死亡状态类
+ */
+
+class ReturnState : public BaseState<Enemy> {
+public:
+    ReturnState();
+    virtual ~ReturnState();
+
+    virtual void onEnter(Enemy* enemy) override;
+    virtual void onUpdate(Enemy* enemy, float deltaTime) override;
+    virtual void onExit(Enemy* enemy) override;
+
+    virtual std::string getStateName() const override;
+
+private:
+    Vec3 _returnTarget;
 };

@@ -22,7 +22,6 @@ public:
      */
     enum class EnemyType {
         NORMAL,  ///< 普通敌人
-        ELITE,   ///< 精英敌人
         BOSS     ///< BOSS敌人
     };
     
@@ -106,7 +105,7 @@ public:
      * @brief 设置敌人位置
      * @param position 目标位置
      */
-    virtual void setPosition(const Vec3& position);
+    virtual void setPosition3D(const Vec3& position);
     
     /**
      * @brief 获取敌人位置
@@ -125,6 +124,35 @@ public:
      * @return Sprite3D* 3D精灵指针
      */
     Sprite3D* getSprite() const;
+
+    /**
+    * @brief 设置出生点（一般在 init 中调用）
+    */
+    void setBirthPosition(const Vec3& pos);
+
+    /**
+     * @brief 获取出生点
+     */
+    const Vec3& getBirthPosition() const;
+
+    /**
+     * @brief 获取最大追击距离
+     */
+    float getMaxChaseRange() const;
+
+    
+protected:
+    /**
+     * @brief 检查是否处于低血量状态
+     * @return bool 是否处于低血量状态
+     */
+    bool isLowHealth() const;
+    
+    /**
+     * @brief 获取当前生命值比例
+     * @return float 生命值比例 (0.0f - 1.0f)
+     */
+    float getHealthRatio() const;
     
 protected:
     /**
@@ -167,8 +195,11 @@ protected:
     bool _canMove;                     // 是否可以移动
     bool _canAttack;                   // 是否可以攻击
     
-    Sprite3D* _sprite;                 // 3D模型精灵
+    cocos2d::Sprite3D* _sprite;        // 3D模型精灵
     Vec3 _targetPosition;              // 目标位置
+    Vec3 _birthPosition;               //出生点
+    float _maxChaseRange;              //最大追击距离
+
 };
 
 #endif // ENEMY_H

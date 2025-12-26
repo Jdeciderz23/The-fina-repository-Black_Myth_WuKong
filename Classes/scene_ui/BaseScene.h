@@ -5,7 +5,7 @@
 #include <array>
 #include "Wukong.h"
 #include "../combat/Collider.h"
-
+#include "Enemy.h"
 class Wukong;
 class TerrainCollider;
 class BaseScene : public cocos2d::Scene
@@ -22,7 +22,7 @@ protected:
     void initSkybox();
     void initLights();
     void initInput();
-
+    void initEnemy();
     /* ---------- Update ---------- */
     virtual void update(float dt) override;
     void updateCamera(float dt);

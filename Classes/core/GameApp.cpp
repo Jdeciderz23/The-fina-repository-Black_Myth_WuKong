@@ -19,7 +19,7 @@ GameApp* GameApp::getInstance() {
 /**
  * @brief GameApp构造函数
  */
-GameApp::GameApp() : 
+GameApp::GameApp() :
     _director(nullptr),
     _sceneManager(nullptr),
     _eventManager(nullptr),
@@ -36,7 +36,7 @@ GameApp::~GameApp() {
         delete _sceneManager;
         _sceneManager = nullptr;
     }
-    
+
     if (_eventManager) {
         delete _eventManager;
         _eventManager = nullptr;
@@ -52,10 +52,10 @@ bool GameApp::init(Director* director) {
     if (!director) {
         return false;
     }
-    
+
     // 保存导演实例
     _director = director;
-    
+
     // 创建场景管理器
     _sceneManager = new SceneManager();
     if (!_sceneManager->init()) {
@@ -66,11 +66,11 @@ bool GameApp::init(Director* director) {
     // 注册标题场景（开始菜单）
     _sceneManager->registerScene(SceneManager::SceneType::TITLE, []() {
         return UIManager::getInstance()->createStartMenuScene();
-    });
+        });
     _sceneManager->registerScene(SceneManager::SceneType::GAMEPLAY, []() {
         return CampScene::createScene();
-    });
-    
+        });
+
     // 创建事件管理器
     _eventManager = new EventManager();
     if (!_eventManager->init()) {
@@ -78,7 +78,7 @@ bool GameApp::init(Director* director) {
         _eventManager = nullptr;
         return false;
     }
-    
+
     // 初始化成功
     return true;
 }
@@ -91,12 +91,12 @@ void GameApp::update(float deltaTime) {
     if (_isPaused) {
         return;
     }
-    
+
     // 更新场景管理器
     if (_sceneManager) {
         _sceneManager->update(deltaTime);
     }
-    
+
     // 更新事件管理器
     if (_eventManager) {
         _eventManager->update(deltaTime);
