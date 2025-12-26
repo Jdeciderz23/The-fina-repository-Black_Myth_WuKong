@@ -36,24 +36,24 @@ void PlayerController::update(float dt) {
     if (_a) raw.x -= 1.0f;
     if (_d) raw.x += 1.0f;*/
 
-    // 1) ÊÕ¼¯ÊäÈë£ºA/D -> x, W/S -> z
+    // 1) æ”¶é›†è¾“å…¥ï¼šA/D -> x, W/S -> z
     float x = 0.0f;
     float z = 0.0f;
     if (_a) x -= 1.0f;
     if (_d) x += 1.0f;
-    if (_w) z += 1.0f;   // W Ç°
-    if (_s) z -= 1.0f;   // S ºó
+    if (_w) z += 1.0f;   // W å‰
+    if (_s) z -= 1.0f;   // S å
 
     cocos2d::Vec3 moveWS = cocos2d::Vec3::ZERO;
 
-    // 2) ÓĞÊäÈë²ÅËã·½Ïò
+    // 2) æœ‰è¾“å…¥æ‰ç®—æ–¹å‘
     if (fabsf(x) > 1e-6f || fabsf(z) > 1e-6f)
     {
-        // Ğ±ÏòÒÆ¶¯²»¼ÓËÙ£º¹éÒ»»¯ÊäÈë
+        // æ–œå‘ç§»åŠ¨ä¸åŠ é€Ÿï¼šå½’ä¸€åŒ–è¾“å…¥
         float len = sqrtf(x * x + z * z);
         x /= len; z /= len;
 
-        // 3) È¡Ïà»ú³¯Ïò£¨Í¶Ó°µ½µØÃæ£©
+        // 3) å–ç›¸æœºæœå‘ï¼ˆæŠ•å½±åˆ°åœ°é¢ï¼‰
         cocos2d::Vec3 forward = cocos2d::Vec3(0, 0, 1);
         if (_cam)
         {
@@ -62,7 +62,7 @@ void PlayerController::update(float dt) {
             if (camToPlayer.lengthSquared() > 1e-6f)
             {
                 camToPlayer.normalize();
-                forward = camToPlayer; // ¾µÍ·Ö¸Ïò½ÇÉ«µÄ·½Ïò×÷Îª¡°Ç°¡±
+                forward = camToPlayer; // é•œå¤´æŒ‡å‘è§’è‰²çš„æ–¹å‘ä½œä¸ºâ€œå‰â€
             }
         }
 
@@ -70,36 +70,36 @@ void PlayerController::update(float dt) {
         cocos2d::Vec3::cross(forward, cocos2d::Vec3::UNIT_Y, &right);
         right.normalize();
 
-        // 4) ×éºÏ£ºÇ°ºó + ×óÓÒ
+        // 4) ç»„åˆï¼šå‰å + å·¦å³
         moveWS = forward * z + right * (-x);
     }
 
-    // 5) ½»¸ø½ÇÉ«
+    // 5) äº¤ç»™è§’è‰²
     Character::MoveIntent intent;
-    intent.dirWS = moveWS;      // Vec3::ZERO ±íÊ¾²»ÒÆ¶¯
-    intent.run = _run;          // ÄãÒÑÓĞµÄ Shift/ÅÜ²½±ê¼Ç
+    intent.dirWS = moveWS;      // Vec3::ZERO è¡¨ç¤ºä¸ç§»åŠ¨
+    intent.run = _run;          // ä½ å·²æœ‰çš„ Shift/è·‘æ­¥æ ‡è®°
     _target->setMoveIntent(intent);
     //cocos2d::Vec3 raw = cocos2d::Vec3::ZERO;
     // cocos2d::Vec3 worldDir = raw;
 
-    //// ¹Ø¼ü£ºÏà¶Ô¾µÍ·
+    //// å…³é”®ï¼šç›¸å¯¹é•œå¤´
     //if (_cam && raw.lengthSquared() > 1e-6f) {
     //    cocos2d::Vec3 camToPlayer = (_target->getPosition3D() - _cam->getPosition3D());
     //    camToPlayer.y = 0.0f;
     //    if (camToPlayer.lengthSquared() > 1e-6f) camToPlayer.normalize();
     //    else camToPlayer = cocos2d::Vec3(0, 0, -1);
 
-    //    cocos2d::Vec3 forward = camToPlayer;                 // ¾µÍ·¡°³¯Ïò½ÇÉ«¡±µÄË®Æ½Ç°·½
+    //    cocos2d::Vec3 forward = camToPlayer;                 // é•œå¤´â€œæœå‘è§’è‰²â€çš„æ°´å¹³å‰æ–¹
     //    cocos2d::Vec3 right;
     //    cocos2d::Vec3::cross(forward, cocos2d::Vec3::UNIT_Y, &right);
     //    right.normalize();
 
-    //    // raw.z: W=-1  S=+1£¬ËùÒÔÓÃ -raw.z
+    //    // raw.z: W=-1  S=+1ï¼Œæ‰€ä»¥ç”¨ -raw.z
     //    worldDir = forward * (-raw.z) + right * (raw.x);
     //}
 
     //Character::MoveIntent intent;
-    //intent.dirWS = worldDir;   // ÏÖÔÚÊÇÊÀ½ç·½Ïò£¬µ«Óë¾µÍ·Ò»ÖÂ
+    //intent.dirWS = worldDir;   // ç°åœ¨æ˜¯ä¸–ç•Œæ–¹å‘ï¼Œä½†ä¸é•œå¤´ä¸€è‡´
     //intent.run = _run;
     //_target->setMoveIntent(intent);
 }

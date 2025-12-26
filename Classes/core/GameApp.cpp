@@ -70,9 +70,6 @@ bool GameApp::init(Director* director) {
     _sceneManager->registerScene(SceneManager::SceneType::GAMEPLAY, []() {
         return CampScene::createScene();
     });
-    _sceneManager->registerScene(SceneManager::SceneType::BOSS_FIGHT, []() {
-        return BossScene::createScene();
-    });
     
     // 创建事件管理器
     _eventManager = new EventManager();
