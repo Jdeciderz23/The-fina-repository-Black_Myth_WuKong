@@ -13,7 +13,7 @@ Character::Character()
 }
 
 Character::~Character() {
-    // _ownedStates ���Զ��ͷ�״̬����
+    // _ownedStates 会自动释放状态对象
 }
 
 bool Character::init() {
@@ -24,7 +24,7 @@ bool Character::init() {
     _visualRoot = cocos2d::Node::create();
     this->addChild(_visualRoot);
 
-    // ===== ע��״̬�������� Character ���У�FSM ֻ������ָ��ӳ�䣩=====
+    // ===== 注册状态（对象由 Character 持有，FSM 只保存裸指针映射）=====
     _ownedStates.emplace_back(std::make_unique<IdleState>());
     _ownedStates.emplace_back(std::make_unique<MoveState>());
     _ownedStates.emplace_back(std::make_unique<JumpState>());
@@ -39,7 +39,7 @@ bool Character::init() {
         _fsm.registerState(st.get());
     }
 
-    // ��ʼ״̬
+    // 初始状态
     _fsm.init(_ownedStates[0].get()); // IdleState
 
     this->scheduleUpdate();
@@ -89,7 +89,7 @@ void Character::attackLight() {
     BaseState<Character>* cur = _fsm.getCurrentState();
     const std::string curName = cur ? cur->getStateName() : "";
 
-    // �����ڹ�������һ��ֻ�������뻺�塱���� AttackState �ڴ����ڽ���
+    // 若正在攻击，按一次只做“输入缓冲”，由 AttackState 在窗口内接续
     if (!curName.empty() && curName.rfind("Attack", 0) == 0) {
         _comboBuffered = true;
         return;
@@ -153,26 +153,66 @@ StateMachine<Character>& Character::getStateMachine() {
 }
 
 void Character::applyGravity(float dt) {
-    if (_onGround) {
+    if (_onGround && _terrainCollider) {
+        // 如果在地面上，且有碰撞器，我们通过 applyMovement 的射线检测来维持高度
         return;
     }
 
     _velocity.y -= gravity * dt;
-
-    cocos2d::Vec3 pos = this->getPosition3D();
-    const float nextY = pos.y + _velocity.y * dt;
-
-    // �򻯣�y<=0 ���
-    if (nextY <= 0.0f) {
-        pos.y = 0.0f;
-        this->setPosition3D(pos);
-        _velocity.y = 0.0f;
-        _onGround = true;
-    }
 }
 
 void Character::applyMovement(float dt) {
-    cocos2d::Vec3 pos = this->getPosition3D();
-    pos += _velocity * dt;
-    this->setPosition3D(pos);
+    cocos2d::Vec3 oldPos = this->getPosition3D();
+    cocos2d::Vec3 newPos = oldPos + _velocity * dt;
+
+    if (_terrainCollider) {
+        // 1. 射线检测新位置地面（从上方 500 个单位向下发射，覆盖更广的高度差）
+        CustomRay ray(newPos + cocos2d::Vec3(0, 500, 0), cocos2d::Vec3(0, -1, 0));
+        float hitDist;
+
+        if (_terrainCollider->rayIntersects(ray, hitDist)) {
+            float groundY = ray.origin.y - hitDist;
+            const float MAX_STEP_HEIGHT = 40.0f; // 稍微增大跨越高度
+
+            // 2. 坡度 / 台阶判断
+            // 如果新位置的地面高度与当前位置高度差在允许范围内，或者正在下坡
+            if (groundY - oldPos.y < MAX_STEP_HEIGHT) {
+                newPos.y = groundY;
+                this->setPosition3D(newPos);
+                
+                // 落地判定
+                if (!_onGround && _velocity.y <= 0) {
+                    _onGround = true;
+                    _velocity.y = 0;
+                }
+            } else {
+                // 坡度太陡（墙壁）
+                // 限制水平位移，保持原位置，但允许垂直重力/跳跃
+                cocos2d::Vec3 finalPos = oldPos;
+                finalPos.y += _velocity.y * dt; 
+                
+                if (finalPos.y <= groundY) {
+                    finalPos.y = groundY;
+                    _onGround = true;
+                    _velocity.y = 0;
+                }
+                this->setPosition3D(finalPos);
+            }
+        } else {
+            // 3. 没检测到地面（可能出界）
+            // 维持重力下降，但 _onGround 设为 false
+            this->setPosition3D(newPos);
+            _onGround = false;
+        }
+    } else {
+        // 4. 无碰撞器，维持原有的简单 y=0 判定
+        this->setPosition3D(newPos);
+        if (newPos.y <= 0.0f) {
+            cocos2d::Vec3 pos = this->getPosition3D();
+            pos.y = 0.0f;
+            this->setPosition3D(pos);
+            _velocity.y = 0.0f;
+            _onGround = true;
+        }
+    }
 }

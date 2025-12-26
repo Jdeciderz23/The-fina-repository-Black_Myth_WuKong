@@ -3,185 +3,192 @@
 
 #include "StateMachine.h"
 #include "cocos2d.h"
+#include "../combat/Collider.h"
 #include <string>
 #include <vector>
 #include <memory>
 
 /**
  * @class Character
- * @brief ½ÇÉ«»ùÀà£¨¼Ì³Ğ cocos2d::Node£©£¬Ìá¹©ÒÆ¶¯¡¢ÌøÔ¾¡¢·­¹ö¡¢ÆÕ¹¥Á¬ÕĞ¡¢ÊÜ»÷¡¢ËÀÍöµÈÍ¨ÓÃ½Ó¿Ú
+ * @brief è§’è‰²åŸºç±»ï¼ˆç»§æ‰¿ cocos2d::Nodeï¼‰ï¼Œæä¾›ç§»åŠ¨ã€è·³è·ƒã€ç¿»æ»šã€æ™®æ”»è¿æ‹›ã€å—å‡»ã€æ­»äº¡ç­‰é€šç”¨æ¥å£
  *
  * @note
- * 1) Controller / AI / Õ½¶·ÏµÍ³µÈÓ¦Ö»Í¨¹ı±¾Àà¹«¿ª½Ó¿ÚÇı¶¯½ÇÉ«
- * 2) ½ÇÉ«ÄÚ²¿Ê¹ÓÃ StateMachine<Character> ¹ÜÀí×´Ì¬ÇĞ»»
+ * 1) Controller / AI / æˆ˜æ–—ç³»ç»Ÿç­‰åº”åªé€šè¿‡æœ¬ç±»å…¬å¼€æ¥å£é©±åŠ¨è§’è‰²
+ * 2) è§’è‰²å†…éƒ¨ä½¿ç”¨ StateMachine<Character> ç®¡ç†çŠ¶æ€åˆ‡æ¢
  */
 class Character : public cocos2d::Node {
 public:
     /**
-     * @brief ÒÆ¶¯ÒâÍ¼£¨ÓÉÊäÈë»ò AI Éú³É£©
+     * @brief ç§»åŠ¨æ„å›¾ï¼ˆç”±è¾“å…¥æˆ– AI ç”Ÿæˆï¼‰
      */
     struct MoveIntent {
-        cocos2d::Vec3 dirWS = cocos2d::Vec3::ZERO; ///< ÊÀ½ç¿Õ¼ä·½Ïò£¨¿É²»¹éÒ»»¯£©
-        bool run = false;                          ///< ÊÇ·ñ±¼ÅÜ
+        cocos2d::Vec3 dirWS = cocos2d::Vec3::ZERO; ///< ä¸–ç•Œç©ºé—´æ–¹å‘ï¼ˆå¯ä¸å½’ä¸€åŒ–ï¼‰
+        bool run = false;                          ///< æ˜¯å¦å¥”è·‘
     };
 
     /**
-     * @brief ÉúÃü×´Ì¬
+     * @brief ç”Ÿå‘½çŠ¶æ€
      */
     enum class LifeState {
-        Alive = 0, ///< ´æ»î
-        Dead       ///< ËÀÍö
+        Alive = 0, ///< å­˜æ´»
+        Dead       ///< æ­»äº¡
     };
 
 public:
     /**
-     * @brief ¹¹Ôìº¯Êı
+     * @brief æ„é€ å‡½æ•°
      */
     Character();
 
     /**
-     * @brief Îö¹¹º¯Êı
+     * @brief ææ„å‡½æ•°
      */
     virtual ~Character();
 
     /**
-     * @brief cocos2d ³õÊ¼»¯
-     * @return bool ÊÇ·ñ³õÊ¼»¯³É¹¦
+     * @brief cocos2d åˆå§‹åŒ–
+     * @return bool æ˜¯å¦åˆå§‹åŒ–æˆåŠŸ
      */
     virtual bool init() override;
 
     /**
-     * @brief cocos2d Ã¿Ö¡¸üĞÂ
-     * @param dt Ö¡¼ä¸ôÊ±¼ä£¨Ãë£©
+     * @brief cocos2d æ¯å¸§æ›´æ–°
+     * @param dt å¸§é—´éš”æ—¶é—´ï¼ˆç§’ï¼‰
      */
     virtual void update(float dt) override;
 
-    // ======================= ¶ÔÍâ¶¯×÷½Ó¿Ú£¨Íâ²¿ÏµÍ³Ö»µ÷ÓÃÕâĞ©£© =======================
+    // ======================= å¯¹å¤–åŠ¨ä½œæ¥å£ï¼ˆå¤–éƒ¨ç³»ç»Ÿåªè°ƒç”¨è¿™äº›ï¼‰ =======================
 
     /**
-     * @brief ÉèÖÃÒÆ¶¯ÒâÍ¼£¨WASD/Ò¡¸Ë/AI£©
-     * @param intent ÒÆ¶¯ÒâÍ¼
+     * @brief è®¾ç½®ç§»åŠ¨æ„å›¾ï¼ˆWASD/æ‘‡æ†/AIï¼‰
+     * @param intent ç§»åŠ¨æ„å›¾
      */
     void setMoveIntent(const MoveIntent& intent);
 
     /**
-     * @brief »ñÈ¡ÒÆ¶¯ÒâÍ¼
-     * @return MoveIntent µ±Ç°ÒÆ¶¯ÒâÍ¼
+     * @brief è·å–ç§»åŠ¨æ„å›¾
+     * @return MoveIntent å½“å‰ç§»åŠ¨æ„å›¾
      */
     MoveIntent getMoveIntent() const;
 
     /**
-     * @brief ·¢ÆğÌøÔ¾ÇëÇó£¨×îÖÕÊÇ·ñÄÜÌøÓÉ×´Ì¬/ÊÇ·ñÔÚµØÃæ¾ö¶¨£©
+     * @brief è®¾ç½®åœ°å½¢ç¢°æ’å™¨
+     */
+    void setTerrainCollider(TerrainCollider* collider) { _terrainCollider = collider; }
+
+    /**
+     * @brief å‘èµ·è·³è·ƒè¯·æ±‚ï¼ˆæœ€ç»ˆæ˜¯å¦èƒ½è·³ç”±çŠ¶æ€/æ˜¯å¦åœ¨åœ°é¢å†³å®šï¼‰
      */
     void jump();
 
     /**
-     * @brief ·¢Æğ·­¹ö/ÉÁ±ÜÇëÇó
+     * @brief å‘èµ·ç¿»æ»š/é—ªé¿è¯·æ±‚
      */
     void roll();
 
     /**
-     * @brief ·¢ÆğÇá¹¥»÷£¨»ù´¡Á¬ÕĞÈë¿Ú£©
+     * @brief å‘èµ·è½»æ”»å‡»ï¼ˆåŸºç¡€è¿æ‹›å…¥å£ï¼‰
      */
     void attackLight();
 
     /**
-     * @brief ÊÜµ½ÉËº¦/½øÈëÊÜ»÷
-     * @param damage ÉËº¦Öµ
+     * @brief å—åˆ°ä¼¤å®³/è¿›å…¥å—å‡»
+     * @param damage ä¼¤å®³å€¼
      */
     void takeHit(int damage);
 
     /**
-     * @brief ËÀÍö£¨½øÈëËÀÍö×´Ì¬£©
+     * @brief æ­»äº¡ï¼ˆè¿›å…¥æ­»äº¡çŠ¶æ€ï¼‰
      */
     void die();
 
     /**
-     * @brief ÊÇ·ñÔÚµØÃæ
-     * @return bool ÊÇ·ñÔÚµØÃæ
+     * @brief æ˜¯å¦åœ¨åœ°é¢
+     * @return bool æ˜¯å¦åœ¨åœ°é¢
      */
     bool isOnGround() const;
 
     /**
-     * @brief ÊÇ·ñËÀÍö
-     * @return bool ÊÇ·ñËÀÍö
+     * @brief æ˜¯å¦æ­»äº¡
+     * @return bool æ˜¯å¦æ­»äº¡
      */
     bool isDead() const;
 
     /**
-     * @brief »ñÈ¡µ±Ç°ËÙ¶È
-     * @return cocos2d::Vec3 µ±Ç°ËÙ¶È
+     * @brief è·å–å½“å‰é€Ÿåº¦
+     * @return cocos2d::Vec3 å½“å‰é€Ÿåº¦
      */
     cocos2d::Vec3 getVelocity() const;
 
     /**
-     * @brief ÉèÖÃË®Æ½ËÙ¶È£¨Ö»¸Ä x/z£¬²»¸Ä y£©
-     * @param v Ë®Æ½ËÙ¶ÈÏòÁ¿
+     * @brief è®¾ç½®æ°´å¹³é€Ÿåº¦ï¼ˆåªæ”¹ x/zï¼Œä¸æ”¹ yï¼‰
+     * @param v æ°´å¹³é€Ÿåº¦å‘é‡
      */
     void setHorizontalVelocity(const cocos2d::Vec3& v);
 
     /**
-     * @brief Í£Ö¹Ë®Æ½ÒÆ¶¯£¨x/z ÖÃ 0£©
+     * @brief åœæ­¢æ°´å¹³ç§»åŠ¨ï¼ˆx/z ç½® 0ï¼‰
      */
     void stopHorizontal();
 
     /**
-     * @brief ÏûºÄÒ»´ÎÁ¬ÕĞÊäÈë»º³å£¨AttackState ÓÃ£©
-     * @return bool ±¾´ÎÊÇ·ñ´æÔÚ»º³åÊäÈë
+     * @brief æ¶ˆè€—ä¸€æ¬¡è¿æ‹›è¾“å…¥ç¼“å†²ï¼ˆAttackState ç”¨ï¼‰
+     * @return bool æœ¬æ¬¡æ˜¯å¦å­˜åœ¨ç¼“å†²è¾“å…¥
      */
     bool consumeComboBuffered();
 
     /**
-     * @brief »ñÈ¡½ÇÉ«×´Ì¬»ú
-     * @return StateMachine<Character>& ×´Ì¬»úÒıÓÃ
+     * @brief è·å–è§’è‰²çŠ¶æ€æœº
+     * @return StateMachine<Character>& çŠ¶æ€æœºå¼•ç”¨
      */
     StateMachine<Character>& getStateMachine();
 
-    // ======================= ÅÉÉúÀàĞèÊµÏÖ£¨ÌåÏÖ¶àÌ¬£© =======================
+    // ======================= æ´¾ç”Ÿç±»éœ€å®ç°ï¼ˆä½“ç°å¤šæ€ï¼‰ =======================
 
     /**
-     * @brief ²¥·Å¶¯»­£¨ÅÉÉúÀàÊµÏÖ£¬ÌåÏÖ¶àÌ¬£©
-     * @param name ¶¯»­Ãû
-     * @param loop ÊÇ·ñÑ­»·
+     * @brief æ’­æ”¾åŠ¨ç”»ï¼ˆæ´¾ç”Ÿç±»å®ç°ï¼Œä½“ç°å¤šæ€ï¼‰
+     * @param name åŠ¨ç”»å
+     * @param loop æ˜¯å¦å¾ªç¯
      */
     virtual void playAnim(const std::string& name, bool loop) = 0;
 
 public:
-    // ======================= ²ÎÊı£¨¿ÉºóĞø¸ÄÎª¶ÁÅäÖÃ/ÊıÖµ±í£© =======================
+    // ======================= å‚æ•°ï¼ˆå¯åç»­æ”¹ä¸ºè¯»é…ç½®/æ•°å€¼è¡¨ï¼‰ =======================
 
-    float walkSpeed = 260.0f; ///< ĞĞ×ßËÙ¶È
-    float runSpeed = 420.0f; ///< ±¼ÅÜËÙ¶È
-    float jumpSpeed = 520.0f; ///< ÆğÌø³õËÙ¶È
-    float gravity = 1400.0f;///< ÖØÁ¦¼ÓËÙ¶È£¨¼ò»¯£©
+    float walkSpeed = 260.0f; ///< è¡Œèµ°é€Ÿåº¦
+    float runSpeed = 420.0f; ///< å¥”è·‘é€Ÿåº¦
+    float jumpSpeed = 520.0f; ///< èµ·è·³åˆé€Ÿåº¦
+    float gravity = 1400.0f;///< é‡åŠ›åŠ é€Ÿåº¦ï¼ˆç®€åŒ–ï¼‰
 
 protected:
     /**
-     * @brief Ó¦ÓÃÖØÁ¦ÓëÂäµØÅĞ¶¨£¨¼ò»¯£ºy<=0 ÈÏÎªÂäµØ£©
-     * @param dt Ö¡¼ä¸ôÊ±¼ä£¨Ãë£©
+     * @brief åº”ç”¨é‡åŠ›ä¸è½åœ°åˆ¤å®šï¼ˆç®€åŒ–ï¼šy<=0 è®¤ä¸ºè½åœ°ï¼‰
+     * @param dt å¸§é—´éš”æ—¶é—´ï¼ˆç§’ï¼‰
      */
     void applyGravity(float dt);
 
     /**
-     * @brief Ó¦ÓÃÎ»ÒÆ£¨pos += velocity * dt£©
-     * @param dt Ö¡¼ä¸ôÊ±¼ä£¨Ãë£©
+     * @brief åº”ç”¨ä½ç§»ï¼ˆpos += velocity * dtï¼‰
+     * @param dt å¸§é—´éš”æ—¶é—´ï¼ˆç§’ï¼‰
      */
     void applyMovement(float dt);
 
 protected:
-    cocos2d::Node* _visualRoot;          ///< Ä£ĞÍ/¹Ç÷À/ÌØĞ§¹ÒÔØ¸ù½Úµã
-    MoveIntent _moveIntent;              ///< µ±Ç°Ö¡ÒÆ¶¯ÒâÍ¼
-    cocos2d::Vec3 _velocity;             ///< µ±Ç°ËÙ¶È
-    bool _onGround;                      ///< ÊÇ·ñÔÚµØÃæ
+    cocos2d::Node* _visualRoot;          ///< æ¨¡å‹/éª¨éª¼/ç‰¹æ•ˆæŒ‚è½½æ ¹èŠ‚ç‚¹
+    MoveIntent _moveIntent;              ///< å½“å‰å¸§ç§»åŠ¨æ„å›¾
+    cocos2d::Vec3 _velocity;             ///< å½“å‰é€Ÿåº¦
+    bool _onGround;                      ///< æ˜¯å¦åœ¨åœ°é¢
 
-    int _hp;                             ///< ÉúÃüÖµ
-    LifeState _lifeState;                ///< ÉúÃü×´Ì¬
+    int _hp;                             ///< ç”Ÿå‘½å€¼
+    LifeState _lifeState;                ///< ç”Ÿå‘½çŠ¶æ€
 
-    bool _comboBuffered;                 ///< Á¬ÕĞÊäÈë»º³å
+    bool _comboBuffered;                 ///< è¿æ‹›è¾“å…¥ç¼“å†²
 
-    StateMachine<Character> _fsm;         ///< ½ÇÉ«×´Ì¬»ú£¨ÓµÓĞ×´Ì¬Ó³Éä£©
+    StateMachine<Character> _fsm;         ///< è§’è‰²çŠ¶æ€æœºï¼ˆæ‹¥æœ‰çŠ¶æ€æ˜ å°„ï¼‰
 
-    std::vector<std::unique_ptr<BaseState<Character>>> _ownedStates; ///< ×´Ì¬¶ÔÏóËùÓĞÈ¨£¨ÓÉ½ÇÉ«³ÖÓĞ£©
+    std::vector<std::unique_ptr<BaseState<Character>>> _ownedStates; ///< çŠ¶æ€å¯¹è±¡æ‰€æœ‰æƒï¼ˆç”±è§’è‰²æŒæœ‰ï¼‰
 
+    TerrainCollider* _terrainCollider = nullptr; ///< åœ°å½¢ç¢°æ’å™¨
 };
 
 #endif // CHARACTER_H
