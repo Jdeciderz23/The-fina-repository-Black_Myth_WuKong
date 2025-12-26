@@ -373,3 +373,5 @@ CMakeCache.txt
 /proj.win32/CMakeFiles/
 /proj.win32/CMakeCache.txt
 /proj.win32/.vs/
+/proj.win32
+/.gitignore
