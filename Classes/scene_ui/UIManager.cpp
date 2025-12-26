@@ -1,7 +1,8 @@
 #pragma execution_character_set("utf-8")                // 指示编译器按 UTF-8 解析源文件中的字符串字面量
-#include "UIManager.h"                                   // 引入 UIManager 头文件
-#include "GameApp.h"                                     // 引入 GameApp（用于获取场景管理器）
-#include "SceneManager.h"                                // 引入 SceneManager（场景枚举与接口）
+#include "UIManager.h"
+#include "GameApp.h"
+#include "SceneManager.h"
+#include "scene_ui/BaseScene.h"
 
 USING_NS_CC;                                             // 使用 cocos2d 命名空间简写
 using namespace cocos2d::ui;                             // 使用 ui 子命名空间
@@ -58,8 +59,8 @@ Scene* UIManager::createStartMenuScene() {               // 创建开始菜单�
     // ---------------- 标题文字（可选） ----------------------
     auto titleLabel = Label::createWithTTF(              // 创建 TTF 字体标签
         "Black Myth: Wukong",                            // 文本内容
-        "fonts/Marker Felt.ttf",                         // 字体文件
-        60);                                             // 字号
+        "fonts/arial.ttf",                         // 字体文件
+        100);                                             // 字号
     if (titleLabel) {                                    // 如果创建成功
         titleLabel->setPosition(                         // 设置标题位置在屏幕 80% 高度
             Vec2(visibleSize.width/2 + origin.x, 
@@ -97,30 +98,95 @@ Scene* UIManager::createStartMenuScene() {               // 创建开始菜单�
     
     layer->addChild(menu, 1);                            // 将菜单添加到层，层级为 1
 
-    return scene;                                        // 返回构建好的场景
-}                                                        // createStartMenuScene 结束
+    return scene;
+}
 
-void UIManager::onStartGame(Ref* sender) {               // “开始游戏”按钮点击回调
-    CCLOG("Start Game button clicked!");                 // 打印日志
-    auto sceneMgr = GameApp::getInstance()->getSceneManager(); // 获取场景管理器
-    if (sceneMgr) {                                      // 如果场景管理器可用
-        sceneMgr->switchScene(SceneManager::SceneType::GAMEPLAY, true); // 切换到第一个游戏场景（淡入淡出过渡）
-    } else {                                             // 如果场景管理器不可用
-        CCLOG("SceneManager not available!");            // 打印错误日志
+void UIManager::showPauseMenu()
+{
+    auto running = Director::getInstance()->getRunningScene();
+    if (!running) return;
+
+    GameApp::getInstance()->pause();
+
+    auto layer = Layer::create();
+    layer->setName("PauseMenuLayer");
+    running->addChild(layer, 9999);
+
+    auto vs = Director::getInstance()->getVisibleSize();
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+
+    auto bg = Sprite::create("pause.png");
+    if (bg) {
+        bg->setPosition(Vec2(vs.width/2 + origin.x, vs.height/2 + origin.y));
+        float sx = vs.width / bg->getContentSize().width;
+        float sy = vs.height / bg->getContentSize().height;
+        bg->setScale(std::max(sx, sy));
+        layer->addChild(bg, -1);
     }
-}                                                        // onStartGame 结束
 
-void UIManager::onSettings(Ref* sender) {                // “设置”按钮点击回调
-    CCLOG("Settings button clicked!");                   // 打印日志
-    // TODO: 在此显示设置界面                                   // 后续接入设置界面
-}                                                        // onSettings 结束
+    MenuItemFont::setFontName("fonts/arial.ttf");
+    MenuItemFont::setFontSize(32);
 
-void UIManager::onExitGame(Ref* sender) {                // “退出”按钮点击回调
-    CCLOG("Exit button clicked!");                       // 打印日志
-    
-    Director::getInstance()->end();                      // 结束应用（跨平台）
+    auto healItem = MenuItemFont::create("\xe5\x9b\x9e\xe8\xa1\x80", CC_CALLBACK_1(UIManager::onPauseHeal, this));
+    auto teleportItem = MenuItemFont::create("\xe4\xbc\xa0\xe9\x80\x81", CC_CALLBACK_1(UIManager::onPauseTeleport, this));
+    auto resumeItem = MenuItemFont::create("\xe7\xbb\xa7\xe7\xbb\xad\xe6\xb8\xb8\xe6\x88\x8f", CC_CALLBACK_1(UIManager::onPauseResume, this));
+    auto titleItem = MenuItemFont::create("\xe5\x9b\x9e\xe5\x88\xb0\xe5\xbc\x80\xe5\xa7\x8b\xe8\x8f\x9c\xe5\x8d\x95", CC_CALLBACK_1(UIManager::onPauseReturnTitle, this));
 
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)              // 如果是 iOS 平台
-    exit(0);                                             // 额外调用退出以确保关闭
-#endif                                                   // 条件编译结束
-}                                                        // onExitGame 结束
+    auto menu = Menu::create(healItem, teleportItem, resumeItem, titleItem, nullptr);
+    menu->alignItemsVerticallyWithPadding(30);
+    menu->setPosition(Vec2(vs.width/2 + origin.x, vs.height/2 + origin.y));
+    layer->addChild(menu, 1);
+}
+
+void UIManager::onStartGame(Ref* sender)
+{
+    auto sceneMgr = GameApp::getInstance()->getSceneManager();
+    if (sceneMgr) {
+        sceneMgr->switchScene(SceneManager::SceneType::GAMEPLAY, true);
+    }
+}
+
+void UIManager::onSettings(Ref* sender)
+{
+}
+
+void UIManager::onExitGame(Ref* sender)
+{
+    Director::getInstance()->end();
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+    exit(0);
+#endif
+}
+
+void UIManager::onPauseHeal(Ref* sender)
+{
+}
+
+void UIManager::onPauseTeleport(Ref* sender)
+{
+    auto scene = GameApp::getInstance()->getSceneManager()->getCurrentScene();
+    auto base = dynamic_cast<BaseScene*>(scene);
+    if (base) base->teleportPlayerToCenter();
+}
+
+void UIManager::onPauseResume(Ref* sender)
+{
+    auto running = Director::getInstance()->getRunningScene();
+    if (running) {
+        auto layer = running->getChildByName("PauseMenuLayer");
+        if (layer) running->removeChild(layer);
+    }
+    GameApp::getInstance()->resume();
+}
+
+void UIManager::onPauseReturnTitle(Ref* sender)
+{
+    auto running = Director::getInstance()->getRunningScene();
+    if (running) {
+        auto layer = running->getChildByName("PauseMenuLayer");
+        if (layer) running->removeChild(layer);
+    }
+    GameApp::getInstance()->resume();
+    auto sceneMgr = GameApp::getInstance()->getSceneManager();
+    if (sceneMgr) sceneMgr->switchScene(SceneManager::SceneType::TITLE, true);
+}
