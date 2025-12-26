@@ -3,14 +3,17 @@
 
 #include "cocos2d.h"
 #include <array>
-#include"Wukong.h"
+#include "Wukong.h"
+#include "../combat/Collider.h"
 
 class Wukong;
+class TerrainCollider;
 class BaseScene : public cocos2d::Scene
 {
 public:
     static cocos2d::Scene* createScene();
     virtual bool init() override;
+    void teleportPlayerToCenter();
     CREATE_FUNC(BaseScene);
 
 protected:
@@ -19,7 +22,6 @@ protected:
     void initSkybox();
     void initLights();
     void initInput();
-    void initDebugObjects();
 
     /* ---------- Update ---------- */
     virtual void update(float dt) override;
@@ -72,6 +74,7 @@ protected:
 
     /* ---------- Player ---------- */
     Wukong* _player = nullptr;
+    TerrainCollider* _terrainCollider = nullptr;
 };
 
 class CampScene : public BaseScene
@@ -82,12 +85,5 @@ public:
     CREATE_FUNC(CampScene);
 };
 
-class BossScene : public BaseScene
-{
-public:
-    static cocos2d::Scene* createScene();
-    virtual bool init() override;
-    CREATE_FUNC(BossScene);
-};
 
 #endif // __BASE_SCENE_H__

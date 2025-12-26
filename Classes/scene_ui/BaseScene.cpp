@@ -7,7 +7,9 @@
 #include "renderer/CCTexture2D.h"
 #include "2d/CCLight.h"
 #include "Wukong.h"
-#include"InputController.h"
+#include "InputController.h"
+#include "scene_ui/UIManager.h"
+#include "../combat/Collider.h"
 
 USING_NS_CC;
 
@@ -29,10 +31,21 @@ bool BaseScene::init()
 
     initCamera();
     initSkybox();
-    initLights();                                       // 初始化光照（环境光 + 平行光）
+    initLights();                                       
     initPlayer();
-    // initDebugObjects();                              // 调试用的参照物（会使用 StartMenu.png），这里先关闭
-    initInput();                                        // 初始化输入（键盘 + 鼠标）
+    initInput();                                        
+
+
+    auto vs = Director::getInstance()->getVisibleSize(); // 获取屏幕可见区域大小
+    Vec2 origin = Director::getInstance()->getVisibleOrigin(); // 获取可见区域原点坐标
+    auto label = Label::createWithSystemFont("\xe6\x9a\x82\xe5\x81\x9c", "Arial", 24); // 创建“暂停”按钮文字标签
+    auto item = MenuItemLabel::create(label, [](Ref*) {   // 创建菜单项并绑定暂停回调
+        UIManager::getInstance()->showPauseMenu();       // 点击时显示暂停菜单
+        });
+    auto menu = Menu::create(item, nullptr);             // 创建菜单容器
+    menu->setPosition(origin + Vec2(30, vs.height - 30)); // 设置菜单位置在左上角
+    menu->setCameraMask((unsigned short)CameraFlag::DEFAULT);
+    addChild(menu, 1000);                                // 添加菜单到场景，层级设为最高
 
     return true;
 }
@@ -65,7 +78,6 @@ bool BaseScene::chooseSkyboxFaces(std::array<std::string, 6>& outFaces)
 {
     auto fu = FileUtils::getInstance();                        // 文件工具
 
-    // 方案一：常见命名（右、左、上、下、前、后）
     std::array<std::string, 6> set1 = {
         "SkyBox/Skybox_right.png", "SkyBox/Skybox_left.png", "SkyBox/Skybox_top.png",
         "SkyBox/Skybox_bottom.png", "SkyBox/Skybox_front.png", "SkyBox/Skybox_back.png"
@@ -140,8 +152,8 @@ void BaseScene::initCamera()
     _mainCamera->lookAt(_camPos + _camFront, Vec3::UNIT_Y);
 
     addChild(_mainCamera);
-    // 关掉默认相机
-    this->getDefaultCamera()->setVisible(false);
+    // 注意：不要隐藏默认相机，因为2D UI元素（如Menu、Label等）需要使用默认相机来渲染
+    // this->getDefaultCamera()->setVisible(false);  
 
 }
 
@@ -274,18 +286,28 @@ void BaseScene::updateCamera(float dt)
     }
 
 }
+void BaseScene::teleportPlayerToCenter()                
+{
+    _camPos = Vec3(0.0f, 50.0f, 200.0f);                 // 重置相机坐标
+    _camFront = Vec3(0.0f, 0.0f, -1.0f);                 // 重置相机朝向
+    _camUp = Vec3::UNIT_Y;                               // 重置相机上方向
+    _yaw = -90.0f;                                       // 重置偏航角
+    _pitch = 0.0f;                                       // 重置俯仰角
+
+    if (_mainCamera) {                                   // 如果相机存在
+        _mainCamera->setPosition3D(_camPos);             // 应用新位置
+        _mainCamera->lookAt(_camPos + _camFront, _camUp); // 应用新朝向
+    }
+
+    if (_player)
+    {
+        _player->setPosition3D(Vec3(0, 0, 0));
+    }
+}
 
 
 /* ==================== Debug ==================== */
 
-void BaseScene::initDebugObjects()
-{
-    auto bb = BillBoard::create("StartMenu.png", BillBoard::Mode::VIEW_POINT_ORIENTED);
-    bb->setPosition3D(Vec3(0, 0, -200));
-    bb->setScale(2.0f);
-    bb->setCameraMask((unsigned short)CameraFlag::USER1);
-    addChild(bb);
-}
 
 Scene* CampScene::createScene()
 {
@@ -308,49 +330,19 @@ bool CampScene::init()
     terrain->setCameraMask((unsigned short)CameraFlag::USER1);
     addChild(terrain);
 
-    auto kb = EventListenerKeyboard::create();
-    kb->onKeyPressed = [](EventKeyboard::KeyCode code, Event*)
-        {
-            if (code == EventKeyboard::KeyCode::KEY_B)
-            {
-                auto mgr = GameApp::getInstance()->getSceneManager();
-                if (mgr) mgr->switchScene(SceneManager::SceneType::BOSS_FIGHT, true);
-            }
-        };
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(kb, this);
+    // 创建地形碰撞器
+    _terrainCollider = TerrainCollider::create(terrain, "scene/terrain.obj");
+    if (_terrainCollider) {
+        _terrainCollider->retain();
+        if (_player) {
+            _player->setTerrainCollider(_terrainCollider);
+        }
+    }
 
     return true;
 }
 
-Scene* BossScene::createScene()
-{
-    return BossScene::create();
-}
 
-bool BossScene::init()
-{
-    if (!BaseScene::init())
-        return false;
-
-    auto banner = BillBoard::create("1.png", BillBoard::Mode::VIEW_POINT_ORIENTED);
-    banner->setPosition3D(Vec3(-50, 0, -250));
-    banner->setScale(2.5f);
-    banner->setCameraMask((unsigned short)CameraFlag::USER1);
-    addChild(banner);
-
-    auto kb = EventListenerKeyboard::create();
-    kb->onKeyPressed = [](EventKeyboard::KeyCode code, Event*)
-        {
-            if (code == EventKeyboard::KeyCode::KEY_C)
-            {
-                auto mgr = GameApp::getInstance()->getSceneManager();
-                if (mgr) mgr->switchScene(SceneManager::SceneType::GAMEPLAY, true);
-            }
-        };
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(kb, this);
-
-    return true;
-}
 
 /* ---------- Player ---------- */
 
@@ -362,9 +354,13 @@ void BaseScene::initPlayer()
         return;
     }
 
-    // 放到场景中心，地面 y=0（你当前重力/落地简化也是 y=0）
+    // 放到场景中心，地面 y=0
     _player->setPosition3D(cocos2d::Vec3(0.0f, 0.0f, 0.0f));
     _player->setRotation3D(cocos2d::Vec3::ZERO); 
+
+    if (_terrainCollider) {
+        _player->setTerrainCollider(_terrainCollider);
+    }
 
     addChild(_player, 10);
     // 绑定键盘控制（WASD/Shift/Space/J/K）
