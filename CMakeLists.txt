@@ -130,6 +130,8 @@ list(APPEND GAME_HEADER
 list(APPEND GAME_SOURCE
     Classes/enemy/BossAI.cpp
      Classes/enemy/Enemy.cpp
+    Classes/enemy/BossAI.cpp
+    Classes/enemy/Enemy.cpp
     Classes/enemy/EnemyAI.cpp
 Classes/enemy/NormalEnemyAI.cpp
     Classes/enemy/EnemyStates.cpp
@@ -141,7 +143,6 @@ list(APPEND GAME_HEADER
     Classes/enemy/EnemyAI.h
 Classes/enemy/NormalEnemyAI.h
     Classes/enemy/EnemyStates.h
-
 )
 
 # =========================
