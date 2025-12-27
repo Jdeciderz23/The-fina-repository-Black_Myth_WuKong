@@ -38,8 +38,11 @@ protected:
     /* ---------- Camera ---------- */
     cocos2d::Camera* _mainCamera = nullptr;
     cocos2d::Skybox* _skybox = nullptr;
+    bool  _autoFollowYaw = true;
+    float _autoYawSpeed = 240.0f;   // 度/秒（越大越快回正）
+    float _mouseIdleTime = 999.0f;   // 距离上次鼠标移动时间
 
-    cocos2d::Vec3 _camPos = cocos2d::Vec3(0.0f, 50.0f, 200.0f);
+    cocos2d::Vec3 _camPos = cocos2d::Vec3(0.0f, 120.0f, 220.0f);
     cocos2d::Vec3 _camFront = cocos2d::Vec3(0.0f, 0.0f, -1.0f);
     cocos2d::Vec3 _camUp = cocos2d::Vec3::UNIT_Y;
 
@@ -54,9 +57,9 @@ protected:
     float _aspect = 1.0f;      // 宽高比
     float _nearPlane = 1.0f;   // 近裁剪面
     float _farPlane = 1000.0f; // 远裁剪面
-    float _followDistance = 1000.0f;   // 相机离人物距离
-    float _followHeight = 150.0f;    // 看向人物的高度（头部高度）
-    float _followSmooth = 10.0f;    // 跟随平滑（越大越跟手）
+    float _followDistance = 220.0f;   // 相机离人物距离
+    float _followHeight = 80.0f;    // 看向人物的高度（头部高度）
+    float _followSmooth = 12.0f;    // 跟随平滑（越大越跟手）
 
 
     /* ---------- Input ---------- */
