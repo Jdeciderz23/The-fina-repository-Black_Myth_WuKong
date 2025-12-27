@@ -10,13 +10,14 @@
  * - 默认暴击伤害倍率：200%
  * - 默认武器伤害：0.0
  */
-CombatComponent::CombatComponent() : 
+CombatComponent::CombatComponent() :
     _attackPower(10.0f),   // 基础攻击强度10
     _defense(0.0f),        // 基础防御值0
     _critRate(0.05f),      // 5% 暴击率
     _critDamage(2.0f),     // 200% 暴击伤害
     _weaponDamage(0.0f)    // 武器附加伤害
 {
+    setName("CombatComponent");  // 设置唯一组件名称
 }
 
 /**
@@ -26,7 +27,7 @@ CombatComponent::CombatComponent() :
  * - 清空技能列表和技能映射表
  */
 CombatComponent::~CombatComponent() {
-  
+
 }
 
 /**
@@ -135,42 +136,42 @@ bool CombatComponent::attack(Node* target) {
     if (!target) {
         return false;  // 目标不存在，攻击失败
     }
-    
+
     // 检查是否设置了自定义攻击回调
     if (_attackCallback) {
         return _attackCallback(target);  // 调用自定义攻击逻辑
     }
-    
+
     // 默认攻击逻辑
     // 1. 获取目标的健康组件
     HealthComponent* targetHealth = dynamic_cast<HealthComponent*>(target->getComponent("HealthComponent"));
     if (!targetHealth) {
         return false;  // 目标没有健康组件，攻击失败
     }
-    
+
     // 2. 计算总伤害
     float totalDamage = _attackPower + _weaponDamage;
-    
+
     // 3. 检查是否触发暴击
     // 使用rand()生成0-99的随机数，与暴击率比较
     if (rand() % 100 < _critRate * 100) {
         totalDamage *= _critDamage;  // 暴击时伤害翻倍
         CCLOG("Critical hit! Damage: %f", totalDamage);
     }
-    
+
     // 4. 获取目标的防御值（从目标的CombatComponent获取）
     float targetDefense = 0.0f;
     CombatComponent* targetCombat = dynamic_cast<CombatComponent*>(target->getComponent("CombatComponent"));
     if (targetCombat) {
         targetDefense = targetCombat->getDefense();
     }
-    
+
     // 5. 计算防御减免后的最终伤害
     float finalDamage = calculateDamage(totalDamage, targetDefense);
-    
+
     // 5. 对目标造成伤害
     targetHealth->takeDamage(finalDamage, this->getOwner());
-    
+
     return true;  // 攻击成功
 }
 
@@ -198,10 +199,10 @@ float CombatComponent::calculateDamage(float baseDamage, float targetDefense) co
     // 伤害减免比例 = 防御 / (防御 + 100)
     // 当防御为0时，减免0%；当防御为100时，减免50%；当防御为200时，减免66.7%...
     float damageReduction = targetDefense / (targetDefense + 100.0f);
-    
+
     // 最终伤害 = 基础伤害 * (1 - 伤害减免比例)
     float finalDamage = baseDamage * (1.0f - damageReduction);
-    
+
     // 确保伤害不小于1（防止出现0伤害的情况）
     return std::max(1.0f, finalDamage);
 }

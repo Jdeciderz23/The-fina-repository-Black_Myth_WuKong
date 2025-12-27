@@ -29,6 +29,12 @@ public:
     virtual ~HealthComponent();
 
     /**
+     * @brief 获取组件名称
+     * @return std::string 组件名称
+     */
+    virtual const std::string& getName() const { return Component::getName(); }
+
+    /**
      * @brief 初始化组件
      * @param maxHealth 最大生命值
      * @return bool 初始化是否成功
