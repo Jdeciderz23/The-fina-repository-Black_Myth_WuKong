@@ -91,6 +91,7 @@ public:
 private:
     float _attackTimer;     ///< 攻击计时器
     float _attackCooldown;  ///< 攻击冷却时间
+    bool _attacked;         ///< 是否已执行攻击判定
 };
 
 /**

@@ -236,8 +236,8 @@ void Enemy::initStateMachine() {
 }
 
 void Enemy::initHealthComponent() {
-    // 创建生命值组件
-    _health = HealthComponent::create(1.0f);
+    // 创建生命值组件，设置默认生命值为 100
+    _health = HealthComponent::create(100.0f);
     if (_health) {
         this->addComponent(_health);
         
@@ -251,7 +251,12 @@ void Enemy::initCombatComponent() {
     // 创建战斗组件
     _combat = CombatComponent::create();
     if (_combat) {
-        //this->addComponent(_combat);
+        // 设置默认战斗属性
+        _combat->setAttackPower(10.0f);
+        _combat->setDefense(5.0f);
+        _combat->setCritRate(0.05f);
+        _combat->setCritDamage(1.5f);
+        this->addComponent(_combat);
     }
 }
 

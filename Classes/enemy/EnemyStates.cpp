@@ -1,11 +1,16 @@
 #include "EnemyStates.h"
 #include "cocos2d.h"
 #include <cfloat>
+#include "combat/CombatComponent.h"
+#include "player/Wukong.h"
+#include "scene_ui/UIManager.h"
 
 USING_NS_CC;
 
 static inline bool HasTarget(const Enemy* e) {
-    return e && e->getTarget() != nullptr;
+    if (!e || !e->getTarget()) return false;
+    // 如果目标是悟空，且已经死亡，视为没有有效目标
+    return !e->getTarget()->isDead();
 }
 
 // 敌人 world 坐标（你 Enemy.cpp 里已经实现了）
@@ -114,29 +119,37 @@ EnemyPatrolState::~EnemyPatrolState() {
 
 void EnemyPatrolState::onEnter(Enemy* enemy) {
     CCLOG("Enemy entered patrol state");
-
+    
+    // 重置巡逻计时器
     _patrolTimer = 0.0f;
+    
+    // 随机设置最大巡逻时间和巡逻目标点
     _maxPatrolTime = RandomHelper::random_real(3.0f, 7.0f);
+    
+    // 在当前位置附近随机生成巡逻目标点
+    Vec3 birthPos = enemy->getBirthPosition();
 
-    // ★改：用父节点坐标系（Enemy 的 position3D 同一坐标系）
-    const Vec3 birth = enemy->getBirthPosition();
+    float patrolRadius = 100.0f;
+    float angle = RandomHelper::random_real(0.0f, (float)M_PI * 2);
 
-    const float patrolRadius = 100.0f;
-    const float a = RandomHelper::random_real(0.0f, (float)M_PI * 2.0f);
-    _patrolTarget = birth + Vec3(cosf(a) * patrolRadius, 0.0f, sinf(a) * patrolRadius);
-
+    _patrolTarget.x = birthPos.x + cosf(angle) * patrolRadius;
+    _patrolTarget.y = birthPos.y;
+    _patrolTarget.z = birthPos.z + sinf(angle) * patrolRadius;
+    
+    // 播放巡逻动画
     enemy->playAnim("patrol", true);
 }
 
-void EnemyPatrolState::onUpdate(Enemy* enemy, float dt) {
+void EnemyPatrolState::onUpdate(Enemy* enemy, float deltaTime) {
+    // 统一死亡判断
     if (enemy->isDead()) {
         enemy->getStateMachine()->changeState("Dead");
         return;
     }
-
-    _patrolTimer += dt;
-
-    // 感知玩家仍然用 world 距离（可以保留你原来的写法）
+    
+    _patrolTimer += deltaTime;
+    
+    // 感知玩家：在视野范围内 -> 追击
     if (HasTarget(enemy)) {
         float d = EnemyWorldPos(enemy).distance(PlayerWorldPos(enemy));
         if (d <= enemy->getViewRange()) {
@@ -145,36 +158,35 @@ void EnemyPatrolState::onUpdate(Enemy* enemy, float dt) {
         }
     }
 
+    // 移动向巡逻目标点
     if (enemy->canMove()) {
-        Vec3 pos = enemy->getPosition3D();        // ★父节点坐标
-        Vec3 dir = _patrolTarget - pos;
-        dir.y = 0.0f;
-
-        float dist = dir.length();
-        if (dist > 10.0f) {
-            dir.normalize();
-
-            float step = enemy->getMoveSpeed() * dt;
-            if (step > dist) step = dist;         // ★防止 dt 大时“跨过头”抖动
-
-            enemy->setPosition3D(pos + dir * step);
-
+        Vec3 currentPos = enemy->getPosition3D();
+        Vec3 direction = _patrolTarget - currentPos;
+        float distance = direction.length();
+        
+        if (distance > 10.0f) { // 接近目标点（阈值10单位）
+            direction.normalize();
+            
+            // 根据移动方向调整模型朝向（考虑初始180度旋转）
             if (enemy->getSprite()) {
-                float angle = atan2f(dir.x, dir.z) * 180.0f / M_PI;
+                float angle = atan2f(direction.x, direction.z) * 180.0f / M_PI+45.0f;
                 enemy->getSprite()->setRotation3D(Vec3(0, angle, 0));
             }
-        }
-        else {
+            
+            Vec3 newPos = currentPos + direction * enemy->getMoveSpeed() * deltaTime;
+            enemy->setPosition3D(newPos);
+        } else {
+            // 到达目标点，切换到待机状态
             enemy->getStateMachine()->changeState("Idle");
-            return;
         }
     }
-
+    
+    // 巡逻时间过长，切换到待机状态
     if (_patrolTimer >= _maxPatrolTime) {
         enemy->getStateMachine()->changeState("Idle");
     }
+    
 }
-
 
 void EnemyPatrolState::onExit(Enemy* enemy) {
     CCLOG("Enemy exited patrol state");
@@ -210,6 +222,38 @@ void EnemyChaseState::onUpdate(Enemy* enemy, float deltaTime) {
         return;
     }
 
+    /*_chaseTimer += deltaTime;
+    Vec3 currentPos = enemy->getPosition3D();
+
+    // 计算与玩家的距离
+    float distanceFromBirth = currentPos.distance(enemy->getBirthPosition());
+    if (distanceFromBirth > enemy->getMaxChaseRange()) {
+        // 追得太远，强制回家
+        enemy->getStateMachine()->changeState("Return");
+        return;
+    }
+    // TODO: 获取玩家位置
+    Vec3 playerPosition = Vec3::ZERO; // 临时值，需要替换为实际玩家位置
+    float distanceToPlayer = currentPos.distance(playerPosition);
+
+    // 如果玩家在视野范围内且在移动范围内，尝试移动或攻击
+    if (distanceToPlayer <= enemy->getViewRange()) {
+        if (enemy->canAttack()) {
+            // 进入攻击状态
+            enemy->getStateMachine()->changeState("Attack");
+        } else if (enemy->canMove()) {
+            // 继续追逐
+            Vec3 direction = playerPosition - currentPos;
+            direction.normalize();
+            Vec3 newPos = currentPos + direction * enemy->getMoveSpeed() * deltaTime;
+            enemy->setPosition3D(newPos);
+
+            // TODO: 实现路径寻找算法，避免障碍物
+        }
+    } else {
+        // 玩家超出视野范围，切换到待机状态
+        enemy->getStateMachine()->changeState("Return");
+    }*/
     _chaseTimer += deltaTime;
 
     // 没目标直接回家
@@ -238,8 +282,8 @@ void EnemyChaseState::onUpdate(Enemy* enemy, float deltaTime) {
         return;
     }
 
-    // 追上了再攻击（给一个简单攻击距离，避免远程“空挥”）
-    const float kAttackRange = 60.0f;
+    // 追上了再攻击（给一个简单攻击距离，增加到 80，配合攻击判定的膨胀）
+    const float kAttackRange = 80.0f;
     if (distanceToPlayer <= kAttackRange && enemy->canAttack()) {
         enemy->getStateMachine()->changeState("Attack");
         return;
@@ -259,7 +303,7 @@ void EnemyChaseState::onUpdate(Enemy* enemy, float deltaTime) {
 
             // 朝向（沿用你 Patrol 的方式）
             if (enemy->getSprite()) {
-                float angle = atan2f(dir.x, dir.z) * 180.0f / M_PI ;
+                float angle = atan2f(dir.x, dir.z) * 180.0f / M_PI + 45.0f;
                 enemy->getSprite()->setRotation3D(Vec3(0, angle, 0));
             }
         }
@@ -278,7 +322,7 @@ std::string EnemyChaseState::getStateName() const {
 
 EnemyAttackState::EnemyAttackState()
     : _attackTimer(0.0f)
-    , _attackCooldown(1.0f) { // 1秒攻击冷却
+    , _attackCooldown(3.0f) { // 3秒攻击冷却
 }
 
 EnemyAttackState::~EnemyAttackState() {
@@ -287,14 +331,12 @@ EnemyAttackState::~EnemyAttackState() {
 void EnemyAttackState::onEnter(Enemy* enemy) {
     CCLOG("Enemy entered attack state");
     
-    // 重置攻击计时器
+    // 重置攻击计时器和标志
     _attackTimer = 0.0f;
+    _attacked = false;
     
     // 播放攻击动画
-    enemy->playAnim("chase", true);
-    
-    // 进入攻击状态，不直接造成伤害
-    // 伤害由外部系统触发
+    enemy->playAnim("attack", false);
 }
 
 void EnemyAttackState::onUpdate(Enemy* enemy, float deltaTime) {
@@ -305,6 +347,24 @@ void EnemyAttackState::onUpdate(Enemy* enemy, float deltaTime) {
     }
 
     _attackTimer += deltaTime;
+
+    // 攻击命中检测：在动画播放到 0.3 秒左右执行一次判定
+    if (!_attacked && _attackTimer >= 0.3f) {
+        _attacked = true;
+        auto combat = enemy->getCombat();
+        auto target = enemy->getTarget();
+        CCLOG("EnemyAttackState: Attempting attack. Combat: %p, Target: %p", combat, target);
+        if (combat && target) {
+            // 将目标（悟空）放入列表
+            std::vector<cocos2d::Node*> targets = { static_cast<cocos2d::Node*>(target) };
+            int hits = combat->executeMeleeAttack(enemy->getCollider(), targets);
+            if (hits > 0) {
+                CCLOG("Enemy hit player! Damage dealt. Hits: %d", hits);
+            } else {
+                CCLOG("Enemy attack missed.");
+            }
+        }
+    }
 
     // 攻击冷却结束后，检查玩家是否仍在视野范围内
     if (_attackTimer >= _attackCooldown) {
@@ -320,6 +380,7 @@ void EnemyAttackState::onUpdate(Enemy* enemy, float deltaTime) {
             if (enemy->canAttack()) {
                 // 再次攻击
                 _attackTimer = 0.0f;
+                _attacked = false; // 重置标志位
                 enemy->playAnim("attack", false); //再播一次
             }
             else {
@@ -380,19 +441,16 @@ void EnemyHitState::onUpdate(Enemy* enemy, float deltaTime) {
         }
         float distance = EnemyWorldPos(enemy).distance(PlayerWorldPos(enemy));
 
-        if (distance <= enemy->getViewRange()) {
+        if (distance <= 80.0f) { // 使用与 ChaseState 一致的攻击距离
             if (enemy->canAttack()) {
-                // 玩家在视野范围内，切换到攻击状态
                 enemy->getStateMachine()->changeState("Attack");
-            }
-            else {
-                // 无法攻击，切换到追逐状态
+            } else {
                 enemy->getStateMachine()->changeState("Chase");
             }
-        }
-        else {
-            // 玩家不在视野范围内，切换到待机状态
-            enemy->getStateMachine()->changeState("Idle");
+        } else if (distance <= enemy->getViewRange()) {
+            enemy->getStateMachine()->changeState("Chase");
+        } else {
+            enemy->getStateMachine()->changeState("Return");
         }
     }
 }
@@ -458,7 +516,6 @@ ReturnState::ReturnState()
 ReturnState::~ReturnState() {
 }
 
-
 void ReturnState::onEnter(Enemy* enemy) {
     CCLOG("Enemy entered return state");
 
@@ -512,6 +569,7 @@ void ReturnState::onUpdate(Enemy* enemy, float dt) {
         enemy->getStateMachine()->changeState("Patrol");
     }
 }
+
 
 void ReturnState::onExit(Enemy* enemy) {
     CCLOG("Enemy exited return state");

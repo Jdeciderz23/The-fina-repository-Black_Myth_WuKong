@@ -116,6 +116,16 @@ public:
     const CharacterCollider& getCollider() const { return _collider; }
     
     /**
+     * @brief 获取战斗组件
+     */
+    CombatComponent* getCombat() const { return _combat; }
+
+    /**
+     * @brief 获取健康组件
+     */
+    HealthComponent* getHealth() const { return _health; }
+    
+    /**
      * @brief 设置敌人位置
      * @param position 目标位置
      */
