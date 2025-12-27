@@ -25,7 +25,7 @@ bool Wukong::init() {
     auto aabb = _model->getAABB();
     auto center = (aabb._min + aabb._max) * 0.5f;
 
-    this->walkSpeed = 0.0f;
+    this->walkSpeed = 120.0f;
     this->runSpeed = 240.0f;
 
     // XZ 居中，Y 方向把脚底抬到 y=0
@@ -43,17 +43,13 @@ bool Wukong::init() {
         _model->setCullFaceEnabled(false);
         _visualRoot->addChild(_model);
 
-        //// 预加载最基础两套
+        //预加载最基础两套
         _anims["idle"] = cocos2d::Animation3D::create("WuKong/Idle.c3b");
         _anims["run_fwd"] = cocos2d::Animation3D::create("WuKong/Jog_Fwd.c3b");
         _anims["run_bwd"] = cocos2d::Animation3D::create("WuKong/Jog_Bwd.c3b");
         _anims["run_left"] = cocos2d::Animation3D::create("WuKong/Jog_Left.c3b");   // 有就填
         _anims["run_right"] = cocos2d::Animation3D::create("WuKong/Jog_Right.c3b");        
         _anims["jump"] = cocos2d::Animation3D::create("WuKong/Jump.c3b");
-        //_anims["jump_start"] = cocos2d::Animation3D::create("WuKong/Jump_Start.c3b");
-        //_anims["jump_apex"] = cocos2d::Animation3D::create("WuKong/Jump_Apex.c3b");
-        //_anims["jump_land"] = cocos2d::Animation3D::create("WuKong/Jump_Land.c3b");
-        //_anims["jump_recovery"] = cocos2d::Animation3D::create("WuKong/Jump_Recovery.c3b");
         _anims["run"] = _anims["run_fwd"];
         playAnim("idle", true);
         playAnim("run", true);
@@ -72,8 +68,6 @@ void Wukong::loadAnimIfNeeded(const std::string& key,
     if (_anims.count(key)) 
         return;
 
-    // 你把文件放哪，就把这里路径改成对应 Resources 路径
-    // 比如 "Models/Wukong/Idle.FBX"
     cocos2d::Animation3D* anim = cocos2d::Animation3D::create(c3bPath);
     _anims[key] = anim;
 
@@ -126,7 +120,7 @@ void Wukong::startJumpAnim()
     // 停掉其它 locomotion 动画（同一个 tag）
     _model->stopActionByTag(_animTag);
 
-    // jump 播完走落地逻辑（其实就是“回到 Idle/Move”）
+    // jump 播完走落地逻辑
     auto done = cocos2d::CallFunc::create([this]() {
         _jumpAnimPlaying = false;
         this->onJumpLanded();
@@ -140,8 +134,7 @@ void Wukong::startJumpAnim()
 
 void Wukong::onJumpLanded()
 {
-    // 如果你有状态机（你之前就是这么切的）
-    const auto intent = this->getMoveIntent();  // 你工程里用来保存输入意图的结构
+    const auto intent = this->getMoveIntent();  
     if (intent.dirWS.lengthSquared() > 1e-6f) {
         this->getStateMachine().changeState("Move");
     }

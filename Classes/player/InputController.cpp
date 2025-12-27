@@ -141,11 +141,17 @@ void PlayerController::update(float dt) {
 
     // 关键：把输入方向交给 Wukong
     _target->setMoveAxis(axis);
+    //镜头面向前方
+    if (axis.lengthSquared() > 1e-4f) {
+        auto rot = _target->getRotation3D();
+        float newYaw = moveTowardAngleDeg(rot.y, _camYawDeg, 720.0f * dt);
+        _target->setRotation3D(cocos2d::Vec3(0.0f, newYaw, 0.0f));
+    }
 
     // 5) 交给角色
     Character::MoveIntent intent;
     intent.dirWS = moveWS;      // Vec3::ZERO 表示不移动
-    intent.run = _run;          // 你已有的 Shift/跑步标记
+    intent.run = _run;          // 已有的 Shift/跑步标记
     _target->setMoveIntent(intent);
     
 }
@@ -238,29 +244,4 @@ void PlayerController::bindMouse() {
         };
 
     _eventDispatcher->addEventListenerWithSceneGraphPriority(mouse, this);
-    //auto* mouse = cocos2d::EventListenerMouse::create();
-
-    //// 魂类：鼠标移动直接旋转镜头（不需要按住右键）
-    //mouse->onMouseMove = [this](cocos2d::EventMouse* e) {
-    //    cocos2d::Vec2 cur(e->getCursorX(), e->getCursorY());
-
-    //    // 第一次移动：只记录位置，避免delta爆炸
-    //    if (!_mouseRotating) {
-    //        _mouseRotating = true;
-    //        _lastMouse = cur;
-    //        return;
-    //    }
-
-    //    cocos2d::Vec2 delta = cur - _lastMouse;
-    //    _lastMouse = cur;
-
-    //    _camYawDeg -= delta.x * _mouseSens;
-    //    _camPitchDeg -= delta.y * _mouseSens;
-    //    };
-
-    //mouse->onMouseScroll = [this](cocos2d::EventMouse* e) {
-    //    _camDist -= e->getScrollY() * 18.0f;
-    //    };
-
-    //_eventDispatcher->addEventListenerWithSceneGraphPriority(mouse, this);
 }

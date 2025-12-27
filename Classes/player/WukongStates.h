@@ -78,20 +78,6 @@ public:
         const float spd = intent.run ? entity->runSpeed : entity->walkSpeed;
         entity->setHorizontalVelocity(cocos2d::Vec3(dir.x * spd, 0.0f, dir.z * spd));
         static_cast<Wukong*>(entity)->updateLocomotionAnim(intent.run);
-
-        // （可选）朝向：让角色面向移动方向
-        const float yawRad = std::atan2(-dir.x, -dir.z);
-        const float yawDeg = yawRad * 180.0f / 3.1415926f;
-        //entity->setRotation3D(cocos2d::Vec3(0.0f, yawDeg, 0.0f));
-        // 目标朝向
-        const float targetYawDeg = CC_RADIANS_TO_DEGREES(std::atan2(-dir.x, -dir.z));
-
-        const float curYawDeg = entity->getRotation3D().y;
-        const float turnSpeedDeg = 720.0f;                 // 旋转速度（度/秒），可调：540~900
-        const float newYaw = moveTowardAngleDeg(curYawDeg, targetYawDeg, turnSpeedDeg * deltaTime);
-
-        entity->setRotation3D(cocos2d::Vec3(0.0f, newYaw, 0.0f));
-
     }
 
     void onExit(Character* entity) override {
@@ -108,73 +94,44 @@ public:
  * @class JumpState
  * @brief 跳跃状态：播放 jump，落地后切回 Idle/Move
  */
-//class JumpState : public BaseState<Character> {
-//public:
-//    void onEnter(Character* entity) override {
-//        if (!entity) return;
-//        entity->playAnim("jump", false);
-//    }
-//
-//    void onUpdate(Character* entity, float deltaTime) override {
-//        (void)deltaTime;
-//        if (!entity) return;
-//
-//        if (entity->isOnGround()) {
-//            const auto intent = entity->getMoveIntent();
-//            if (intent.dirWS.lengthSquared() > 1e-6f) {
-//                entity->getStateMachine().changeState("Move");
-//            }
-//            else {
-//                entity->getStateMachine().changeState("Idle");
-//            }
-//        }
-//    }
-//
-//    void onExit(Character* entity) override {
-//        (void)entity;
-//    }
-//
-//    std::string getStateName() const override {
-//        return "Jump";
-//    }
-//};
 class JumpState : public BaseState<Character> {
 public:
-    JumpState() : _landTriggered(false), _t(0.0f) {}
+    JumpState() : _landTriggered(false), _t(0.0f), _leftGround(false) {}
 
     void onEnter(Character* entity) override {
         if (!entity) return;
         _landTriggered = false;
+        _leftGround = false;
         _t = 0.0f;
-
-        // 进入跳跃：Pad -> Start -> Apex(循环)
         static_cast<Wukong*>(entity)->startJumpAnim();
     }
 
     void onUpdate(Character* entity, float deltaTime) override {
         if (!entity) return;
         _t += deltaTime;
-
-        // 防止刚切进 JumpState 的第一帧地面判定还没更新，导致立刻触发落地
-        if (_t < 0.05f) return;
-
         if (_landTriggered) return;
 
-        if (entity->isOnGround()) {
-            _landTriggered = true;
+        // 起跳保护时间：避免刚进 JumpState 地面状态还没刷新
+        if (_t < 0.08f) return;
 
-            // 落地：Land -> Recovery -> 最后回 Idle/Move（在 Wukong::onJumpLanded 里做）
-            static_cast<Wukong*>(entity)->onJumpLanded();
+        // 关键：必须观察到“离地”之后，才允许触发“落地”
+        if (!_leftGround) {
+            if (!entity->isOnGround()) _leftGround = true;
+
+            // 兜底：如果一直检测不到离地（某些地面判定写法会这样），
+            // 也别立刻落地打断动画，至少让起跳动画播一段时间
+            if (!_leftGround && _t < 0.35f) return;
         }
+
     }
 
     void onExit(Character* entity) override { (void)entity; }
-
     std::string getStateName() const override { return "Jump"; }
 
 private:
     bool  _landTriggered;
     float _t;
+    bool  _leftGround;
 };
 
 /**
