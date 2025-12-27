@@ -439,9 +439,9 @@ void BaseScene::initEnemy()
     };
 
     const Spawn spawns[] = {
-        { "Enemy/enemy1", "enemy1.c3b", cocos2d::Vec3(0, 30, 0) },
-        { "Enemy/enemy1", "enemy1.c3b", cocos2d::Vec3(200, 30, 50) },
-        { "Enemy/enemy1", "enemy1.c3b", cocos2d::Vec3(-200, 30, 50) },
+        { "Enemy/enemy1", "enemy1.c3b", cocos2d::Vec3(200, 0, -150) },
+        { "Enemy/enemy2", "enemy2.c3b", cocos2d::Vec3(200, 0, 50) },
+        { "Enemy/enemy3", "enemy3.c3b", cocos2d::Vec3(300, 0, 50) },
     };
 
     for (auto& s : spawns) {
