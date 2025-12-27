@@ -44,6 +44,7 @@ public:
     // x: 右为+，y: 前为+（你也可以用 z，这里用 Vec2 更直观）
     void setMoveAxis(const cocos2d::Vec2& axis);
     void updateLocomotionAnim(bool running);
+    float getAnimDuration(const std::string& key) const;
 
 private:
     cocos2d::Sprite3D* _model; ///< 锟斤拷色模锟酵ｏ拷锟斤拷为锟秸ｏ拷
@@ -59,7 +60,6 @@ private:
     cocos2d::Vec2 _moveAxis{ 0.0f, 0.0f };
     LocomotionDir _locoDir = LocomotionDir::None;
     bool _locoRun = false;
-
 
     void loadAnimIfNeeded(const std::string& key,
         const std::string& c3bPath);

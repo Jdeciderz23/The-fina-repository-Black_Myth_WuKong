@@ -169,10 +169,7 @@ void PlayerController::bindKeyboard() {
         case cocos2d::EventKeyboard::KeyCode::KEY_SPACE:
             if (_target) _target->jump();
             break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_J:
-            if (_target) _target->attackLight();
-            break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_K:
+        case cocos2d::EventKeyboard::KeyCode::KEY_C:
             if (_target) _target->roll();
             break;
         case cocos2d::EventKeyboard::KeyCode::KEY_R:
@@ -213,6 +210,10 @@ void PlayerController::bindMouse() {
         };
 
     mouse->onMouseUp = [this](cocos2d::EventMouse* e) {
+        if (e->getMouseButton() == cocos2d::EventMouse::MouseButton::BUTTON_LEFT) {
+            if (_target) _target->attackLight();
+            return;
+        }
         if (e->getMouseButton() == cocos2d::EventMouse::MouseButton::BUTTON_RIGHT) {
             _mouseRotating = false;
 

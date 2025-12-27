@@ -196,57 +196,60 @@ private:
  */
 class AttackState : public BaseState<Character> {
 public:
-    /**
-     * @brief 构造攻击状态
-     * @param step 连招段数（1/2/3）
-     */
-    explicit AttackState(int step) : _step(step), _t(0.0f) {}
+    explicit AttackState(int step)
+        : _step(step), _t(0.0f), _queuedNext(false), _dur(0.6f) {
+    }
 
     void onEnter(Character* entity) override {
         if (!entity) return;
 
         _t = 0.0f;
+        _queuedNext = false;
         entity->stopHorizontal();
 
-        if (_step == 1) entity->playAnim("atk1", false);
-        if (_step == 2) entity->playAnim("atk2", false);
-        if (_step == 3) entity->playAnim("atk3", false);
+        std::string key = (_step == 1) ? "attack1" : ((_step == 2) ? "attack2" : "attack3");
+        entity->playAnim(key, false);
+
+        // 用真实动画时长（需要 entity 是 Wukong）
+        if (auto* wk = dynamic_cast<Wukong*>(entity)) {
+            _dur = wk->getAnimDuration(key);
+        }
+        else {
+            _dur = 0.6f;
+        }
     }
 
-    void onUpdate(Character* entity, float deltaTime) override {
+    void onUpdate(Character* entity, float dt) override {
         if (!entity) return;
-        _t += deltaTime;
+        _t += dt;
 
-        // 简化：0.15~0.35 秒为接续窗口
-        const bool inWindow = (_t >= 0.15f && _t <= 0.35f);
+        // 连段输入窗口：按时长比例更稳（你也能自己调）
+        const float winStart = 0.20f * _dur;
+        const float winEnd = 0.65f * _dur;
 
-        bool wantNext = false;
-        if (inWindow) {
-            wantNext = entity->consumeComboBuffered();
+        if (_t >= winStart && _t <= winEnd) {
+            if (entity->consumeComboBuffered()) {
+                _queuedNext = true;
+            }
         }
 
-        // 简化：0.55 秒动作结束
-        if (_t >= 0.55f) {
-            if (wantNext && _step < 3) {
-                if (_step == 1) entity->getStateMachine().changeState("Attack2");
-                if (_step == 2) entity->getStateMachine().changeState("Attack3");
+        // 让当前段“基本播完”再切下一段
+        const float endTime = 0.95f * _dur;
+        if (_t >= endTime) {
+            if (_queuedNext && _step < 3) {
+                entity->getStateMachine().changeState(_step == 1 ? "Attack2" : "Attack3");
+                return;
             }
-            else {
-                const auto intent = entity->getMoveIntent();
-                if (intent.dirWS.lengthSquared() > 1e-6f) {
-                    entity->getStateMachine().changeState("Move");
-                }
-                else {
-                    entity->getStateMachine().changeState("Idle");
-                }
-            }
+
+            const auto intent = entity->getMoveIntent();
+            if (intent.dirWS.lengthSquared() > 1e-6f) entity->getStateMachine().changeState("Move");
+            else                                      entity->getStateMachine().changeState("Idle");
         }
     }
 
-    void onExit(Character* entity) override {
+    void onExit(Character* entity)override {
         (void)entity;
     }
-
     std::string getStateName() const override {
         if (_step == 1) return "Attack1";
         if (_step == 2) return "Attack2";
@@ -254,8 +257,10 @@ public:
     }
 
 private:
-    int _step;  ///< 连招段数
-    float _t;   ///< 状态计时
+    int _step;
+    float _t;
+    bool _queuedNext;
+    float _dur;
 };
 
 /**

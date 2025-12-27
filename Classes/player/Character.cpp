@@ -86,17 +86,26 @@ void Character::attackLight() {
         return;
     }
 
-    BaseState<Character>* cur = _fsm.getCurrentState();
-    const std::string curName = cur ? cur->getStateName() : "";
+    //BaseState<Character>* cur = _fsm.getCurrentState();
+    //const std::string curName = cur ? cur->getStateName() : "";
 
-    // 若正在攻击，按一次只做“输入缓冲”，由 AttackState 在窗口内接续
-    if (!curName.empty() && curName.rfind("Attack", 0) == 0) {
+    //// 若正在攻击，按一次只做“输入缓冲”，由 AttackState 在窗口内接续
+    //if (!curName.empty() && curName.rfind("Attack", 0) == 0) {
+    //    _comboBuffered = true;
+    //    return;
+    //}
+
+    //_comboBuffered = false;
+    //_fsm.changeState("Attack1");
+    BaseState<Character>* cur = _fsm.getCurrentState();
+    const std::string curName = cur->getStateName() ;
+    if (curName == "Attack1" || curName == "Attack2") {
         _comboBuffered = true;
         return;
     }
+    if (curName == "Attack3") return;
 
-    _comboBuffered = false;
-    _fsm.changeState("Attack1");
+    getStateMachine().changeState("Attack1");
 }
 
 void Character::takeHit(int damage) {
