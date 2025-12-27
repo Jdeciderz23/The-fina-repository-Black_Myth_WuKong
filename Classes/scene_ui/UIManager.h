@@ -32,10 +32,19 @@ public:
      */
     cocos2d::Scene* createStartMenuScene();
     void showPauseMenu();
+    void showDeathMenu();
 
-    // 后续可扩展：显示 HUD、更新玩家血量等
-    // void showHUD();
-    // void updatePlayerHP(float percent);
+    /**
+     * @brief 显示 HUD（血条等）
+     * @param parent HUD 挂载的父节点
+     */
+    void showHUD(cocos2d::Node* parent);
+
+    /**
+     * @brief 更新玩家血条显示
+     * @param percent 生命值百分比（0.0-1.0）
+     */
+    void updatePlayerHP(float percent);
 
 private:
     /**
@@ -50,6 +59,11 @@ private:
     ~UIManager();
     
     static UIManager* _instance;                 // 单例指针
+
+    cocos2d::DrawNode* _hpBarDrawNode = nullptr; // 血条绘制节点
+    cocos2d::Label* _hpLabel = nullptr;          // 血量文字标签
+    float _hpBarWidth = 400.0f;                  // 血条宽度
+    float _hpBarHeight = 20.0f;                  // 血条高度
 
     // ---------------- 菜单按钮回调 ----------------
 
@@ -75,6 +89,14 @@ private:
     void onPauseTeleport(cocos2d::Ref* sender);
     void onPauseResume(cocos2d::Ref* sender);
     void onPauseReturnTitle(cocos2d::Ref* sender);
+
+    void onDeathRespawn(cocos2d::Ref* sender);
+    void onDeathReturnTitle(cocos2d::Ref* sender);
+
+    // ---------------- 设置菜单相关 ----------------
+    void showSettingsMenu();
+    void onVolumeSliderChanged(cocos2d::Ref* sender, cocos2d::ui::Slider::EventType type);
+    void onCloseSettings(cocos2d::Ref* sender);
 };
 
 #endif // __UI_MANAGER_H__                        // 防重宏结束
