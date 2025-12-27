@@ -25,7 +25,7 @@ bool Wukong::init() {
     auto aabb = _model->getAABB();
     auto center = (aabb._min + aabb._max) * 0.5f;
 
-    this->walkSpeed = 140.0f;
+    this->walkSpeed = 0.0f;
     this->runSpeed = 240.0f;
 
     // XZ 居中，Y 方向把脚底抬到 y=0
@@ -36,24 +36,24 @@ bool Wukong::init() {
     if (_model) {
         _model->setScale(0.1f);
         _model->setPosition3D(cocos2d::Vec3::ZERO);
-        _model->setRotation3D(cocos2d::Vec3(0.0f, 0.0f, 180.0f));
+        _model->setRotation3D(cocos2d::Vec3(0.0f, 180.0f, 0.0f));
         // _model->setRotation3D(cocos2d::Vec3::ZERO);
         _model->setCameraMask((unsigned short)cocos2d::CameraFlag::USER1, true);
         _model->setForceDepthWrite(true);
         _model->setCullFaceEnabled(false);
         _visualRoot->addChild(_model);
 
-        // 预加载最基础两套
+        //// 预加载最基础两套
         _anims["idle"] = cocos2d::Animation3D::create("WuKong/Idle.c3b");
         _anims["run_fwd"] = cocos2d::Animation3D::create("WuKong/Jog_Fwd.c3b");
         _anims["run_bwd"] = cocos2d::Animation3D::create("WuKong/Jog_Bwd.c3b");
         _anims["run_left"] = cocos2d::Animation3D::create("WuKong/Jog_Left.c3b");   // 有就填
         _anims["run_right"] = cocos2d::Animation3D::create("WuKong/Jog_Right.c3b");        
-        _anims["jump_pad"] = cocos2d::Animation3D::create("WuKong/Jump_Pad.c3b");
-        _anims["jump_start"] = cocos2d::Animation3D::create("WuKong/Jump_Start.c3b");
-        _anims["jump_apex"] = cocos2d::Animation3D::create("WuKong/Jump_Apex.c3b");
-        _anims["jump_land"] = cocos2d::Animation3D::create("WuKong/Jump_Land.c3b");
-        _anims["jump_recovery"] = cocos2d::Animation3D::create("WuKong/Jump_Recovery.c3b");
+        _anims["jump"] = cocos2d::Animation3D::create("WuKong/Jump.c3b");
+        //_anims["jump_start"] = cocos2d::Animation3D::create("WuKong/Jump_Start.c3b");
+        //_anims["jump_apex"] = cocos2d::Animation3D::create("WuKong/Jump_Apex.c3b");
+        //_anims["jump_land"] = cocos2d::Animation3D::create("WuKong/Jump_Land.c3b");
+        //_anims["jump_recovery"] = cocos2d::Animation3D::create("WuKong/Jump_Recovery.c3b");
         _anims["run"] = _anims["run_fwd"];
         playAnim("idle", true);
         playAnim("run", true);
@@ -118,52 +118,36 @@ void Wukong::startJumpAnim()
 {
     if (!_model) return;
 
-    auto pad = makeAnimate("jump_pad");
-    auto start = makeAnimate("jump_start");
-    auto apex = makeAnimate("jump_apex");
-    if (!pad || !start || !apex) return;
+    auto jump = makeAnimate("jump");  
+    if (!jump) return;
 
-    _curAnim = "jump";
+    _jumpAnimPlaying = true;
+
+    // 停掉其它 locomotion 动画（同一个 tag）
     _model->stopActionByTag(_animTag);
 
-    // Pad -> Start -> Apex(循环，直到落地被 stop)
-    auto apexLoop = cocos2d::RepeatForever::create(apex);
-    auto seq = cocos2d::Sequence::create(pad, start, apexLoop, nullptr);
+    // jump 播完走落地逻辑（其实就是“回到 Idle/Move”）
+    auto done = cocos2d::CallFunc::create([this]() {
+        _jumpAnimPlaying = false;
+        this->onJumpLanded();
+        });
 
+    auto seq = cocos2d::Sequence::create(jump, done, nullptr);
     seq->setTag(_animTag);
     _model->runAction(seq);
 }
 
+
 void Wukong::onJumpLanded()
 {
-    if (!_model) return;
-
-    auto land = makeAnimate("jump_land");
-    auto rec = makeAnimate("jump_recovery");
-
-    // 先停掉空中循环（或者正在跑的跳跃序列）
-    _model->stopActionByTag(_animTag);
-
-    // 如果缺动画，至少别卡死：直接回 Idle/Move
-    if (!land || !rec) {
-        const auto intent = this->getMoveIntent();
-        if (intent.dirWS.lengthSquared() > 1e-6f) this->getStateMachine().changeState("Move");
-        else this->getStateMachine().changeState("Idle");
-        return;
+    // 如果你有状态机（你之前就是这么切的）
+    const auto intent = this->getMoveIntent();  // 你工程里用来保存输入意图的结构
+    if (intent.dirWS.lengthSquared() > 1e-6f) {
+        this->getStateMachine().changeState("Move");
     }
-
-    auto backToLocomotion = cocos2d::CallFunc::create([this]() {
-        const auto intent = this->getMoveIntent();
-        if (intent.dirWS.lengthSquared() > 1e-6f) this->getStateMachine().changeState("Move");
-        else this->getStateMachine().changeState("Idle");
-        });
-
-    // Land -> Recovery -> 回到 Idle/Move
-    auto seq = cocos2d::Sequence::create(land, rec, backToLocomotion, nullptr);
-    seq->setTag(_animTag);
-    _model->runAction(seq);
-
-    _curAnim = "jump_land";
+    else {
+        this->getStateMachine().changeState("Idle");
+    }
 }
 
 //根据输入轴计算方向，优先“幅度更大的轴”
