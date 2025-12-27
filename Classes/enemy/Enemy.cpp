@@ -2,7 +2,7 @@
 #include "EnemyStates.h"
 #include "combat/HealthComponent.h"
 #include "combat/CombatComponent.h"
-
+#include "Wukong.h"
 
 Enemy* Enemy::create() {
     auto enemy = new (std::nothrow) Enemy();
@@ -25,7 +25,6 @@ Enemy::Enemy()
     , _canMove(true)
     , _canAttack(true)
     , _sprite(nullptr)
-    , _targetPosition(Vec3::ZERO)
     , _birthPosition(0, 100, 0)
     , _maxChaseRange(1000.0f)
 {
@@ -54,22 +53,6 @@ bool Enemy::init() {
     
     // 创建3D精灵
     _birthPosition = this->getPosition3D();
-
-    _sprite = nullptr;
-    _sprite = cocos2d::Sprite3D::create("Enemy/enemy1.c3b");
-    if (!_sprite) {
-        CCLOG("错误: 无法加载敌人模型");
-        return false;
-    }
-    _sprite->setScale(1.0f);
-    // 暂时移除初始180度旋转，让模型自然朝向正前方
-    _sprite->setRotation3D(Vec3(0, 0, 0));
-    _sprite->setPosition3D(Vec3(0.0f, 0.0f, 0.0f));
-    _sprite->setCameraMask((unsigned short)CameraFlag::USER1); // 设置相机遮罩，与主相机一致
-    _sprite->setForceDepthWrite(true); // 启用深度写入，防止渲染异常
-    _sprite->setCullFaceEnabled(false); // 禁用面剔除，防止模型部分不可见
-    this->addChild(_sprite);
-
 
     // 开启更新循环
     this->scheduleUpdate();
@@ -131,15 +114,6 @@ void Enemy::setEnemyType(EnemyType type) {
             _viewRange = 300.0f;
             break;
     }
-}
-
-void Enemy::setPosition3D(const Vec3& position) {
-    Node::setPosition3D(position);
-}
-
-
-Vec3 Enemy::getPosition3D() const {
-    return Node::getPosition3D();
 }
 
 StateMachine<Enemy>* Enemy::getStateMachine() const {
@@ -248,4 +222,80 @@ bool Enemy::isLowHealth() const {
 float Enemy::getHealthRatio() const {
     return _health ? _health->getHealthPercentage() : 1.0f;
 }
+
+void Enemy::setTarget(Wukong* w) { _target = w; }
+Wukong* Enemy::getTarget() const { return _target; }
+
+cocos2d::Vec3 Enemy::getTargetWorldPos() const {
+    return _target ? _target->getWorldPosition3D() : cocos2d::Vec3::ZERO;
+}
+
+cocos2d::Vec3 Enemy::getWorldPosition3D() const {
+    cocos2d::Vec3 out = cocos2d::Vec3::ZERO;
+    cocos2d::Mat4 m = this->getNodeToWorldTransform();
+    m.transformPoint(cocos2d::Vec3::ZERO, &out);
+    return out;
+}
+
+//加载模型
+bool Enemy::initWithResRoot(const std::string& resRoot, const std::string& modelFile) {
+    _resRoot = resRoot;
+    _modelFile = modelFile;
+
+    if (!Node::init()) return false; // 不再调用 this->init()，避免重复逻辑
+
+    // 初始化组件（保持一致）
+    initStateMachine();
+    initHealthComponent();
+    initCombatComponent();
+
+    // 加载模型
+    std::string modelPath = _resRoot + "/" + _modelFile;
+    _sprite = cocos2d::Sprite3D::create(modelPath);
+    if (!_sprite) {
+        CCLOG("错误: 无法加载敌人模型: %s", modelPath.c_str());
+        return false;
+    }
+
+    _sprite->setScale(0.25f);
+    _sprite->setRotation3D(Vec3(0, 0, 0));
+    _sprite->setPosition3D(Vec3(0, 0, 0));
+    _sprite->setCameraMask((unsigned short)cocos2d::CameraFlag::USER1);
+    _sprite->setForceDepthWrite(true);
+    _sprite->setCullFaceEnabled(false);
+    this->addChild(_sprite);
+
+    // 记录出生点
+    _birthPosition = this->getPosition3D();
+
+    // 开启 update
+    this->scheduleUpdate();
+    return true;
+}
+
+Enemy* Enemy::createWithResRoot(const std::string& resRoot,
+    const std::string& modelFile) {
+    auto enemy = new (std::nothrow) Enemy();
+    if (enemy && enemy->initWithResRoot(resRoot, modelFile)) {
+        enemy->autorelease();
+        return enemy;
+    }
+    CC_SAFE_DELETE(enemy);
+    return nullptr;
+}
+
+//加载动画
+void Enemy::playAnim(const std::string& name, bool loop) {
+    if (!_sprite) return;
+    _sprite->stopAllActions();
+
+    std::string file = _resRoot + "/" + name + ".c3b";
+    auto anim = cocos2d::Animation3D::create(file);
+    if (!anim) { CCLOG("Anim load failed: %s", file.c_str()); return; }
+
+    auto act = cocos2d::Animate3D::create(anim);
+    if (loop) _sprite->runAction(cocos2d::RepeatForever::create(act));
+    else _sprite->runAction(act);
+}
+
 
