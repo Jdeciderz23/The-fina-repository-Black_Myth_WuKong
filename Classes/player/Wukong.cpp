@@ -50,10 +50,12 @@ bool Wukong::init() {
         _anims["run_left"] = cocos2d::Animation3D::create("WuKong/Jog_Left.c3b");   // 有就填
         _anims["run_right"] = cocos2d::Animation3D::create("WuKong/Jog_Right.c3b");
         _anims["jump"] = cocos2d::Animation3D::create("WuKong/Jump.c3b");
+        _anims["attack1"] = cocos2d::Animation3D::create("WuKong/attack1.c3b");
+        _anims["attack2"] = cocos2d::Animation3D::create("WuKong/attack2.c3b");
+        _anims["attack3"] = cocos2d::Animation3D::create("WuKong/attack3.c3b");
         _anims["run"] = _anims["run_fwd"];
         playAnim("idle", true);
-        playAnim("run", true);
-        playAnim("jump", false);
+    
 
         // 初始化 AABB 碰撞器，收缩 XZ 轴到 40%，避免金箍棒导致的空气墙过大
         _collider.calculateBoundingBox(_model, 0.4f);
@@ -182,6 +184,12 @@ void Wukong::updateLocomotionAnim(bool running) {
     if (it == _anims.end() || !it->second) key = "run_fwd";
 
     playAnim(key, true);
+}
+
+float Wukong::getAnimDuration(const std::string& key) const {
+    auto it = _anims.find(key);
+    if (it == _anims.end() || !it->second) return 0.6f; // 兜底
+    return it->second->getDuration();
 }
 
 cocos2d::Vec3 Wukong::getWorldPosition3D() const

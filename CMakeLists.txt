@@ -100,6 +100,7 @@ list(APPEND GAME_HEADER
     Classes/player/Wukong.h
     Classes/player/InputController.h
     Classes/player/WukongStates.h
+
 )
 
 # =========================
@@ -108,7 +109,10 @@ list(APPEND GAME_HEADER
 list(APPEND GAME_SOURCE
     Classes/combat/CombatComponent.cpp
     Classes/combat/HealthComponent.cpp
-    Classes/combat/Collider.cpp
+    Classes/combat/Skill.cpp
+       Classes/combat/Collider.cpp
+
+
 )
 
 list(APPEND GAME_HEADER
@@ -116,22 +120,28 @@ list(APPEND GAME_HEADER
     Classes/combat/HealthComponent.h
     Classes/combat/Skill.h
     Classes/combat/Collider.h
+    Classes/combat/CharacterCollider.h
+
 )
 
 # =========================
 # Enemy（敌人系统，C负责）
 # =========================
 list(APPEND GAME_SOURCE
-    Classes/enemy/Boss.cpp
+    Classes/enemy/BossAI.cpp
+     Classes/enemy/Enemy.cpp
+    Classes/enemy/BossAI.cpp
     Classes/enemy/Enemy.cpp
     Classes/enemy/EnemyAI.cpp
+Classes/enemy/NormalEnemyAI.cpp
     Classes/enemy/EnemyStates.cpp
 )
 
 list(APPEND GAME_HEADER
     Classes/enemy/Enemy.h
-    Classes/enemy/Boss.h
+    Classes/enemy/BossAI.h
     Classes/enemy/EnemyAI.h
+Classes/enemy/NormalEnemyAI.h
     Classes/enemy/EnemyStates.h
 )
 

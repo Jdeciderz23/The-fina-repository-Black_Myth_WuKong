@@ -44,6 +44,10 @@ public:
     // x: 右为+，y: 前为+（你也可以用 z，这里用 Vec2 更直观）
     void setMoveAxis(const cocos2d::Vec2& axis);
     void updateLocomotionAnim(bool running);
+    float getAnimDuration(const std::string& key) const;
+
+    // 给敌人/AI 用：返回悟空“世界坐标系”的位置（推荐用这个做距离/追击判断）
+    cocos2d::Vec3 getWorldPosition3D() const;
 
     // 给敌人/AI 用：返回悟空“世界坐标系”的位置（推荐用这个做距离/追击判断）
     cocos2d::Vec3 getWorldPosition3D() const;
@@ -62,7 +66,6 @@ private:
     cocos2d::Vec2 _moveAxis{ 0.0f, 0.0f };
     LocomotionDir _locoDir = LocomotionDir::None;
     bool _locoRun = false;
-
 
     void loadAnimIfNeeded(const std::string& key,
         const std::string& c3bPath);
