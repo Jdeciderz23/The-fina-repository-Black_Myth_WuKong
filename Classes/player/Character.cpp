@@ -204,7 +204,6 @@ void Character::applyMovement(float dt) {
                 Vec3 offset = _collider.getCollisionOffset(enemyAABB, &nextWorldAABB);
                 
                 if (offset != Vec3::ZERO) {
-                    CCLOG("Collision detected with enemy! Offset: (%.2f, %.2f, %.2f)", offset.x, offset.y, offset.z);
                     newPos += offset;
                     
                     // 修正后重新计算 nextWorldAABB 以便与下一个敌人检测

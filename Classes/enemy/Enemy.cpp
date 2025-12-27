@@ -59,9 +59,6 @@ bool Enemy::init() {
     // 创建3D精灵
     _birthPosition = this->getPosition3D();
 
-    // 开启更新循环
-    this->scheduleUpdate();
-
     // 初始化 AABB 碰撞器，收缩 XZ 轴到 40%
     _collider.calculateBoundingBox(_sprite, 0.4f);
 
