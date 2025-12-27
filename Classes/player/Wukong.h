@@ -22,7 +22,7 @@ public:
 
     /**
      * @brief ï¿½ï¿½Ê¼ï¿½ï¿½
-     * @return bool ï¿½Ç·ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½É¹ï¿?
+     * @return bool ï¿½Ç·ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½É¹ï¿½?
      */
     virtual bool init() override;
 
@@ -41,7 +41,7 @@ public:
 
     enum class MoveDir { None, Fwd, Bwd, Left, Right };
 
-    // x: ÓÒÎª+£¬y: Ç°Îª+£¨ÄãÒ²¿ÉÒÔÓÃ z£¬ÕâÀïÓÃ Vec2 ¸üÖ±¹Û£©
+    // x: ï¿½ï¿½Îª+ï¿½ï¿½y: Ç°Îª+ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ zï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Vec2 ï¿½ï¿½Ö±ï¿½Û£ï¿½
     void setMoveAxis(const cocos2d::Vec2& axis);
     void updateLocomotionAnim(bool running);
 
@@ -63,8 +63,8 @@ private:
 
     void loadAnimIfNeeded(const std::string& key,
         const std::string& c3bPath);
-    MoveDir _runDir = MoveDir::None;        // µ±Ç°±¼ÅÜ·½Ïò£¨·ÀÖ¹Ã¿Ö¡ÖØ¸´ÇÐ£©
-    std::string _curAnimKey;                // µ±Ç°¶¯»­ key£¨·ÀÖ¹ÖØ¸´²¥·Å£©
+    MoveDir _runDir = MoveDir::None;        // ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Ü·ï¿½ï¿½ò£¨·ï¿½Ö¹Ã¿Ö¡ï¿½Ø¸ï¿½ï¿½Ð£ï¿½
+    std::string _curAnimKey;                // ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ keyï¿½ï¿½ï¿½ï¿½Ö¹ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½Å£ï¿½
 
 };
 

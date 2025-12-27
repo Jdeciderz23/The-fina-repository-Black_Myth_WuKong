@@ -4,17 +4,18 @@
 #include "StateMachine.h"
 #include "cocos2d.h"
 #include "../combat/Collider.h"
+#include "../combat/HealthComponent.h"
+#include "../combat/CombatComponent.h"
+#include "../combat/CharacterCollider.h"
 #include <string>
 #include <vector>
 #include <memory>
 
+class Enemy;
+
 /**
  * @class Character
  * @brief 角色基类（继承 cocos2d::Node），提供移动、跳跃、翻滚、普攻连招、受击、死亡等通用接口
- *
- * @note
- * 1) Controller / AI / 战斗系统等应只通过本类公开接口驱动角色
- * 2) 角色内部使用 StateMachine<Character> 管理状态切换
  */
 class Character : public cocos2d::Node {
 public:
@@ -25,14 +26,7 @@ public:
         cocos2d::Vec3 dirWS = cocos2d::Vec3::ZERO; ///< 世界空间方向（可不归一化）
         bool run = false;                          ///< 是否奔跑
     };
-
-    /**
-     * @brief 生命状态
-     */
-    enum class LifeState {
-        Alive = 0, ///< 存活
-        Dead       ///< 死亡
-    };
+    
 
 public:
     /**
@@ -77,6 +71,17 @@ public:
     void setTerrainCollider(TerrainCollider* collider) { _terrainCollider = collider; }
 
     /**
+     * @brief 设置敌人列表（用于碰撞检测）
+     */
+    void setEnemies(const std::vector<Enemy*>* enemies) { _enemies = enemies; }
+
+    /**
+     * @brief 获取碰撞组件
+     */
+    CharacterCollider& getCollider() { return _collider; }
+    const CharacterCollider& getCollider() const { return _collider; }
+
+    /**
      * @brief 发起跳跃请求（最终是否能跳由状态/是否在地面决定）
      */
     void jump();
@@ -91,17 +96,20 @@ public:
      */
     void attackLight();
 
+
     /**
      * @brief 受到伤害/进入受击
      * @param damage 伤害值
+     * @param attacker 攻击者（可选）
      */
-    void takeHit(int damage);
+    void takeHit(float damage, cocos2d::Node* attacker = nullptr);
 
     /**
      * @brief 死亡（进入死亡状态）
      */
     void die();
 
+ 
     /**
      * @brief 是否在地面
      * @return bool 是否在地面
@@ -143,6 +151,27 @@ public:
      */
     StateMachine<Character>& getStateMachine();
 
+    // ======================= 战斗系统接口 =======================
+
+    /**
+     * @brief 获取生命值组件
+     * @return HealthComponent* 生命值组件指针
+     */
+    HealthComponent* getHealthComponent() const { return _healthComponent; }
+
+    /**
+     * @brief 获取战斗组件
+     * @return CombatComponent* 战斗组件指针
+     */
+    CombatComponent* getCombatComponent() const { return _combatComponent; }
+
+    /**
+     * @brief 初始化战斗系统组件
+     * @param maxHealth 最大生命值
+     * @param attackPower 基础攻击力
+     */
+    void initCombatComponents(float maxHealth = 100.0f, float attackPower = 20.0f);
+
     // ======================= 派生类需实现（体现多态） =======================
 
     /**
@@ -179,8 +208,7 @@ protected:
     cocos2d::Vec3 _velocity;             ///< 当前速度
     bool _onGround;                      ///< 是否在地面
 
-    int _hp;                             ///< 生命值
-    LifeState _lifeState;                ///< 生命状态
+
 
     bool _comboBuffered;                 ///< 连招输入缓冲
 
@@ -189,6 +217,12 @@ protected:
     std::vector<std::unique_ptr<BaseState<Character>>> _ownedStates; ///< 状态对象所有权（由角色持有）
 
     TerrainCollider* _terrainCollider = nullptr; ///< 地形碰撞器
+    CharacterCollider _collider;                 ///< 角色碰撞器
+    const std::vector<Enemy*>* _enemies = nullptr; ///< 敌人列表引用
+
+    // 战斗系统组件
+    HealthComponent* _healthComponent;   ///< 生命值组件
+    CombatComponent* _combatComponent;   ///< 战斗组件
 };
 
 #endif // CHARACTER_H

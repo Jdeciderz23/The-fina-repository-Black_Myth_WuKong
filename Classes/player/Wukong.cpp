@@ -15,6 +15,8 @@ bool Wukong::init() {
     if (!Character::init()) {
         return false;
     }
+    // 初始化悟空特定的战斗属性
+    initCombatComponents(120.0f, 25.0f); // 悟空：120生命值，25攻击力
 
     this->setCameraMask((unsigned short)cocos2d::CameraFlag::USER1, true);
     auto full = cocos2d::FileUtils::getInstance()->fullPathForFilename("WuKong/wukong.c3b");
@@ -48,12 +50,15 @@ bool Wukong::init() {
         _anims["run_fwd"] = cocos2d::Animation3D::create("WuKong/Jog_Fwd.c3b");
         _anims["run_bwd"] = cocos2d::Animation3D::create("WuKong/Jog_Bwd.c3b");
         _anims["run_left"] = cocos2d::Animation3D::create("WuKong/Jog_Left.c3b");   // 有就填
-        _anims["run_right"] = cocos2d::Animation3D::create("WuKong/Jog_Right.c3b");        
+        _anims["run_right"] = cocos2d::Animation3D::create("WuKong/Jog_Right.c3b");
         _anims["jump"] = cocos2d::Animation3D::create("WuKong/Jump.c3b");
         _anims["run"] = _anims["run_fwd"];
         playAnim("idle", true);
         playAnim("run", true);
         playAnim("jump", false);
+
+        // 初始化 AABB 碰撞器，收缩 XZ 轴到 40%，避免金箍棒导致的空气墙过大
+        _collider.calculateBoundingBox(_model, 0.4f);
 
     }
     else {
@@ -65,7 +70,7 @@ bool Wukong::init() {
 void Wukong::loadAnimIfNeeded(const std::string& key,
     const std::string& c3bPath)
 {
-    if (_anims.count(key)) 
+    if (_anims.count(key))
         return;
 
     cocos2d::Animation3D* anim = cocos2d::Animation3D::create(c3bPath);
@@ -112,7 +117,7 @@ void Wukong::startJumpAnim()
 {
     if (!_model) return;
 
-    auto jump = makeAnimate("jump");  
+    auto jump = makeAnimate("jump");
     if (!jump) return;
 
     _jumpAnimPlaying = true;
@@ -134,7 +139,7 @@ void Wukong::startJumpAnim()
 
 void Wukong::onJumpLanded()
 {
-    const auto intent = this->getMoveIntent();  
+    const auto intent = this->getMoveIntent();
     if (intent.dirWS.lengthSquared() > 1e-6f) {
         this->getStateMachine().changeState("Move");
     }
@@ -167,11 +172,11 @@ void Wukong::updateLocomotionAnim(bool running) {
 
     std::string key;
     switch (dir) {
-    case LocomotionDir::Fwd:   key = "run_fwd"; break;
-    case LocomotionDir::Bwd:   key = "run_bwd"; break;
-    case LocomotionDir::Left:  key = "run_left"; break;
-    case LocomotionDir::Right: key = "run_right"; break;
-    default:                   key = "run_fwd"; break;
+        case LocomotionDir::Fwd:   key = "run_fwd"; break;
+        case LocomotionDir::Bwd:   key = "run_bwd"; break;
+        case LocomotionDir::Left:  key = "run_left"; break;
+        case LocomotionDir::Right: key = "run_right"; break;
+        default:                   key = "run_fwd"; break;
     }
 
     // 左右动画没放对名字时，至少别崩：回退到前跑
