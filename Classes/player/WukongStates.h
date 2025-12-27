@@ -78,6 +78,7 @@ public:
         const float spd = intent.run ? entity->runSpeed : entity->walkSpeed;
         entity->setHorizontalVelocity(cocos2d::Vec3(dir.x * spd, 0.0f, dir.z * spd));
         static_cast<Wukong*>(entity)->updateLocomotionAnim(intent.run);
+
     }
 
     void onExit(Character* entity) override {
@@ -132,7 +133,8 @@ private:
     bool  _landTriggered;
     float _t;
     bool  _leftGround;
-};
+ };
+
 
 /**
  * @class RollState

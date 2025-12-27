@@ -10,44 +10,47 @@
 
 /**
  * @class Wukong
- * @brief ��ս�ɫ�ࣨCharacter �����ࣩ��ʵ�ֶ���������ģ�͹��أ���̬ʵ�֣�
+ * @brief 锟斤拷战锟缴拷啵–haracter 锟斤拷锟斤拷锟洁）锟斤拷实锟街讹拷锟斤拷锟斤拷锟斤拷锟斤拷模锟酵癸拷锟截ｏ拷锟斤拷态实锟街ｏ拷
  */
 class Wukong : public Character {
 public:
     /**
-     * @brief �������ʵ����cocos2d ����������
-     * @return Wukong* �����ɹ����ض���ָ�룬ʧ�ܷ��� nullptr
+     * @brief 锟斤拷锟斤拷锟斤拷锟绞碉拷锟斤拷锟絚ocos2d 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
+     * @return Wukong* 锟斤拷锟斤拷锟缴癸拷锟斤拷锟截讹拷锟斤拷指锟诫，失锟杰凤拷锟斤拷 nullptr
      */
     static Wukong* create();
 
     /**
-     * @brief ��ʼ��
-     * @return bool �Ƿ��ʼ���ɹ�?
+     * @brief 锟斤拷始锟斤拷
+     * @return bool 锟角凤拷锟绞硷拷锟斤拷晒锟?
      */
     virtual bool init() override;
 
     /**
-     * @brief ���Ŷ�����������ʵ�֣�
-     * @param name ������
-     * @param loop �Ƿ�ѭ��
+     * @brief 锟斤拷锟脚讹拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷实锟街ｏ拷
+     * @param name 锟斤拷锟斤拷锟斤拷
+     * @param loop 锟角凤拷循锟斤拷
      */
     virtual void playAnim(const std::string& name, bool loop) override;
 
-    // �����Ծ��Pad -> Start -> Apex(ѭ��)
+    // 锟斤拷锟斤拷锟皆撅拷锟絇ad -> Start -> Apex(循锟斤拷)
     void startJumpAnim();
 
-    // ��أ�ֹͣApex -> Land -> Recovery -> �ص�Idle/Move
+    // 锟斤拷兀锟酵Ｖ笰pex -> Land -> Recovery -> 锟截碉拷Idle/Move
     void onJumpLanded();
 
     enum class MoveDir { None, Fwd, Bwd, Left, Right };
 
-    // x: ��Ϊ+��y: ǰΪ+����Ҳ������ z�������� Vec2 ��ֱ�ۣ�
+    // x: 右为+，y: 前为+（你也可以用 z，这里用 Vec2 更直观）
     void setMoveAxis(const cocos2d::Vec2& axis);
     void updateLocomotionAnim(bool running);
     float getAnimDuration(const std::string& key) const;
 
+    // 给敌人/AI 用：返回悟空“世界坐标系”的位置（推荐用这个做距离/追击判断）
+    cocos2d::Vec3 getWorldPosition3D() const;
+
 private:
-    cocos2d::Sprite3D* _model; ///< ��ɫģ�ͣ���Ϊ�գ�
+    cocos2d::Sprite3D* _model; ///< 锟斤拷色模锟酵ｏ拷锟斤拷为锟秸ｏ拷
     std::string _curAnim;
     int _animTag = 1001;
     std::unordered_map<std::string, cocos2d::Animation3D*> _anims;
@@ -63,8 +66,8 @@ private:
 
     void loadAnimIfNeeded(const std::string& key,
         const std::string& c3bPath);
-    MoveDir _runDir = MoveDir::None;        // ��ǰ���ܷ��򣨷�ֹÿ֡�ظ��У�
-    std::string _curAnimKey;                // ��ǰ���� key����ֹ�ظ����ţ�
+    MoveDir _runDir = MoveDir::None;        // 当前奔跑方向（防止每帧重复切）
+    std::string _curAnimKey;                // 当前动画 key（防止重复播放）
 
 };
 

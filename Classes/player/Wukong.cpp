@@ -25,7 +25,7 @@ bool Wukong::init() {
     auto aabb = _model->getAABB();
     auto center = (aabb._min + aabb._max) * 0.5f;
 
-    this->walkSpeed = 120.0f;
+    this->walkSpeed = 140.0f;
     this->runSpeed = 240.0f;
 
     // XZ 居中，Y 方向把脚底抬到 y=0
@@ -34,7 +34,7 @@ bool Wukong::init() {
     _model->setCameraMask((unsigned short)cocos2d::CameraFlag::USER1, true);
 
     if (_model) {
-        _model->setScale(0.1f);
+        _model->setScale(0.2f);
         _model->setPosition3D(cocos2d::Vec3::ZERO);
         _model->setRotation3D(cocos2d::Vec3(0.0f, 180.0f, 0.0f));
         // _model->setRotation3D(cocos2d::Vec3::ZERO);
@@ -43,18 +43,22 @@ bool Wukong::init() {
         _model->setCullFaceEnabled(false);
         _visualRoot->addChild(_model);
 
-        //预加载最基础两套
+        // 预加载最基础两套
         _anims["idle"] = cocos2d::Animation3D::create("WuKong/Idle.c3b");
         _anims["run_fwd"] = cocos2d::Animation3D::create("WuKong/Jog_Fwd.c3b");
         _anims["run_bwd"] = cocos2d::Animation3D::create("WuKong/Jog_Bwd.c3b");
         _anims["run_left"] = cocos2d::Animation3D::create("WuKong/Jog_Left.c3b");   // 有就填
-        _anims["run_right"] = cocos2d::Animation3D::create("WuKong/Jog_Right.c3b");        
+        _anims["run_right"] = cocos2d::Animation3D::create("WuKong/Jog_Right.c3b");
         _anims["jump"] = cocos2d::Animation3D::create("WuKong/Jump.c3b");
         _anims["attack1"] = cocos2d::Animation3D::create("WuKong/attack1.c3b");
         _anims["attack2"] = cocos2d::Animation3D::create("WuKong/attack2.c3b");
         _anims["attack3"] = cocos2d::Animation3D::create("WuKong/attack3.c3b");
         _anims["run"] = _anims["run_fwd"];
         playAnim("idle", true);
+    
+
+        // 初始化 AABB 碰撞器，收缩 XZ 轴到 40%，避免金箍棒导致的空气墙过大
+        _collider.calculateBoundingBox(_model, 0.4f);
     }
     else {
         cocos2d::log("[Wukong] load model failed!");
@@ -65,7 +69,7 @@ bool Wukong::init() {
 void Wukong::loadAnimIfNeeded(const std::string& key,
     const std::string& c3bPath)
 {
-    if (_anims.count(key)) 
+    if (_anims.count(key))
         return;
 
     cocos2d::Animation3D* anim = cocos2d::Animation3D::create(c3bPath);
@@ -112,7 +116,7 @@ void Wukong::startJumpAnim()
 {
     if (!_model) return;
 
-    auto jump = makeAnimate("jump");  
+    auto jump = makeAnimate("jump");
     if (!jump) return;
 
     _jumpAnimPlaying = true;
@@ -131,10 +135,9 @@ void Wukong::startJumpAnim()
     _model->runAction(seq);
 }
 
-
 void Wukong::onJumpLanded()
 {
-    const auto intent = this->getMoveIntent();  
+    const auto intent = this->getMoveIntent();
     if (intent.dirWS.lengthSquared() > 1e-6f) {
         this->getStateMachine().changeState("Move");
     }
@@ -185,4 +188,12 @@ float Wukong::getAnimDuration(const std::string& key) const {
     auto it = _anims.find(key);
     if (it == _anims.end() || !it->second) return 0.6f; // 兜底
     return it->second->getDuration();
+}
+
+cocos2d::Vec3 Wukong::getWorldPosition3D() const
+{
+    cocos2d::Vec3 out = cocos2d::Vec3::ZERO;
+    cocos2d::Mat4 m = this->getNodeToWorldTransform();
+    m.transformPoint(cocos2d::Vec3::ZERO, &out); // 局部原点 -> 世界
+    return out;
 }
