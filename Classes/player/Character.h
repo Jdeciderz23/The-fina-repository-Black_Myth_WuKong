@@ -4,17 +4,16 @@
 #include "StateMachine.h"
 #include "cocos2d.h"
 #include "../combat/Collider.h"
+#include "../combat/CharacterCollider.h"
 #include <string>
 #include <vector>
 #include <memory>
 
+class Enemy;
+
 /**
  * @class Character
  * @brief 角色基类（继承 cocos2d::Node），提供移动、跳跃、翻滚、普攻连招、受击、死亡等通用接口
- *
- * @note
- * 1) Controller / AI / 战斗系统等应只通过本类公开接口驱动角色
- * 2) 角色内部使用 StateMachine<Character> 管理状态切换
  */
 class Character : public cocos2d::Node {
 public:
@@ -25,7 +24,7 @@ public:
         cocos2d::Vec3 dirWS = cocos2d::Vec3::ZERO; ///< 世界空间方向（可不归一化）
         bool run = false;                          ///< 是否奔跑
     };
-
+    
     /**
      * @brief 生命状态
      */
@@ -77,6 +76,17 @@ public:
     void setTerrainCollider(TerrainCollider* collider) { _terrainCollider = collider; }
 
     /**
+     * @brief 设置敌人列表（用于碰撞检测）
+     */
+    void setEnemies(const std::vector<Enemy*>* enemies) { _enemies = enemies; }
+
+    /**
+     * @brief 获取碰撞组件
+     */
+    CharacterCollider& getCollider() { return _collider; }
+    const CharacterCollider& getCollider() const { return _collider; }
+
+    /**
      * @brief 发起跳跃请求（最终是否能跳由状态/是否在地面决定）
      */
     void jump();
@@ -92,6 +102,18 @@ public:
     void attackLight();
 
     /**
+     * @brief 获取当前生命值
+     * @return int 当前生命值
+     */
+    int getHP() const { return _hp; }
+
+    /**
+     * @brief 获取最大生命值
+     * @return int 最大生命值
+     */
+    int getMaxHP() const { return 100; } // 初始默认 100
+
+    /**
      * @brief 受到伤害/进入受击
      * @param damage 伤害值
      */
@@ -101,6 +123,11 @@ public:
      * @brief 死亡（进入死亡状态）
      */
     void die();
+
+    /**
+     * @brief 复活
+     */
+    void respawn();
 
     /**
      * @brief 是否在地面
@@ -189,6 +216,8 @@ protected:
     std::vector<std::unique_ptr<BaseState<Character>>> _ownedStates; ///< 状态对象所有权（由角色持有）
 
     TerrainCollider* _terrainCollider = nullptr; ///< 地形碰撞器
+    CharacterCollider _collider;                 ///< 角色碰撞器
+    const std::vector<Enemy*>* _enemies = nullptr; ///< 敌人列表引用
 };
 
 #endif // CHARACTER_H
