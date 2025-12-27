@@ -362,14 +362,29 @@ MigrationBackup/
 FodyWeavers.xsd
 
 /build/
-/.vs/
-/.cmake/
-**/_cmake/
-CMakeFiles/
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.VC.opendb
+
+# CMake / build dirs
+build*/
 CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
 
 /proj.win32/bin/
 /proj.win32/obj/
 /proj.win32/CMakeFiles/
 /proj.win32/CMakeCache.txt
 /proj.win32/.vs/
+proj.win32/*.sln
+proj.win32/*.vcxproj*
+proj.win32/*.filters
+proj.win32/ALL_BUILD.*
+proj.win32/ZERO_CHECK.*
+proj.win32/Debug/
+proj.win32/Release/

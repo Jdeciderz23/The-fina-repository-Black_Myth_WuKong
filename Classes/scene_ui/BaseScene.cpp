@@ -146,15 +146,21 @@ void BaseScene::initCamera()
     s_nearPlane = 0.1f;                                           // 初始近裁剪面
     s_farPlane = 10000.0f;                                         // 初始远裁剪面
 
-    _mainCamera = Camera::createPerspective(s_fov, s_aspect, s_nearPlane, s_farPlane);
+    //_mainCamera = Camera::createPerspective(s_fov, s_aspect, s_nearPlane, s_farPlane);
+    auto visibleSize = cocos2d::Director::getInstance()->getVisibleSize();
+    _mainCamera = Camera::createPerspective(60.0f, visibleSize.width / visibleSize.height,1.0f, 2000.0f);
     _mainCamera->setCameraFlag(CameraFlag::USER1);
 
-    _mainCamera->setPosition3D(_camPos);
-    _mainCamera->lookAt(_camPos + _camFront, Vec3::UNIT_Y);
+    _mainCamera->setPosition3D(cocos2d::Vec3(0.0f, 140.0f, 260.0f));
+    _mainCamera->lookAt(cocos2d::Vec3(0.0f, 90.0f, 0.0f), cocos2d::Vec3::UNIT_Y);
+
+    //_mainCamera->setPosition3D(_camPos);
+    //mainCamera->lookAt(_camPos + _camFront, Vec3::UNIT_Y);
 
     addChild(_mainCamera);
-    // 注意：不要隐藏默认相机，因为2D UI元素（如Menu、Label等）需要使用默认相机来渲染
-    // this->getDefaultCamera()->setVisible(false);  
+
+    // 关掉默认相机
+    //this->getDefaultCamera()->setVisible(false);
 
 }
 
@@ -179,68 +185,81 @@ void BaseScene::initLights()
 
 void BaseScene::initInput()
 {
-    // ---------- Mouse ----------
-    auto mouse = EventListenerMouse::create();
+    //// ---------- Mouse ----------
+    //auto mouse = EventListenerMouse::create();
 
-    mouse->onMouseDown = [this](EventMouse* e)
-        {
-            if (e->getMouseButton() == EventMouse::MouseButton::BUTTON_RIGHT)
-            {
-                _rotating = true;
-                _lastMousePos = e->getLocationInView();
-                _hasLastMouse = true;
-            }
-        };
+    //mouse->onMouseDown = [this](EventMouse* e)
+    //    {
+    //        /*if (e->getMouseButton() == EventMouse::MouseButton::BUTTON_RIGHT)
+    //        {
+    //            _rotating = true;
+    //            _lastMousePos = e->getLocationInView();
+    //            _hasLastMouse = true;
+    //        }*/
+    //        _hasLastMouse = true;
+    //    };
 
-    mouse->onMouseUp = [this](EventMouse* e)
-        {
-            if (e->getMouseButton() == EventMouse::MouseButton::BUTTON_RIGHT)
-            {
-                _rotating = false;
-                _hasLastMouse = false;
-            }
-        };
+    //mouse->onMouseUp = [this](EventMouse* e)
+    //    {
+    //       /* if (e->getMouseButton() == EventMouse::MouseButton::BUTTON_RIGHT)
+    //        {
+    //            _rotating = false;
+    //            _hasLastMouse = false;
+    //        }*/
+    //        _hasLastMouse = false;
+    //    };
 
-    mouse->onMouseMove = [this](EventMouse* e)
-        {
-            if (!_rotating || !_hasLastMouse) return;
+    //mouse->onMouseMove = [this](EventMouse* e)
+    //    {
+    //        /*if (!_rotating || !_hasLastMouse) return;
 
-            Vec2 cur = e->getLocationInView();
-            Vec2 delta = cur - _lastMousePos;
-            _lastMousePos = cur;
+    //        Vec2 cur = e->getLocationInView();
+    //        Vec2 delta = cur - _lastMousePos;
+    //        _lastMousePos = cur;
 
-            _yaw += delta.x * _mouseSensitivity;
-            _pitch -= delta.y * _mouseSensitivity;
-            _pitch = clampf(_pitch, -80.0f, 80.0f);
+    //        _yaw += delta.x * _mouseSensitivity;
+    //        _pitch -= delta.y * _mouseSensitivity;
+    //        _pitch = clampf(_pitch, -80.0f, 80.0f);
 
-            float yawRad = CC_DEGREES_TO_RADIANS(_yaw);
-            float pitchRad = CC_DEGREES_TO_RADIANS(_pitch);
+    //        float yawRad = CC_DEGREES_TO_RADIANS(_yaw);
+    //        float pitchRad = CC_DEGREES_TO_RADIANS(_pitch);
 
-            Vec3 front(
-                cosf(yawRad) * cosf(pitchRad),
-                sinf(pitchRad),
-                sinf(yawRad) * cosf(pitchRad)
-            );
-            _camFront = front.getNormalized();
-        };
+    //        Vec3 front(
+    //            cosf(yawRad) * cosf(pitchRad),
+    //            sinf(pitchRad),
+    //            sinf(yawRad) * cosf(pitchRad)
+    //        );
+    //        _camFront = front.getNormalized();*/
+    //        Vec2 cur = e->getLocationInView();
+    //        if (!_hasLastMouse) { _lastMousePos = cur; _hasLastMouse = true; return; }
 
-    mouse->onMouseScroll = [this](EventMouse* e)
-        {
-            // 滚轮缩放视野角（FOV），让“变焦”更直观
-            // 正值向前滚：缩小 FOV（放大画面），负值向后滚：增大 FOV（缩小画面）
-            float delta = e->getScrollY();                          // 获取滚轮增量
-            s_fov -= delta * 2.0f;                                  // 调整 FOV（适度灵敏度）
-            s_fov = clampf(s_fov, 25.0f, 80.0f);                    // 限制 FOV 范围，避免过大/过小
+    //        Vec2 delta = cur - _lastMousePos;
+    //        _lastMousePos = cur;
 
-            // 计算新的投影矩阵，并通过 setAdditionalProjection 精确替换当前投影
-            Mat4 newProj;
-            Mat4::createPerspective(s_fov, s_aspect, s_nearPlane, s_farPlane, &newProj);
-            const Mat4& oldProj = _mainCamera->getProjectionMatrix();
-            Mat4 deltaProj = newProj * oldProj.getInversed();       // 求出投影变换增量
-            _mainCamera->setAdditionalProjection(deltaProj);        // 应用新的投影（不累计误差）
-        };
+    //        _yaw += delta.x * _mouseSensitivity;
+    //        _pitch -= delta.y * _mouseSensitivity;
+    //        _pitch = clampf(_pitch, -80.0f, 80.0f);
+    //        _mouseIdleTime = 0.0f;
+    //    };
 
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(mouse, this);
+    //mouse->onMouseScroll = [this](EventMouse* e)
+    //    {
+    //        //// 滚轮缩放视野角（FOV），让“变焦”更直观
+    //        //// 正值向前滚：缩小 FOV（放大画面），负值向后滚：增大 FOV（缩小画面）
+    //        //float delta = e->getScrollY();                          // 获取滚轮增量
+    //        //s_fov -= delta * 2.0f;                                  // 调整 FOV（适度灵敏度）
+    //        //s_fov = clampf(s_fov, 25.0f, 80.0f);                    // 限制 FOV 范围，避免过大/过小
+
+    //        //// 计算新的投影矩阵，并通过 setAdditionalProjection 精确替换当前投影
+    //        //Mat4 newProj;
+    //        //Mat4::createPerspective(s_fov, s_aspect, s_nearPlane, s_farPlane, &newProj);
+    //        //const Mat4& oldProj = _mainCamera->getProjectionMatrix();
+    //        //Mat4 deltaProj = newProj * oldProj.getInversed();       // 求出投影变换增量
+    //        //_mainCamera->setAdditionalProjection(deltaProj);        // 应用新的投影（不累计误差）
+    //        _followDistance = clampf(_followDistance - e->getScrollY() * 25.0f, 140.0f, 380.0f);
+    //    };
+
+    //_eventDispatcher->addEventListenerWithSceneGraphPriority(mouse, this);
 
     scheduleUpdate();
 }
@@ -249,12 +268,41 @@ void BaseScene::initInput()
 
 void BaseScene::update(float dt)
 {
-    updateCamera(dt);
+    /*_mouseIdleTime += dt;
+    updateCamera(dt);*/
+    (void)dt;
+
+    // 相机由 PlayerController 更新，这里只同步 skybox
+    if (_skybox && _mainCamera) {
+        _skybox->setPosition3D(_mainCamera->getPosition3D());
+        _skybox->setRotation3D(cocos2d::Vec3::ZERO);
+    }
+}
+
+static float moveTowardAngleDeg(float cur, float target, float maxDeltaDeg)
+{
+    float delta = std::fmod(target - cur + 540.0f, 360.0f) - 180.0f; // [-180,180]
+    if (delta > maxDeltaDeg) delta = maxDeltaDeg;
+    if (delta < -maxDeltaDeg) delta = -maxDeltaDeg;
+    return cur + delta;
 }
 
 void BaseScene::updateCamera(float dt)
 {
     if (!_mainCamera || !_player) return;
+    // 不动鼠标时，镜头自动回到人物移动方向后方
+    if (_autoFollowYaw && _mouseIdleTime > 0.12f)
+    {
+        auto intent = _player->getMoveIntent();
+        cocos2d::Vec3 d = intent.dirWS;
+        d.y = 0.0f;
+        if (d.lengthSquared() > 1e-6f)
+        {
+            d.normalize();
+            float desiredYaw = CC_RADIANS_TO_DEGREES(std::atan2f(d.z, d.x));
+            _yaw = moveTowardAngleDeg(_yaw, desiredYaw, _autoYawSpeed * dt);
+        }
+    }
 
     // 目标点：人物位置 + 头部高度
     cocos2d::Vec3 playerPos = _player->getPosition3D();

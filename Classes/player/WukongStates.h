@@ -48,7 +48,15 @@ class MoveState : public BaseState<Character> {
 public:
     void onEnter(Character* entity) override {
         if (!entity) return;
-        entity->playAnim("run", true);
+        static_cast<Wukong*>(entity)->updateLocomotionAnim(entity->getMoveIntent().run);
+    }
+
+    static float moveTowardAngleDeg(float cur, float target, float maxDeltaDeg)
+    {
+        float delta = std::fmod(target - cur + 540.0f, 360.0f) - 180.0f; // [-180,180]
+        if (delta > maxDeltaDeg) delta = maxDeltaDeg;
+        if (delta < -maxDeltaDeg) delta = -maxDeltaDeg;
+        return cur + delta;
     }
 
     void onUpdate(Character* entity, float deltaTime) override {
@@ -69,11 +77,21 @@ public:
 
         const float spd = intent.run ? entity->runSpeed : entity->walkSpeed;
         entity->setHorizontalVelocity(cocos2d::Vec3(dir.x * spd, 0.0f, dir.z * spd));
+        static_cast<Wukong*>(entity)->updateLocomotionAnim(intent.run);
 
         // （可选）朝向：让角色面向移动方向
-        const float yawRad = std::atan2(dir.x, -dir.z);
+        const float yawRad = std::atan2(-dir.x, -dir.z);
         const float yawDeg = yawRad * 180.0f / 3.1415926f;
-        entity->setRotation3D(cocos2d::Vec3(0.0f, yawDeg, 0.0f));
+        //entity->setRotation3D(cocos2d::Vec3(0.0f, yawDeg, 0.0f));
+        // 目标朝向
+        const float targetYawDeg = CC_RADIANS_TO_DEGREES(std::atan2(-dir.x, -dir.z));
+
+        const float curYawDeg = entity->getRotation3D().y;
+        const float turnSpeedDeg = 720.0f;                 // 旋转速度（度/秒），可调：540~900
+        const float newYaw = moveTowardAngleDeg(curYawDeg, targetYawDeg, turnSpeedDeg * deltaTime);
+
+        entity->setRotation3D(cocos2d::Vec3(0.0f, newYaw, 0.0f));
+
     }
 
     void onExit(Character* entity) override {
