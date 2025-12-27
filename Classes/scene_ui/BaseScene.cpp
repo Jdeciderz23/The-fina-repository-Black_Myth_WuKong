@@ -11,6 +11,7 @@
 #include "scene_ui/UIManager.h"
 #include "../combat/Collider.h"
 #include "Enemy.h"
+#include "AudioManager.h"
 
 USING_NS_CC;
 
@@ -32,10 +33,18 @@ bool BaseScene::init()
 
     initCamera();
     initSkybox();
-    initLights();                                       
+    initLights();
     initPlayer();
-    initInput();                                        
+    initInput();
     initEnemy();
+
+    // 显示 HUD (血条)
+    UIManager::getInstance()->showHUD(this);
+
+    // 播放游戏场景背景音乐
+    AudioManager::getInstance()->playBGM("Audio/game_bgm.mp3");
+
+    this->scheduleUpdate();
 
     auto vs = Director::getInstance()->getVisibleSize(); // 获取屏幕可见区域大小
     Vec2 origin = Director::getInstance()->getVisibleOrigin(); // 获取可见区域原点坐标
@@ -148,7 +157,7 @@ void BaseScene::initCamera()
 
     //_mainCamera = Camera::createPerspective(s_fov, s_aspect, s_nearPlane, s_farPlane);
     auto visibleSize = cocos2d::Director::getInstance()->getVisibleSize();
-    _mainCamera = Camera::createPerspective(60.0f, visibleSize.width / visibleSize.height,1.0f, 2000.0f);
+    _mainCamera = Camera::createPerspective(60.0f, visibleSize.width / visibleSize.height, 1.0f, 2000.0f);
     _mainCamera->setCameraFlag(CameraFlag::USER1);
 
     _mainCamera->setPosition3D(cocos2d::Vec3(0.0f, 140.0f, 260.0f));
@@ -270,7 +279,18 @@ void BaseScene::update(float dt)
 {
     /*_mouseIdleTime += dt;
     updateCamera(dt);*/
-    (void)dt;
+    
+    // 更新 HUD 血条
+    if (_player) {
+        // 掉落死亡检测
+        if (_player->getPositionY() < -500.0f && !_player->isDead()) {
+            _player->die();
+        }
+
+        float hp = (float)_player->getHP();
+        float maxHp = (float)_player->getMaxHP();
+        UIManager::getInstance()->updatePlayerHP(hp / maxHp);
+    }
 
     // 相机由 PlayerController 更新，这里只同步 skybox
     if (_skybox && _mainCamera) {
@@ -320,7 +340,7 @@ void BaseScene::updateCamera(float dt)
     front.normalize();
 
     // 相机期望位置：在人物“后方”一定距离
-    cocos2d::Vec3 desiredPos = target - front *_followDistance;
+    cocos2d::Vec3 desiredPos = target - front * _followDistance;
 
     // 平滑跟随（指数插值，帧率稳定）
     float t = 1.0f - expf(-_followSmooth * dt);
@@ -335,22 +355,11 @@ void BaseScene::updateCamera(float dt)
     }
 
 }
-void BaseScene::teleportPlayerToCenter()                
+void BaseScene::teleportPlayerToCenter()
 {
-    _camPos = Vec3(0.0f, 50.0f, 200.0f);                 // 重置相机坐标
-    _camFront = Vec3(0.0f, 0.0f, -1.0f);                 // 重置相机朝向
-    _camUp = Vec3::UNIT_Y;                               // 重置相机上方向
-    _yaw = -90.0f;                                       // 重置偏航角
-    _pitch = 0.0f;                                       // 重置俯仰角
-
-    if (_mainCamera) {                                   // 如果相机存在
-        _mainCamera->setPosition3D(_camPos);             // 应用新位置
-        _mainCamera->lookAt(_camPos + _camFront, _camUp); // 应用新朝向
-    }
-
-    if (_player)
-    {
-        _player->setPosition3D(Vec3(0, 0, 0));
+    if (_player) {
+        _player->setPosition3D(Vec3(0, 200, 0)); // 传送到高空防止直接掉下去
+        _player->respawn();
     }
 }
 
@@ -386,6 +395,10 @@ bool CampScene::init()
         if (_player) {
             _player->setTerrainCollider(_terrainCollider);
         }
+        // 设置所有敌人的地形碰撞器
+        for (auto enemy : _enemies) {
+            enemy->setTerrainCollider(_terrainCollider);
+        }
     }
 
     return true;
@@ -405,7 +418,7 @@ void BaseScene::initPlayer()
 
     // 放到场景中心，地面 y=0
     _player->setPosition3D(cocos2d::Vec3(0.0f, 0.0f, 0.0f));
-    _player->setRotation3D(cocos2d::Vec3::ZERO); 
+    _player->setRotation3D(cocos2d::Vec3::ZERO);
 
     if (_terrainCollider) {
         _player->setTerrainCollider(_terrainCollider);
@@ -417,8 +430,8 @@ void BaseScene::initPlayer()
     controller->setCamera(_mainCamera);
     addChild(controller, 20);
 }
-
-void BaseScene::initEnemy() {
+void BaseScene::initEnemy()
+{
     struct Spawn {
         const char* root;
         const char* model;
@@ -438,7 +451,14 @@ void BaseScene::initEnemy() {
         e->setPosition3D(s.pos);
         e->setBirthPosition(e->getPosition3D());
         e->setTarget(_player);
+        e->setTerrainCollider(_terrainCollider); // 设置地形碰撞
 
         this->addChild(e);
+        _enemies.push_back(e); // 添加到敌人列表
+    }
+
+    // 将敌人列表同步给玩家，用于碰撞检测
+    if (_player) {
+        _player->setEnemies(&_enemies);
     }
 }

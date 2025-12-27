@@ -39,7 +39,7 @@ void PlayerController::setCamera(cocos2d::Camera* cam) {
 
     // 用当前相机位置初始化 yaw（避免一上来跳镜头）
     if (_cam && _target) {
-       cocos2d::Vec3 d = _cam->getPosition3D() - _target->getPosition3D();
+        cocos2d::Vec3 d = _cam->getPosition3D() - _target->getPosition3D();
         d.y = 0.0f;
         if (d.lengthSquared() > 1e-6f) {
             // offset = (sinYaw, 0, cosYaw) * dist  => yaw = atan2(x, z)
@@ -66,7 +66,7 @@ void PlayerController::updateThirdPersonCamera(float dt) {
         _camYawDeg = moveTowardAngleDeg(_camYawDeg, targetYaw, _autoYawSpeed * dt);
     }
 
-    _camPitchDeg =cocos2d::clampf(_camPitchDeg, _minPitch, _maxPitch);
+    _camPitchDeg = cocos2d::clampf(_camPitchDeg, _minPitch, _maxPitch);
     _camDist = cocos2d::clampf(_camDist, _minDist, _maxDist);
 
     const float yawRad = CC_DEGREES_TO_RADIANS(_camYawDeg);
@@ -153,7 +153,7 @@ void PlayerController::update(float dt) {
     intent.dirWS = moveWS;      // Vec3::ZERO 表示不移动
     intent.run = _run;          // 已有的 Shift/跑步标记
     _target->setMoveIntent(intent);
-    
+
 }
 
 void PlayerController::bindKeyboard() {
@@ -187,12 +187,12 @@ void PlayerController::bindKeyboard() {
 
     listener->onKeyReleased = [this](cocos2d::EventKeyboard::KeyCode code, cocos2d::Event*) {
         switch (code) {
-            case cocos2d::EventKeyboard::KeyCode::KEY_W: _w = false; break;
-            case cocos2d::EventKeyboard::KeyCode::KEY_A: _a = false; break;
-            case cocos2d::EventKeyboard::KeyCode::KEY_S: _s = false; break;
-            case cocos2d::EventKeyboard::KeyCode::KEY_D: _d = false; break;
-            case cocos2d::EventKeyboard::KeyCode::KEY_SHIFT: _run = false; break;
-            default: break;
+        case cocos2d::EventKeyboard::KeyCode::KEY_W: _w = false; break;
+        case cocos2d::EventKeyboard::KeyCode::KEY_A: _a = false; break;
+        case cocos2d::EventKeyboard::KeyCode::KEY_S: _s = false; break;
+        case cocos2d::EventKeyboard::KeyCode::KEY_D: _d = false; break;
+        case cocos2d::EventKeyboard::KeyCode::KEY_SHIFT: _run = false; break;
+        default: break;
         }
         };
 

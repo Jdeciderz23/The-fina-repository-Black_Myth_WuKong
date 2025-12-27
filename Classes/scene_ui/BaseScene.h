@@ -51,7 +51,7 @@ protected:
 
     float _moveSpeed = 200.0f;
     float _mouseSensitivity = 0.15f;
-    
+
     // 透视投影参数（用于滚轮缩放 FOV）
     float _fov = 60.0f;        // 视野角（度）
     float _aspect = 1.0f;      // 宽高比
@@ -78,6 +78,7 @@ protected:
     /* ---------- Player ---------- */
     Wukong* _player = nullptr;
     TerrainCollider* _terrainCollider = nullptr;
+    std::vector<Enemy*> _enemies;
 };
 
 class CampScene : public BaseScene

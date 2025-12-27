@@ -2,7 +2,8 @@
 #include "EnemyStates.h"
 #include "combat/HealthComponent.h"
 #include "combat/CombatComponent.h"
-#include "Wukong.h"
+#include "combat/Collider.h"
+#include "player/Wukong.h"
 
 Enemy* Enemy::create() {
     auto enemy = new (std::nothrow) Enemy();
@@ -25,8 +26,12 @@ Enemy::Enemy()
     , _canMove(true)
     , _canAttack(true)
     , _sprite(nullptr)
+    , _targetPosition(Vec3::ZERO)
     , _birthPosition(0, 100, 0)
     , _maxChaseRange(1000.0f)
+    , _terrainCollider(nullptr)
+    , _velocity(Vec3::ZERO)
+    , _onGround(true)
 {
 }
 
@@ -54,6 +59,9 @@ bool Enemy::init() {
     // 创建3D精灵
     _birthPosition = this->getPosition3D();
 
+    // 初始化 AABB 碰撞器，收缩 XZ 轴到 40%
+    _collider.calculateBoundingBox(_sprite, 0.4f);
+
     // 开启更新循环
     this->scheduleUpdate();
     
@@ -66,6 +74,69 @@ void Enemy::update(float deltaTime) {
     // 更新状态机
     if (_stateMachine) {
         _stateMachine->update(deltaTime);
+    }
+
+    applyGravity(deltaTime);
+    applyMovement(deltaTime);
+
+    // 更新 AABB 碰撞盒到世界空间
+    _collider.update(this);
+}
+
+void Enemy::applyGravity(float dt) {
+    if (_onGround && _terrainCollider) {
+        return;
+    }
+    _velocity.y -= _gravity * dt;
+}
+
+void Enemy::applyMovement(float dt) {
+    Vec3 oldPos = this->getPosition3D();
+    Vec3 newPos = oldPos + _velocity * dt;
+
+    if (_terrainCollider) {
+        // 射线检测新位置地面
+        CustomRay ray(newPos + Vec3(0, 500, 0), Vec3(0, -1, 0));
+        float hitDist;
+
+        if (_terrainCollider->rayIntersects(ray, hitDist)) {
+            float groundY = ray.origin.y - hitDist;
+            const float MAX_STEP_HEIGHT = 40.0f;
+
+            if (groundY - oldPos.y < MAX_STEP_HEIGHT) {
+                newPos.y = groundY;
+                this->setPosition3D(newPos);
+                
+                if (!_onGround && _velocity.y <= 0) {
+                    _onGround = true;
+                    _velocity.y = 0;
+                }
+            } else {
+                // 坡度太陡
+                Vec3 finalPos = oldPos;
+                finalPos.y += _velocity.y * dt; 
+                
+                if (finalPos.y <= groundY) {
+                    finalPos.y = groundY;
+                    _onGround = true;
+                    _velocity.y = 0;
+                }
+                this->setPosition3D(finalPos);
+            }
+        } else {
+            // 没检测到地面
+            this->setPosition3D(newPos);
+            _onGround = false;
+        }
+    } else {
+        this->setPosition3D(newPos);
+        if (newPos.y <= 0.0f) {
+            Vec3 pos = this->getPosition3D();
+            pos.y = 0.0f;
+            this->setPosition3D(pos);
+            _velocity.y = 0.0f;
+            _onGround = true;
+        }
     }
 }
 
@@ -114,6 +185,15 @@ void Enemy::setEnemyType(EnemyType type) {
             _viewRange = 300.0f;
             break;
     }
+}
+
+void Enemy::setPosition3D(const Vec3& position) {
+    Node::setPosition3D(position);
+}
+
+
+Vec3 Enemy::getPosition3D() const {
+    return Node::getPosition3D();
 }
 
 StateMachine<Enemy>* Enemy::getStateMachine() const {
@@ -259,11 +339,17 @@ bool Enemy::initWithResRoot(const std::string& resRoot, const std::string& model
 
     _sprite->setScale(0.25f);
     _sprite->setRotation3D(Vec3(0, 0, 0));
-    _sprite->setPosition3D(Vec3(0, 0, 0));
     _sprite->setCameraMask((unsigned short)cocos2d::CameraFlag::USER1);
     _sprite->setForceDepthWrite(true);
     _sprite->setCullFaceEnabled(false);
     this->addChild(_sprite);
+
+    // 修正模型位置，确保脚底在地面（y=0）
+    auto aabb = _sprite->getAABB();
+    _sprite->setPosition3D(Vec3(0, -aabb._min.y, 0));
+
+    // 初始化 AABB 碰撞器，收缩 XZ 轴到 40%
+    _collider.calculateBoundingBox(_sprite, 0.4f);
 
     // 记录出生点
     _birthPosition = this->getPosition3D();
@@ -297,5 +383,3 @@ void Enemy::playAnim(const std::string& name, bool loop) {
     if (loop) _sprite->runAction(cocos2d::RepeatForever::create(act));
     else _sprite->runAction(act);
 }
-
-

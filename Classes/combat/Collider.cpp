@@ -43,6 +43,9 @@ bool TerrainCollider::init(Sprite3D* terrainModel, const std::string& objFilePat
         extractTriangles(_terrain);
     }
     
+    // 构建空间网格索引
+    buildGrid();
+
     return true;
 }
 
@@ -97,8 +100,16 @@ bool TerrainCollider::loadFromObj(const std::string& objFilePath) {
                     if (i1 >= 0 && i1 < (int)vertices.size() &&
                         i2 >= 0 && i2 < (int)vertices.size() &&
                         i3 >= 0 && i3 < (int)vertices.size()) {
-                        // 存储生成的三角形面片数据
-                        _triangles.push_back({vertices[i1], vertices[i2], vertices[i3]});
+                        // 存储生成的三角形面片数据，并预计算边界
+                        Triangle tri;
+                        tri.v0 = vertices[i1];
+                        tri.v1 = vertices[i2];
+                        tri.v2 = vertices[i3];
+                        tri.minX = std::min({tri.v0.x, tri.v1.x, tri.v2.x});
+                        tri.maxX = std::max({tri.v0.x, tri.v1.x, tri.v2.x});
+                        tri.minZ = std::min({tri.v0.z, tri.v1.z, tri.v2.z});
+                        tri.maxZ = std::max({tri.v0.z, tri.v1.z, tri.v2.z});
+                        _triangles.push_back(tri);
                     }
                 } catch (...) {
                     // 忽略格式错误的行
@@ -120,8 +131,52 @@ void TerrainCollider::extractTriangles(Sprite3D* model) {
     float groundY = min.y; // 取包围盒底部高度
     
     // 创建两个三角形组成一个矩形平面
-    _triangles.push_back({Vec3(min.x, groundY, min.z), Vec3(max.x, groundY, min.z), Vec3(max.x, groundY, max.z)});
-    _triangles.push_back({Vec3(min.x, groundY, min.z), Vec3(max.x, groundY, max.z), Vec3(min.x, groundY, max.z)});
+    Triangle tri1 = {Vec3(min.x, groundY, min.z), Vec3(max.x, groundY, min.z), Vec3(max.x, groundY, max.z)};
+    tri1.minX = min.x; tri1.maxX = max.x; tri1.minZ = min.z; tri1.maxZ = max.z;
+    _triangles.push_back(tri1);
+
+    Triangle tri2 = {Vec3(min.x, groundY, min.z), Vec3(max.x, groundY, max.z), Vec3(min.x, groundY, max.z)};
+    tri2.minX = min.x; tri2.maxX = max.x; tri2.minZ = min.z; tri2.maxZ = max.z;
+    _triangles.push_back(tri2);
+}
+
+void TerrainCollider::buildGrid() {
+    if (_triangles.empty()) return;
+
+    // 1. 计算地形总边界
+    float minX = FLT_MAX, maxX = -FLT_MAX;
+    float minZ = FLT_MAX, maxZ = -FLT_MAX;
+    for (const auto& tri : _triangles) {
+        minX = std::min({minX, tri.minX});
+        maxX = std::max({maxX, tri.maxX});
+        minZ = std::min({minZ, tri.minZ});
+        maxZ = std::max({maxZ, tri.maxZ});
+    }
+
+    // 2. 初始化网格参数 (固定 32x32 网格)
+    _grid.minX = minX;
+    _grid.minZ = minZ;
+    _grid.cols = 32;
+    _grid.rows = 32;
+    _grid.cellSize = std::max((maxX - minX) / _grid.cols, (maxZ - minZ) / _grid.rows) + 0.1f;
+    _grid.cells.assign(_grid.cols * _grid.rows, std::vector<int>());
+
+    // 3. 将三角形分配到重叠的网格中
+    for (int i = 0; i < (int)_triangles.size(); ++i) {
+        const auto& tri = _triangles[i];
+        
+        int startCol = std::max(0, (int)((tri.minX - _grid.minX) / _grid.cellSize));
+        int endCol = std::min(_grid.cols - 1, (int)((tri.maxX - _grid.minX) / _grid.cellSize));
+        int startRow = std::max(0, (int)((tri.minZ - _grid.minZ) / _grid.cellSize));
+        int endRow = std::min(_grid.rows - 1, (int)((tri.maxZ - _grid.minZ) / _grid.cellSize));
+
+        for (int r = startRow; r <= endRow; ++r) {
+            for (int c = startCol; c <= endCol; ++c) {
+                _grid.cells[r * _grid.cols + c].push_back(i);
+            }
+        }
+    }
+    CCLOG("TerrainCollider: Grid built. %d triangles distributed into %dx%d cells.", (int)_triangles.size(), _grid.cols, _grid.rows);
 }
 
 /**
@@ -131,24 +186,27 @@ void TerrainCollider::extractTriangles(Sprite3D* model) {
  * @return 是否发生碰撞
  */
 bool TerrainCollider::rayIntersects(const CustomRay& ray, float& hitDist) {
+    if (_triangles.empty()) return false;
+
+    // 1. 确定射线所在的网格单元
+    int c = (int)((ray.origin.x - _grid.minX) / _grid.cellSize);
+    int r = (int)((ray.origin.z - _grid.minZ) / _grid.cellSize);
+
+    // 如果射线在网格之外，不进行检测
+    if (c < 0 || c >= _grid.cols || r < 0 || r >= _grid.rows) return false;
+
+    const auto& cellIndices = _grid.cells[r * _grid.cols + c];
     float closestDist = FLT_MAX;
     bool hit = false;
     
-    for (const auto& tri : _triangles) {
-        // 性能优化：快速 AABB 过滤 (2D 投影)
-        // 在进行复杂的射线-三角形数学计算前，先判断射线原点是否在三角形的 XZ 投影范围内
-        float minX = std::min({tri.v0.x, tri.v1.x, tri.v2.x});
-        float maxX = std::max({tri.v0.x, tri.v1.x, tri.v2.x});
-        float minZ = std::min({tri.v0.z, tri.v1.z, tri.v2.z});
-        float maxZ = std::max({tri.v0.z, tri.v1.z, tri.v2.z});
+    for (int idx : cellIndices) {
+        const auto& tri = _triangles[idx];
         
-        // 如果射线在平面投影上都没碰到三角形的范围，直接跳过
-        if (ray.origin.x < minX || ray.origin.x > maxX || ray.origin.z < minZ || ray.origin.z > maxZ) continue;
+        // 性能优化：快速 AABB 过滤 (2D 投影)
+        if (ray.origin.x < tri.minX || ray.origin.x > tri.maxX || ray.origin.z < tri.minZ || ray.origin.z > tri.maxZ) continue;
 
         float t;
-        // 执行精确的 Möller-Trumbore 射线-三角形相交算法
         if (intersectTriangle(ray, tri, t)) {
-            // 寻找距离最近的碰撞点（防止角色穿透多层地形）
             if (t < closestDist && t > 0) {
                 closestDist = t;
                 hit = true;

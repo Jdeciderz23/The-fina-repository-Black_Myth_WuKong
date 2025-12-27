@@ -58,7 +58,7 @@ private:
     float moveTowardAngleDeg(float cur, float target, float maxDeltaDeg) const;
 
 private:
-    Wukong* _target=nullptr; /// 目标角色
+    Wukong* _target = nullptr; /// 目标角色
     Wukong* _wukong = nullptr;
     cocos2d::Camera* _cam = nullptr;
 

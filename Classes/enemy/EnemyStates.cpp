@@ -1,35 +1,35 @@
 #include "EnemyStates.h"
 #include "cocos2d.h"
 #include <cfloat>
-USING_NS_CC;
 
+USING_NS_CC;
 
 static inline bool HasTarget(const Enemy* e) {
     return e && e->getTarget() != nullptr;
 }
 
-// µĞÈË world ×ø±ê£¨Äã Enemy.cpp ÀïÒÑ¾­ÊµÏÖÁË£©
+// æ•Œäºº world åæ ‡ï¼ˆä½  Enemy.cpp é‡Œå·²ç»å®ç°äº†ï¼‰
 static inline cocos2d::Vec3 EnemyWorldPos(const Enemy* e) {
     return e->getWorldPosition3D();
 }
 
-// Íæ¼Ò(Îò¿Õ) world ×ø±ê£¨Äã Enemy.cpp ÀïÒÑ¾­ÊµÏÖÁË£©
+// ç©å®¶(æ‚Ÿç©º) world åæ ‡ï¼ˆä½  Enemy.cpp é‡Œå·²ç»å®ç°äº†ï¼‰
 static inline cocos2d::Vec3 PlayerWorldPos(const Enemy* e) {
     return e->getTargetWorldPos();
 }
 
 static inline cocos2d::Vec3 BirthWorldPos(const Enemy* e) {
     auto p = e->getParent();
-    if (!p) return e->getBirthPosition();  // Ã»¸¸½Úµã¾Íµ±×÷ÊÀ½ç×ø±êÓÃ
+    if (!p) return e->getBirthPosition();  // æ²¡çˆ¶èŠ‚ç‚¹å°±å½“ä½œä¸–ç•Œåæ ‡ç”¨
 
     cocos2d::Vec3 out = cocos2d::Vec3::ZERO;
     cocos2d::Mat4 m = p->getNodeToWorldTransform();   // parent local -> world
-    m.transformPoint(e->getBirthPosition(), &out);     // birthPosition ÊÇ¡°¸¸½Úµã×ø±êÏµ¡±µÄµã
+    m.transformPoint(e->getBirthPosition(), &out);     // birthPosition æ˜¯â€œçˆ¶èŠ‚ç‚¹åæ ‡ç³»â€çš„ç‚¹
     return out;
 }
 
 
-// °Ñ world ×ø±ê×ª»»³É¡°Enemy ¸¸½Úµã×ø±ê¡±£¬ÓÃÓÚ setPosition3D£¨ºÜ¹Ø¼ü£¬±ÜÃâ×ø±êÏµ´í£©
+// æŠŠ world åæ ‡è½¬æ¢æˆâ€œEnemy çˆ¶èŠ‚ç‚¹åæ ‡â€ï¼Œç”¨äº setPosition3Dï¼ˆå¾ˆå…³é”®ï¼Œé¿å…åæ ‡ç³»é”™ï¼‰
 static inline cocos2d::Vec3 WorldToParentSpace(const cocos2d::Node* node,
     const cocos2d::Vec3& worldPos) {
     auto p = node->getParent();
@@ -55,17 +55,17 @@ EnemyIdleState::~EnemyIdleState() {
 void EnemyIdleState::onEnter(Enemy* enemy) {
     CCLOG("Enemy entered idle state");
     
-    // ÖØÖÃ´ı»ú¼ÆÊ±Æ÷
+    // é‡ç½®å¾…æœºè®¡æ—¶å™¨
     _idleTimer = 0.0f;
     
-    // Ëæ»úÉèÖÃ×î´ó´ı»úÊ±¼ä£¨1-3Ãë£©
+    // éšæœºè®¾ç½®æœ€å¤§å¾…æœºæ—¶é—´ï¼ˆ1-3ç§’ï¼‰
     _maxIdleTime = RandomHelper::random_real(1.0f, 3.0f);
     
     enemy->playAnim("idle", true);
 }
 
 void EnemyIdleState::onUpdate(Enemy* enemy, float deltaTime) {
-    // Í³Ò»ËÀÍöÅĞ¶Ï
+    // ç»Ÿä¸€æ­»äº¡åˆ¤æ–­
     if (enemy->isDead()) {
         enemy->getStateMachine()->changeState("Dead");
         return;
@@ -73,12 +73,12 @@ void EnemyIdleState::onUpdate(Enemy* enemy, float deltaTime) {
     
     _idleTimer += deltaTime;
     
-    // ´ı»úÊ±¼ä½áÊøºó£¬ÇĞ»»µ½Ñ²Âß×´Ì¬
+    // å¾…æœºæ—¶é—´ç»“æŸåï¼Œåˆ‡æ¢åˆ°å·¡é€»çŠ¶æ€
     if (_idleTimer >= _maxIdleTime) {
         enemy->getStateMachine()->changeState("Patrol");
     }
     
-    // ¸ĞÖªÍæ¼Ò£ºÔÚÊÓÒ°·¶Î§ÄÚ -> ×·»÷
+    // æ„ŸçŸ¥ç©å®¶ï¼šåœ¨è§†é‡èŒƒå›´å†… -> è¿½å‡»
     if (HasTarget(enemy)) {
         float d = EnemyWorldPos(enemy).distance(PlayerWorldPos(enemy));
         if (d <= enemy->getViewRange()) {
@@ -91,9 +91,9 @@ void EnemyIdleState::onUpdate(Enemy* enemy, float deltaTime) {
 void EnemyIdleState::onExit(Enemy* enemy) {
     CCLOG("Enemy exited idle state");
     
-    // ÇåÀí´ı»ú¶¯»­£¨¿ÉÑ¡£¬ÒòÎªÏÂÒ»¸ö×´Ì¬»áÍ£Ö¹²¢Ìæ»»£©
+    // æ¸…ç†å¾…æœºåŠ¨ç”»ï¼ˆå¯é€‰ï¼Œå› ä¸ºä¸‹ä¸€ä¸ªçŠ¶æ€ä¼šåœæ­¢å¹¶æ›¿æ¢ï¼‰
     if (enemy->getSprite()) {
-        // ²»ĞèÒªÔÚÕâÀïÍ£Ö¹ËùÓĞ¶¯×÷£¬ÒòÎªÏÂÒ»¸ö×´Ì¬µÄonEnter»áµ÷ÓÃstopAllActions
+        // ä¸éœ€è¦åœ¨è¿™é‡Œåœæ­¢æ‰€æœ‰åŠ¨ä½œï¼Œå› ä¸ºä¸‹ä¸€ä¸ªçŠ¶æ€çš„onEnterä¼šè°ƒç”¨stopAllActions
     }
 }
 
@@ -115,13 +115,13 @@ EnemyPatrolState::~EnemyPatrolState() {
 void EnemyPatrolState::onEnter(Enemy* enemy) {
     CCLOG("Enemy entered patrol state");
     
-    // ÖØÖÃÑ²Âß¼ÆÊ±Æ÷
+    // é‡ç½®å·¡é€»è®¡æ—¶å™¨
     _patrolTimer = 0.0f;
     
-    // Ëæ»úÉèÖÃ×î´óÑ²ÂßÊ±¼äºÍÑ²ÂßÄ¿±êµã
+    // éšæœºè®¾ç½®æœ€å¤§å·¡é€»æ—¶é—´å’Œå·¡é€»ç›®æ ‡ç‚¹
     _maxPatrolTime = RandomHelper::random_real(3.0f, 7.0f);
     
-    // ÔÚµ±Ç°Î»ÖÃ¸½½üËæ»úÉú³ÉÑ²ÂßÄ¿±êµã
+    // åœ¨å½“å‰ä½ç½®é™„è¿‘éšæœºç”Ÿæˆå·¡é€»ç›®æ ‡ç‚¹
     Vec3 birthPos = enemy->getBirthPosition();
 
     float patrolRadius = 100.0f;
@@ -131,12 +131,12 @@ void EnemyPatrolState::onEnter(Enemy* enemy) {
     _patrolTarget.y = birthPos.y;
     _patrolTarget.z = birthPos.z + sinf(angle) * patrolRadius;
     
-    // ²¥·ÅÑ²Âß¶¯»­
+    // æ’­æ”¾å·¡é€»åŠ¨ç”»
     enemy->playAnim("patrol", true);
 }
 
 void EnemyPatrolState::onUpdate(Enemy* enemy, float deltaTime) {
-    // Í³Ò»ËÀÍöÅĞ¶Ï
+    // ç»Ÿä¸€æ­»äº¡åˆ¤æ–­
     if (enemy->isDead()) {
         enemy->getStateMachine()->changeState("Dead");
         return;
@@ -144,7 +144,7 @@ void EnemyPatrolState::onUpdate(Enemy* enemy, float deltaTime) {
     
     _patrolTimer += deltaTime;
     
-    // ¸ĞÖªÍæ¼Ò£ºÔÚÊÓÒ°·¶Î§ÄÚ -> ×·»÷
+    // æ„ŸçŸ¥ç©å®¶ï¼šåœ¨è§†é‡èŒƒå›´å†… -> è¿½å‡»
     if (HasTarget(enemy)) {
         float d = EnemyWorldPos(enemy).distance(PlayerWorldPos(enemy));
         if (d <= enemy->getViewRange()) {
@@ -153,16 +153,16 @@ void EnemyPatrolState::onUpdate(Enemy* enemy, float deltaTime) {
         }
     }
 
-    // ÒÆ¶¯ÏòÑ²ÂßÄ¿±êµã
+    // ç§»åŠ¨å‘å·¡é€»ç›®æ ‡ç‚¹
     if (enemy->canMove()) {
         Vec3 currentPos = enemy->getPosition3D();
         Vec3 direction = _patrolTarget - currentPos;
         float distance = direction.length();
         
-        if (distance > 10.0f) { // ½Ó½üÄ¿±êµã£¨ãĞÖµ10µ¥Î»£©
+        if (distance > 10.0f) { // æ¥è¿‘ç›®æ ‡ç‚¹ï¼ˆé˜ˆå€¼10å•ä½ï¼‰
             direction.normalize();
             
-            // ¸ù¾İÒÆ¶¯·½Ïòµ÷ÕûÄ£ĞÍ³¯Ïò£¨¿¼ÂÇ³õÊ¼180¶ÈĞı×ª£©
+            // æ ¹æ®ç§»åŠ¨æ–¹å‘è°ƒæ•´æ¨¡å‹æœå‘ï¼ˆè€ƒè™‘åˆå§‹180åº¦æ—‹è½¬ï¼‰
             if (enemy->getSprite()) {
                 float angle = atan2f(direction.x, direction.z) * 180.0f / M_PI+45.0f;
                 enemy->getSprite()->setRotation3D(Vec3(0, angle, 0));
@@ -171,15 +171,16 @@ void EnemyPatrolState::onUpdate(Enemy* enemy, float deltaTime) {
             Vec3 newPos = currentPos + direction * enemy->getMoveSpeed() * deltaTime;
             enemy->setPosition3D(newPos);
         } else {
-            // µ½´ïÄ¿±êµã£¬ÇĞ»»µ½´ı»ú×´Ì¬
+            // åˆ°è¾¾ç›®æ ‡ç‚¹ï¼Œåˆ‡æ¢åˆ°å¾…æœºçŠ¶æ€
             enemy->getStateMachine()->changeState("Idle");
         }
     }
     
-    // Ñ²ÂßÊ±¼ä¹ı³¤£¬ÇĞ»»µ½´ı»ú×´Ì¬
+    // å·¡é€»æ—¶é—´è¿‡é•¿ï¼Œåˆ‡æ¢åˆ°å¾…æœºçŠ¶æ€
     if (_patrolTimer >= _maxPatrolTime) {
         enemy->getStateMachine()->changeState("Idle");
     }
+    
 }
 
 void EnemyPatrolState::onExit(Enemy* enemy) {
@@ -202,65 +203,65 @@ EnemyChaseState::~EnemyChaseState() {
 void EnemyChaseState::onEnter(Enemy* enemy) {
     CCLOG("Enemy entered chase state");
     
-    // ÖØÖÃ×·Öğ¼ÆÊ±Æ÷
+    // é‡ç½®è¿½é€è®¡æ—¶å™¨
     _chaseTimer = 0.0f;
     
-    // ×·Öğ¶¯»­£¨Èç¹ûÓĞ£©
+    // è¿½é€åŠ¨ç”»ï¼ˆå¦‚æœæœ‰ï¼‰
     enemy->playAnim("chase", false);
 }
 
 void EnemyChaseState::onUpdate(Enemy* enemy, float deltaTime) {
-    // Í³Ò»ËÀÍöÅĞ¶Ï
+    // ç»Ÿä¸€æ­»äº¡åˆ¤æ–­
     if (enemy->isDead()) {
         enemy->getStateMachine()->changeState("Dead");
         return;
     }
-    
+
     /*_chaseTimer += deltaTime;
     Vec3 currentPos = enemy->getPosition3D();
-    
-    // ¼ÆËãÓëÍæ¼ÒµÄ¾àÀë
+
+    // è®¡ç®—ä¸ç©å®¶çš„è·ç¦»
     float distanceFromBirth = currentPos.distance(enemy->getBirthPosition());
     if (distanceFromBirth > enemy->getMaxChaseRange()) {
-        // ×·µÃÌ«Ô¶£¬Ç¿ÖÆ»Ø¼Ò
+        // è¿½å¾—å¤ªè¿œï¼Œå¼ºåˆ¶å›å®¶
         enemy->getStateMachine()->changeState("Return");
         return;
     }
-    // TODO: »ñÈ¡Íæ¼ÒÎ»ÖÃ
-    Vec3 playerPosition = Vec3::ZERO; // ÁÙÊ±Öµ£¬ĞèÒªÌæ»»ÎªÊµ¼ÊÍæ¼ÒÎ»ÖÃ
+    // TODO: è·å–ç©å®¶ä½ç½®
+    Vec3 playerPosition = Vec3::ZERO; // ä¸´æ—¶å€¼ï¼Œéœ€è¦æ›¿æ¢ä¸ºå®é™…ç©å®¶ä½ç½®
     float distanceToPlayer = currentPos.distance(playerPosition);
 
-    // Èç¹ûÍæ¼ÒÔÚÊÓÒ°·¶Î§ÄÚÇÒÔÚÒÆ¶¯·¶Î§ÄÚ£¬³¢ÊÔÒÆ¶¯»ò¹¥»÷
+    // å¦‚æœç©å®¶åœ¨è§†é‡èŒƒå›´å†…ä¸”åœ¨ç§»åŠ¨èŒƒå›´å†…ï¼Œå°è¯•ç§»åŠ¨æˆ–æ”»å‡»
     if (distanceToPlayer <= enemy->getViewRange()) {
         if (enemy->canAttack()) {
-            // ½øÈë¹¥»÷×´Ì¬
+            // è¿›å…¥æ”»å‡»çŠ¶æ€
             enemy->getStateMachine()->changeState("Attack");
         } else if (enemy->canMove()) {
-            // ¼ÌĞø×·Öğ
+            // ç»§ç»­è¿½é€
             Vec3 direction = playerPosition - currentPos;
             direction.normalize();
             Vec3 newPos = currentPos + direction * enemy->getMoveSpeed() * deltaTime;
             enemy->setPosition3D(newPos);
-            
-            // TODO: ÊµÏÖÂ·¾¶Ñ°ÕÒËã·¨£¬±ÜÃâÕÏ°­Îï
+
+            // TODO: å®ç°è·¯å¾„å¯»æ‰¾ç®—æ³•ï¼Œé¿å…éšœç¢ç‰©
         }
     } else {
-        // Íæ¼Ò³¬³öÊÓÒ°·¶Î§£¬ÇĞ»»µ½´ı»ú×´Ì¬
+        // ç©å®¶è¶…å‡ºè§†é‡èŒƒå›´ï¼Œåˆ‡æ¢åˆ°å¾…æœºçŠ¶æ€
         enemy->getStateMachine()->changeState("Return");
     }*/
     _chaseTimer += deltaTime;
 
-    // Ã»Ä¿±êÖ±½Ó»Ø¼Ò
+    // æ²¡ç›®æ ‡ç›´æ¥å›å®¶
     if (!HasTarget(enemy)) {
         enemy->getStateMachine()->changeState("Return");
         return;
     }
 
-    // ÓÃ world ×ø±ê×öËùÓĞ¾àÀëÅĞ¶Ï
+    // ç”¨ world åæ ‡åšæ‰€æœ‰è·ç¦»åˆ¤æ–­
     const Vec3 enemyWorld = EnemyWorldPos(enemy);
     const Vec3 birthWorld = BirthWorldPos(enemy);
 
-    // ¾àÀë³öÉúµãÌ«Ô¶ -> Return
+    // è·ç¦»å‡ºç”Ÿç‚¹å¤ªè¿œ -> Return
     float distanceFromBirth = enemyWorld.distance(birthWorld);
     if (distanceFromBirth > enemy->getMaxChaseRange()) {
         enemy->getStateMachine()->changeState("Return");
@@ -270,20 +271,20 @@ void EnemyChaseState::onUpdate(Enemy* enemy, float deltaTime) {
     const Vec3 playerWorld = PlayerWorldPos(enemy);
     float distanceToPlayer = enemyWorld.distance(playerWorld);
 
-    // ³¬³öÊÓÒ° -> Return
+    // è¶…å‡ºè§†é‡ -> Return
     if (distanceToPlayer > enemy->getViewRange()) {
         enemy->getStateMachine()->changeState("Return");
         return;
     }
 
-    // ×·ÉÏÁËÔÙ¹¥»÷£¨¸øÒ»¸ö¼òµ¥¹¥»÷¾àÀë£¬±ÜÃâÔ¶³Ì¡°¿Õ»Ó¡±£©
+    // è¿½ä¸Šäº†å†æ”»å‡»ï¼ˆç»™ä¸€ä¸ªç®€å•æ”»å‡»è·ç¦»ï¼Œé¿å…è¿œç¨‹â€œç©ºæŒ¥â€ï¼‰
     const float kAttackRange = 60.0f;
     if (distanceToPlayer <= kAttackRange && enemy->canAttack()) {
         enemy->getStateMachine()->changeState("Attack");
         return;
     }
 
-    // ¼ÌĞø×·»÷ÒÆ¶¯
+    // ç»§ç»­è¿½å‡»ç§»åŠ¨
     if (enemy->canMove()) {
         Vec3 dir = playerWorld - enemyWorld;
         dir.y = 0;
@@ -291,18 +292,17 @@ void EnemyChaseState::onUpdate(Enemy* enemy, float deltaTime) {
         if (dir.lengthSquared() > 1e-6f) {
             dir.normalize();
 
-            // ÏÈÔÚ world ¿Õ¼äËãĞÂÎ»ÖÃ£¬ÔÙ×ª»Ø¸¸½Úµã¿Õ¼ä setPosition3D£¨¹Ø¼ü£©
+            // å…ˆåœ¨ world ç©ºé—´ç®—æ–°ä½ç½®ï¼Œå†è½¬å›çˆ¶èŠ‚ç‚¹ç©ºé—´ setPosition3Dï¼ˆå…³é”®ï¼‰
             Vec3 newWorld = enemyWorld + dir * enemy->getMoveSpeed() * deltaTime;
             enemy->setPosition3D(WorldToParentSpace(enemy, newWorld));
 
-            // ³¯Ïò£¨ÑØÓÃÄã Patrol µÄ·½Ê½£©
+            // æœå‘ï¼ˆæ²¿ç”¨ä½  Patrol çš„æ–¹å¼ï¼‰
             if (enemy->getSprite()) {
                 float angle = atan2f(dir.x, dir.z) * 180.0f / M_PI + 45.0f;
                 enemy->getSprite()->setRotation3D(Vec3(0, angle, 0));
             }
         }
     }
-
 }
 
 void EnemyChaseState::onExit(Enemy* enemy) {
@@ -317,7 +317,7 @@ std::string EnemyChaseState::getStateName() const {
 
 EnemyAttackState::EnemyAttackState()
     : _attackTimer(0.0f)
-    , _attackCooldown(1.0f) { // 1Ãë¹¥»÷ÀäÈ´
+    , _attackCooldown(1.0f) { // 1ç§’æ”»å‡»å†·å´
 }
 
 EnemyAttackState::~EnemyAttackState() {
@@ -326,46 +326,48 @@ EnemyAttackState::~EnemyAttackState() {
 void EnemyAttackState::onEnter(Enemy* enemy) {
     CCLOG("Enemy entered attack state");
     
-    // ÖØÖÃ¹¥»÷¼ÆÊ±Æ÷
+    // é‡ç½®æ”»å‡»è®¡æ—¶å™¨
     _attackTimer = 0.0f;
     
-    // ²¥·Å¹¥»÷¶¯»­
+    // æ’­æ”¾æ”»å‡»åŠ¨ç”»
     enemy->playAnim("chase", true);
     
-    // ½øÈë¹¥»÷×´Ì¬£¬²»Ö±½ÓÔì³ÉÉËº¦
-    // ÉËº¦ÓÉÍâ²¿ÏµÍ³´¥·¢
+    // è¿›å…¥æ”»å‡»çŠ¶æ€ï¼Œä¸ç›´æ¥é€ æˆä¼¤å®³
+    // ä¼¤å®³ç”±å¤–éƒ¨ç³»ç»Ÿè§¦å‘
 }
 
 void EnemyAttackState::onUpdate(Enemy* enemy, float deltaTime) {
-    // Í³Ò»ËÀÍöÅĞ¶Ï
+    // ç»Ÿä¸€æ­»äº¡åˆ¤æ–­
     if (enemy->isDead()) {
         enemy->getStateMachine()->changeState("Dead");
         return;
     }
-    
+
     _attackTimer += deltaTime;
-    
-    // ¹¥»÷ÀäÈ´½áÊøºó£¬¼ì²éÍæ¼ÒÊÇ·ñÈÔÔÚÊÓÒ°·¶Î§ÄÚ
+
+    // æ”»å‡»å†·å´ç»“æŸåï¼Œæ£€æŸ¥ç©å®¶æ˜¯å¦ä»åœ¨è§†é‡èŒƒå›´å†…
     if (_attackTimer >= _attackCooldown) {
-        //»ñÈ¡Íæ¼ÒÎ»ÖÃ
+        //è·å–ç©å®¶ä½ç½®
         if (!HasTarget(enemy)) {
             enemy->getStateMachine()->changeState("Return");
             return;
         }
         float distance = EnemyWorldPos(enemy).distance(PlayerWorldPos(enemy));
 
-        
+
         if (distance <= enemy->getViewRange()) {
             if (enemy->canAttack()) {
-                // ÔÙ´Î¹¥»÷
+                // å†æ¬¡æ”»å‡»
                 _attackTimer = 0.0f;
-                enemy->playAnim("attack", false); //ÔÙ²¥Ò»´Î
-            } else {
-                // ÎŞ·¨¹¥»÷£¬ÇĞ»»µ½×·Öğ×´Ì¬
+                enemy->playAnim("attack", false); //å†æ’­ä¸€æ¬¡
+            }
+            else {
+                // æ— æ³•æ”»å‡»ï¼Œåˆ‡æ¢åˆ°è¿½é€çŠ¶æ€
                 enemy->getStateMachine()->changeState("Chase");
             }
-        } else {
-            // Íæ¼Ò³¬³öÊÓÒ°·¶Î§£¬ÇĞ»»µ½´ı»ú×´Ì¬
+        }
+        else {
+            // ç©å®¶è¶…å‡ºè§†é‡èŒƒå›´ï¼Œåˆ‡æ¢åˆ°å¾…æœºçŠ¶æ€
             enemy->getStateMachine()->changeState("Return");
         }
     }
@@ -383,7 +385,7 @@ std::string EnemyAttackState::getStateName() const {
 
 EnemyHitState::EnemyHitState()
     : _hitTimer(0.0f)
-    , _hitDuration(0.5f) { // 0.5ÃëÊÜ»÷Ê±¼ä
+    , _hitDuration(0.5f) { // 0.5ç§’å—å‡»æ—¶é—´
 }
 
 EnemyHitState::~EnemyHitState() {
@@ -392,41 +394,43 @@ EnemyHitState::~EnemyHitState() {
 void EnemyHitState::onEnter(Enemy* enemy) {
     CCLOG("Enemy entered hit state");
     
-    // ÖØÖÃÊÜ»÷¼ÆÊ±Æ÷
+    // é‡ç½®å—å‡»è®¡æ—¶å™¨
     _hitTimer = 0.0f;
     
-    // ÊÜ»÷¶¯»­£¨Èç¹ûÓĞ£©
+    // å—å‡»åŠ¨ç”»ï¼ˆå¦‚æœæœ‰ï¼‰
     enemy->playAnim("hited", false);
 }
 
 void EnemyHitState::onUpdate(Enemy* enemy, float deltaTime) {
-    // Í³Ò»ËÀÍöÅĞ¶Ï
+    // ç»Ÿä¸€æ­»äº¡åˆ¤æ–­
     if (enemy->isDead()) {
         enemy->getStateMachine()->changeState("Dead");
         return;
     }
-    
+
     _hitTimer += deltaTime;
-    
-    // ÊÜ»÷Ê±¼ä½áÊøºó£¬¸ù¾İÇé¿öÇĞ»»×´Ì¬
+
+    // å—å‡»æ—¶é—´ç»“æŸåï¼Œæ ¹æ®æƒ…å†µåˆ‡æ¢çŠ¶æ€
     if (_hitTimer >= _hitDuration) {
-        //»ñÈ¡Íæ¼ÒÎ»ÖÃ
+        //è·å–ç©å®¶ä½ç½®
         if (!HasTarget(enemy)) {
             enemy->getStateMachine()->changeState("Return");
             return;
         }
         float distance = EnemyWorldPos(enemy).distance(PlayerWorldPos(enemy));
-        
+
         if (distance <= enemy->getViewRange()) {
             if (enemy->canAttack()) {
-                // Íæ¼ÒÔÚÊÓÒ°·¶Î§ÄÚ£¬ÇĞ»»µ½¹¥»÷×´Ì¬
+                // ç©å®¶åœ¨è§†é‡èŒƒå›´å†…ï¼Œåˆ‡æ¢åˆ°æ”»å‡»çŠ¶æ€
                 enemy->getStateMachine()->changeState("Attack");
-            } else {
-                // ÎŞ·¨¹¥»÷£¬ÇĞ»»µ½×·Öğ×´Ì¬
+            }
+            else {
+                // æ— æ³•æ”»å‡»ï¼Œåˆ‡æ¢åˆ°è¿½é€çŠ¶æ€
                 enemy->getStateMachine()->changeState("Chase");
             }
-        } else {
-            // Íæ¼Ò²»ÔÚÊÓÒ°·¶Î§ÄÚ£¬ÇĞ»»µ½´ı»ú×´Ì¬
+        }
+        else {
+            // ç©å®¶ä¸åœ¨è§†é‡èŒƒå›´å†…ï¼Œåˆ‡æ¢åˆ°å¾…æœºçŠ¶æ€
             enemy->getStateMachine()->changeState("Idle");
         }
     }
@@ -450,12 +454,12 @@ EnemyDeadState::~EnemyDeadState() {
 }
 
 void EnemyDeadState::onEnter(Enemy* enemy) {
-    CCLOG("Enemy entered dead state"); 
+    CCLOG("Enemy entered dead state");
     _isDeadProcessed = false;
-    enemy->playAnim("dying", false); // ËÀÍö¶¯»­
+    enemy->playAnim("dying", false); // æ­»äº¡åŠ¨ç”»
 
-    // ËÀºóÏûÊ§
-    // ×¢Òâ£ºÕâ¸öÊÇÅÜÔÚ enemy Node ÉÏ£¬²»»á±» playAnim stop µô
+    // æ­»åæ¶ˆå¤±
+    // æ³¨æ„ï¼šè¿™ä¸ªæ˜¯è·‘åœ¨ enemy Node ä¸Šï¼Œä¸ä¼šè¢« playAnim stop æ‰
     enemy->runAction(Sequence::create(
         DelayTime::create(1.5f),
         RemoveSelf::create(),
@@ -464,9 +468,9 @@ void EnemyDeadState::onEnter(Enemy* enemy) {
 }
 
 void EnemyDeadState::onUpdate(Enemy* enemy, float deltaTime) {
-    // ËÀÍö×´Ì¬²»ÔÙÇĞ»»µ½ÈÎºÎÆäËû×´Ì¬
+    // æ­»äº¡çŠ¶æ€ä¸å†åˆ‡æ¢åˆ°ä»»ä½•å…¶ä»–çŠ¶æ€
     if (!_isDeadProcessed) {
-        // µÈ´ıÒ»¶ÎÊ±¼äºóÒÆ³ıµĞÈË
+        // ç­‰å¾…ä¸€æ®µæ—¶é—´åç§»é™¤æ•Œäºº
         enemy->runAction(Sequence::create(
             DelayTime::create(1.5f),
             RemoveSelf::create(),
@@ -496,13 +500,15 @@ ReturnState::~ReturnState() {
 void ReturnState::onEnter(Enemy* enemy) {
     CCLOG("Enemy entered return state");
 
-    // »Ø¼ÒµÄÄ¿±ê = ³öÉúµã
+    // å›å®¶çš„ç›®æ ‡ = å‡ºç”Ÿç‚¹
     _returnTarget = enemy->getBirthPosition();
+
     enemy->playAnim("patrol", true);
 }
 
 void ReturnState::onUpdate(Enemy* enemy, float deltaTime) {
-    // Í³Ò»ËÀÍöÅĞ¶Ï
+
+    // ç»Ÿä¸€æ­»äº¡åˆ¤æ–­
     if (enemy->isDead()) {
         enemy->getStateMachine()->changeState("Dead");
         return;
@@ -510,8 +516,8 @@ void ReturnState::onUpdate(Enemy* enemy, float deltaTime) {
 
     Vec3 currentPos = enemy->getPosition3D();
 
-    // ===== Íæ¼ÒÖØĞÂ½øÈë¸ĞÖª·¶Î§,Á¢¿Ì×·»÷ =====
-    //Ìæ»»ÎªÕæÊµÍæ¼Ò×ø±ê
+    // ===== ç©å®¶é‡æ–°è¿›å…¥æ„ŸçŸ¥èŒƒå›´,ç«‹åˆ»è¿½å‡» =====
+    //æ›¿æ¢ä¸ºçœŸå®ç©å®¶åæ ‡
     float distanceToPlayer = FLT_MAX;
     if (HasTarget(enemy)) {
         distanceToPlayer = EnemyWorldPos(enemy).distance(PlayerWorldPos(enemy));
@@ -522,7 +528,7 @@ void ReturnState::onUpdate(Enemy* enemy, float deltaTime) {
         return;
     }
 
-    //»Ø¼ÒÂß¼­
+    //å›å®¶é€»è¾‘
     if (!enemy->canMove()) return;
 
     Vec3 direction = _returnTarget - currentPos;
@@ -531,12 +537,12 @@ void ReturnState::onUpdate(Enemy* enemy, float deltaTime) {
     if (distance > 10.0f) {
         direction.normalize();
 
-        // ===== ÁÙÊ±·½°¸£ºÖ±ÏßÎ»ÒÆ£¨Î´À´Ìæ»»ÎªÑ°Â·£© =====
-        Vec3 newPos =currentPos + direction * enemy->getMoveSpeed() * deltaTime;
+        // ===== ä¸´æ—¶æ–¹æ¡ˆï¼šç›´çº¿ä½ç§»ï¼ˆæœªæ¥æ›¿æ¢ä¸ºå¯»è·¯ï¼‰ =====
+        Vec3 newPos = currentPos + direction * enemy->getMoveSpeed() * deltaTime;
         enemy->setPosition3D(newPos);
     }
     else {
-        // µ½¼ÒÁË£¬¿ªÊ¼Ñ²Âß
+        // åˆ°å®¶äº†ï¼Œå¼€å§‹å·¡é€»
         enemy->getStateMachine()->changeState("Patrol");
     }
 }

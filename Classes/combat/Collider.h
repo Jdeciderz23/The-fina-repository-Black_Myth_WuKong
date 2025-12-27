@@ -39,12 +39,22 @@ private:
     // 这里可以存储简化的物理网格数据
     struct Triangle {
         cocos2d::Vec3 v0, v1, v2;
+        float minX, maxX, minZ, maxZ; // 预计算的 XZ 边界，用于快速过滤
     };
     std::vector<Triangle> _triangles;
 
     void extractTriangles(cocos2d::Sprite3D* model);
     bool loadFromObj(const std::string& objFilePath);
     bool intersectTriangle(const CustomRay& ray, const Triangle& tri, float& t);
+
+    // 空间网格优化
+    struct Grid {
+        float minX, minZ, cellSize;
+        int cols, rows;
+        std::vector<std::vector<int>> cells; // 每个格子存储三角形索引
+    } _grid;
+
+    void buildGrid();
 };
 
 #endif // __COLLIDER_H__

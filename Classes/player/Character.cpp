@@ -1,5 +1,7 @@
 #include "Character.h"
 #include "WukongStates.h"
+#include "scene_ui/UIManager.h"
+#include "enemy/Enemy.h"
 
 Character::Character()
     : _visualRoot(nullptr),
@@ -9,7 +11,9 @@ Character::Character()
     _hp(100),
     _lifeState(LifeState::Alive),
     _comboBuffered(false),
-    _fsm(this) {
+    _fsm(this),
+    _terrainCollider(nullptr),
+    _enemies(nullptr) {
 }
 
 Character::~Character() {
@@ -55,6 +59,9 @@ void Character::update(float dt) {
 
     applyGravity(dt);
     applyMovement(dt);
+
+    // 更新 AABB 碰撞盒到世界空间
+    _collider.update(this);
 }
 
 void Character::setMoveIntent(const MoveIntent& intent) {
@@ -116,8 +123,18 @@ void Character::die() {
     if (isDead()) {
         return;
     }
+    _hp = 0;
     _lifeState = LifeState::Dead;
     _fsm.changeState("Dead");
+
+    // 弹出死亡界面
+    UIManager::getInstance()->showDeathMenu();
+}
+
+void Character::respawn() {
+    _hp = 100;
+    _lifeState = LifeState::Alive;
+    _fsm.changeState("Idle");
 }
 
 bool Character::isOnGround() const {
@@ -165,8 +182,40 @@ void Character::applyMovement(float dt) {
     cocos2d::Vec3 oldPos = this->getPosition3D();
     cocos2d::Vec3 newPos = oldPos + _velocity * dt;
 
+    // 1. 与敌人的 AABB 碰撞检测
+    if (_enemies && !_enemies->empty()) {
+        // 先临时计算新位置下的世界 AABB
+        // 获取当前变换并替换位置部分
+        Mat4 nextTransform = this->getNodeToWorldTransform();
+        nextTransform.m[12] = newPos.x;
+        nextTransform.m[13] = newPos.y;
+        nextTransform.m[14] = newPos.z;
+
+        AABB nextWorldAABB = _collider.aabb;
+        nextWorldAABB.transform(nextTransform);
+
+        for (auto enemy : *_enemies) {
+            if (!enemy || enemy->isDead()) continue;
+
+            const AABB& enemyAABB = enemy->getCollider().worldAABB;
+            
+            if (nextWorldAABB.intersects(enemyAABB)) {
+                // 计算碰撞偏移并修正 newPos
+                Vec3 offset = _collider.getCollisionOffset(enemyAABB, &nextWorldAABB);
+                
+                if (offset != Vec3::ZERO) {
+                    newPos += offset;
+                    
+                    // 修正后重新计算 nextWorldAABB 以便与下一个敌人检测
+                    nextWorldAABB._min += offset;
+                    nextWorldAABB._max += offset;
+                }
+            }
+        }
+    }
+
     if (_terrainCollider) {
-        // 1. 射线检测新位置地面（从上方 500 个单位向下发射，覆盖更广的高度差）
+        // 2. 射线检测新位置地面（从上方 500 个单位向下发射，覆盖更广的高度差）
         CustomRay ray(newPos + cocos2d::Vec3(0, 500, 0), cocos2d::Vec3(0, -1, 0));
         float hitDist;
 
