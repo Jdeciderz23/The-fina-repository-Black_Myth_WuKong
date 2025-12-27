@@ -49,6 +49,9 @@ public:
     // 给敌人/AI 用：返回悟空“世界坐标系”的位置（推荐用这个做距离/追击判断）
     cocos2d::Vec3 getWorldPosition3D() const;
 
+    // 给敌人/AI 用：返回悟空“世界坐标系”的位置（推荐用这个做距离/追击判断）
+    cocos2d::Vec3 getWorldPosition3D() const;
+
 private:
     cocos2d::Sprite3D* _model; ///< 锟斤拷色模锟酵ｏ拷锟斤拷为锟秸ｏ拷
     std::string _curAnim;
