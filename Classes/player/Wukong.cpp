@@ -180,3 +180,11 @@ void Wukong::updateLocomotionAnim(bool running) {
 
     playAnim(key, true);
 }
+
+cocos2d::Vec3 Wukong::getWorldPosition3D() const
+{
+    cocos2d::Vec3 out = cocos2d::Vec3::ZERO;
+    cocos2d::Mat4 m = this->getNodeToWorldTransform();
+    m.transformPoint(cocos2d::Vec3::ZERO, &out); // 局部原点 -> 世界
+    return out;
+}

@@ -417,15 +417,28 @@ void BaseScene::initPlayer()
     controller->setCamera(_mainCamera);
     addChild(controller, 20);
 }
-void BaseScene::initEnemy()
-{
-    auto enemy = Enemy::create();
-    if (!enemy) {
-        CCLOG("Failed to create enemy instance");
-        return;
+
+void BaseScene::initEnemy() {
+    struct Spawn {
+        const char* root;
+        const char* model;
+        cocos2d::Vec3 pos;
+    };
+
+    const Spawn spawns[] = {
+        { "Enemy/enemy1", "enemy1.c3b", cocos2d::Vec3(0, 30, 0) },
+        { "Enemy/enemy1", "enemy1.c3b", cocos2d::Vec3(200, 30, 50) },
+        { "Enemy/enemy1", "enemy1.c3b", cocos2d::Vec3(-200, 30, 50) },
+    };
+
+    for (auto& s : spawns) {
+        auto e = Enemy::createWithResRoot(s.root, s.model);
+        if (!e) continue;
+
+        e->setPosition3D(s.pos);
+        e->setBirthPosition(e->getPosition3D());
+        e->setTarget(_player);
+
+        this->addChild(e);
     }
-
-    enemy->setPosition3D(Vec3(0, 100, 0));
-
-    this->addChild(enemy);
 }
