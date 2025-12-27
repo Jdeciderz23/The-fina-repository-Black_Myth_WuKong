@@ -114,37 +114,29 @@ EnemyPatrolState::~EnemyPatrolState() {
 
 void EnemyPatrolState::onEnter(Enemy* enemy) {
     CCLOG("Enemy entered patrol state");
-    
-    // 重置巡逻计时器
+
     _patrolTimer = 0.0f;
-    
-    // 随机设置最大巡逻时间和巡逻目标点
     _maxPatrolTime = RandomHelper::random_real(3.0f, 7.0f);
-    
-    // 在当前位置附近随机生成巡逻目标点
-    Vec3 birthPos = enemy->getBirthPosition();
 
-    float patrolRadius = 100.0f;
-    float angle = RandomHelper::random_real(0.0f, (float)M_PI * 2);
+    // ★改：用父节点坐标系（Enemy 的 position3D 同一坐标系）
+    const Vec3 birth = enemy->getBirthPosition();
 
-    _patrolTarget.x = birthPos.x + cosf(angle) * patrolRadius;
-    _patrolTarget.y = birthPos.y;
-    _patrolTarget.z = birthPos.z + sinf(angle) * patrolRadius;
-    
-    // 播放巡逻动画
+    const float patrolRadius = 100.0f;
+    const float a = RandomHelper::random_real(0.0f, (float)M_PI * 2.0f);
+    _patrolTarget = birth + Vec3(cosf(a) * patrolRadius, 0.0f, sinf(a) * patrolRadius);
+
     enemy->playAnim("patrol", true);
 }
 
-void EnemyPatrolState::onUpdate(Enemy* enemy, float deltaTime) {
-    // 统一死亡判断
+void EnemyPatrolState::onUpdate(Enemy* enemy, float dt) {
     if (enemy->isDead()) {
         enemy->getStateMachine()->changeState("Dead");
         return;
     }
-    
-    _patrolTimer += deltaTime;
-    
-    // 感知玩家：在视野范围内 -> 追击
+
+    _patrolTimer += dt;
+
+    // 感知玩家仍然用 world 距离（可以保留你原来的写法）
     if (HasTarget(enemy)) {
         float d = EnemyWorldPos(enemy).distance(PlayerWorldPos(enemy));
         if (d <= enemy->getViewRange()) {
@@ -153,35 +145,36 @@ void EnemyPatrolState::onUpdate(Enemy* enemy, float deltaTime) {
         }
     }
 
-    // 移动向巡逻目标点
     if (enemy->canMove()) {
-        Vec3 currentPos = enemy->getPosition3D();
-        Vec3 direction = _patrolTarget - currentPos;
-        float distance = direction.length();
-        
-        if (distance > 10.0f) { // 接近目标点（阈值10单位）
-            direction.normalize();
-            
-            // 根据移动方向调整模型朝向（考虑初始180度旋转）
+        Vec3 pos = enemy->getPosition3D();        // ★父节点坐标
+        Vec3 dir = _patrolTarget - pos;
+        dir.y = 0.0f;
+
+        float dist = dir.length();
+        if (dist > 10.0f) {
+            dir.normalize();
+
+            float step = enemy->getMoveSpeed() * dt;
+            if (step > dist) step = dist;         // ★防止 dt 大时“跨过头”抖动
+
+            enemy->setPosition3D(pos + dir * step);
+
             if (enemy->getSprite()) {
-                float angle = atan2f(direction.x, direction.z) * 180.0f / M_PI+45.0f;
+                float angle = atan2f(dir.x, dir.z) * 180.0f / M_PI;
                 enemy->getSprite()->setRotation3D(Vec3(0, angle, 0));
             }
-            
-            Vec3 newPos = currentPos + direction * enemy->getMoveSpeed() * deltaTime;
-            enemy->setPosition3D(newPos);
-        } else {
-            // 到达目标点，切换到待机状态
+        }
+        else {
             enemy->getStateMachine()->changeState("Idle");
+            return;
         }
     }
-    
-    // 巡逻时间过长，切换到待机状态
+
     if (_patrolTimer >= _maxPatrolTime) {
         enemy->getStateMachine()->changeState("Idle");
     }
-    
 }
+
 
 void EnemyPatrolState::onExit(Enemy* enemy) {
     CCLOG("Enemy exited patrol state");
@@ -217,38 +210,6 @@ void EnemyChaseState::onUpdate(Enemy* enemy, float deltaTime) {
         return;
     }
 
-    /*_chaseTimer += deltaTime;
-    Vec3 currentPos = enemy->getPosition3D();
-
-    // 计算与玩家的距离
-    float distanceFromBirth = currentPos.distance(enemy->getBirthPosition());
-    if (distanceFromBirth > enemy->getMaxChaseRange()) {
-        // 追得太远，强制回家
-        enemy->getStateMachine()->changeState("Return");
-        return;
-    }
-    // TODO: 获取玩家位置
-    Vec3 playerPosition = Vec3::ZERO; // 临时值，需要替换为实际玩家位置
-    float distanceToPlayer = currentPos.distance(playerPosition);
-
-    // 如果玩家在视野范围内且在移动范围内，尝试移动或攻击
-    if (distanceToPlayer <= enemy->getViewRange()) {
-        if (enemy->canAttack()) {
-            // 进入攻击状态
-            enemy->getStateMachine()->changeState("Attack");
-        } else if (enemy->canMove()) {
-            // 继续追逐
-            Vec3 direction = playerPosition - currentPos;
-            direction.normalize();
-            Vec3 newPos = currentPos + direction * enemy->getMoveSpeed() * deltaTime;
-            enemy->setPosition3D(newPos);
-
-            // TODO: 实现路径寻找算法，避免障碍物
-        }
-    } else {
-        // 玩家超出视野范围，切换到待机状态
-        enemy->getStateMachine()->changeState("Return");
-    }*/
     _chaseTimer += deltaTime;
 
     // 没目标直接回家
@@ -298,7 +259,7 @@ void EnemyChaseState::onUpdate(Enemy* enemy, float deltaTime) {
 
             // 朝向（沿用你 Patrol 的方式）
             if (enemy->getSprite()) {
-                float angle = atan2f(dir.x, dir.z) * 180.0f / M_PI + 45.0f;
+                float angle = atan2f(dir.x, dir.z) * 180.0f / M_PI ;
                 enemy->getSprite()->setRotation3D(Vec3(0, angle, 0));
             }
         }
@@ -497,56 +458,60 @@ ReturnState::ReturnState()
 ReturnState::~ReturnState() {
 }
 
+
 void ReturnState::onEnter(Enemy* enemy) {
     CCLOG("Enemy entered return state");
 
-    // 回家的目标 = 出生点
+    // 改：回家目标直接用父节点坐标系
     _returnTarget = enemy->getBirthPosition();
-
     enemy->playAnim("patrol", true);
 }
 
-void ReturnState::onUpdate(Enemy* enemy, float deltaTime) {
-
-    // 统一死亡判断
+void ReturnState::onUpdate(Enemy* enemy, float dt) {
     if (enemy->isDead()) {
         enemy->getStateMachine()->changeState("Dead");
         return;
     }
 
-    Vec3 currentPos = enemy->getPosition3D();
-
-    // ===== 玩家重新进入感知范围,立刻追击 =====
-    //替换为真实玩家坐标
+    // 玩家回到感知范围 -> Chase（保持你原逻辑）
     float distanceToPlayer = FLT_MAX;
     if (HasTarget(enemy)) {
         distanceToPlayer = EnemyWorldPos(enemy).distance(PlayerWorldPos(enemy));
     }
-
     if (distanceToPlayer <= enemy->getViewRange()) {
         enemy->getStateMachine()->changeState("Chase");
         return;
     }
 
-    //回家逻辑
     if (!enemy->canMove()) return;
 
-    Vec3 direction = _returnTarget - currentPos;
-    float distance = direction.length();
+    Vec3 pos = enemy->getPosition3D();     // 父节点坐标
+    Vec3 dir = _returnTarget - pos;
+    dir.y = 0.0f;
 
-    if (distance > 10.0f) {
-        direction.normalize();
+    float dist = dir.length();
+    if (dist > 10.0f) {
+        dir.normalize();
 
-        // ===== 临时方案：直线位移（未来替换为寻路） =====
-        Vec3 newPos = currentPos + direction * enemy->getMoveSpeed() * deltaTime;
-        enemy->setPosition3D(newPos);
+        float step = enemy->getMoveSpeed() * dt;
+        if (step > dist) step = dist;      // 防止 overshoot 抖动/跳
+
+        enemy->setPosition3D(pos + dir * step);
+
+        if (enemy->getSprite()) {
+            float angle = atan2f(dir.x, dir.z) * 180.0f / M_PI;
+            enemy->getSprite()->setRotation3D(Vec3(0, angle, 0));
+        }
     }
     else {
-        // 到家了，开始巡逻
+        // 锁死到出生点，再切 Patrol，避免“阈值边缘卡住”
+        pos.x = _returnTarget.x;
+        pos.z = _returnTarget.z;
+        enemy->setPosition3D(pos);
+
         enemy->getStateMachine()->changeState("Patrol");
     }
 }
-
 
 void ReturnState::onExit(Enemy* enemy) {
     CCLOG("Enemy exited return state");
