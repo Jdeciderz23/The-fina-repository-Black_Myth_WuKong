@@ -5,10 +5,13 @@
 
 #include "cocos2d.h"
 #include "core/StateMachine.h"
+#include "combat/CharacterCollider.h"
 
 USING_NS_CC;
 class HealthComponent;
 class CombatComponent;
+class TerrainCollider;
+class Wukong;
 
 /**
  * @class Enemy
@@ -100,6 +103,17 @@ public:
      * @return EnemyType 敌人类型
      */
     EnemyType getEnemyType() const;
+
+    /**
+     * @brief 设置地形碰撞器
+     */
+    void setTerrainCollider(TerrainCollider* collider) { _terrainCollider = collider; }
+
+    /**
+     * @brief 获取碰撞组件
+     */
+    CharacterCollider& getCollider() { return _collider; }
+    const CharacterCollider& getCollider() const { return _collider; }
     
     /**
      * @brief 设置敌人位置
@@ -140,8 +154,34 @@ public:
      */
     float getMaxChaseRange() const;
 
+    void setTarget(Wukong* w);
+    Wukong* getTarget() const;
+
+    cocos2d::Vec3 getTargetWorldPos() const; // 获取悟空的世界坐标
+    cocos2d::Vec3 getWorldPosition3D() const; // 敌人自己的世界坐标
+
+    //动画资源加载
+    static Enemy* createWithResRoot(const std::string& resRoot,
+        const std::string& modelFile);
+
+    bool initWithResRoot(const std::string& resRoot,
+        const std::string& modelFile);
+
+    const std::string& getResRoot() const { return _resRoot; }
+
+    void playAnim(const std::string& name, bool loop); // name="idle"/"chase"..
     
 protected:
+    /**
+     * @brief 应用重力
+     */
+    void applyGravity(float dt);
+
+    /**
+     * @brief 应用位移与地形碰撞
+     */
+    void applyMovement(float dt);
+
     /**
      * @brief 检查是否处于低血量状态
      * @return bool 是否处于低血量状态
@@ -199,6 +239,17 @@ protected:
     Vec3 _targetPosition;              // 目标位置
     Vec3 _birthPosition;               //出生点
     float _maxChaseRange;              //最大追击距离
+
+    Wukong* _target = nullptr; // 只是引用，不负责释放
+    std::string _resRoot;   // 例如 "Enemy/enemy1" 或 "Enemy/boss"
+    std::string _modelFile; // 例如 "enemy1.c3b" 或 "boss.c3b"
+
+    // 物理与碰撞
+    TerrainCollider* _terrainCollider = nullptr;
+    CharacterCollider _collider;
+    Vec3 _velocity = Vec3::ZERO;
+    bool _onGround = true;
+    const float _gravity = 980.0f;
 
 };
 
