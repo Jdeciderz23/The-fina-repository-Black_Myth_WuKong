@@ -76,6 +76,7 @@ list(APPEND GAME_SOURCE
     Classes/core/GameApp.cpp
     Classes/core/SceneManager.cpp
     Classes/core/EventManager.cpp
+    Classes/core/AreaManager.cpp
 )
 
 list(APPEND GAME_HEADER
@@ -84,6 +85,7 @@ list(APPEND GAME_HEADER
     Classes/core/EventManager.h
     Classes/core/BaseState.h
     Classes/core/StateMachine.h
+    Classes/core/AreaManager.h
 )
 
 # =========================
