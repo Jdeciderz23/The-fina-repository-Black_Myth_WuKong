@@ -172,6 +172,9 @@ void PlayerController::bindKeyboard() {
         case cocos2d::EventKeyboard::KeyCode::KEY_C:
             if (_target) _target->roll();
             break;
+        case cocos2d::EventKeyboard::KeyCode::KEY_1:
+            if (_target) _target->castSkill();
+            break;
         case cocos2d::EventKeyboard::KeyCode::KEY_R:
             _camYawDeg = _target->getRotation3D().y;
             _camPitchDeg = -15.0f;

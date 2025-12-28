@@ -43,7 +43,7 @@ bool Wukong::init() {
         _model->setCullFaceEnabled(false);
         _visualRoot->addChild(_model);
 
-        // 预加载最基础两套
+        // 预加载
         _anims["idle"] = cocos2d::Animation3D::create("WuKong/Idle.c3b");
         _anims["run_fwd"] = cocos2d::Animation3D::create("WuKong/Jog_Fwd.c3b");
         _anims["run_bwd"] = cocos2d::Animation3D::create("WuKong/Jog_Bwd.c3b");
@@ -53,6 +53,10 @@ bool Wukong::init() {
         _anims["attack1"] = cocos2d::Animation3D::create("WuKong/attack1.c3b");
         _anims["attack2"] = cocos2d::Animation3D::create("WuKong/attack2.c3b");
         _anims["attack3"] = cocos2d::Animation3D::create("WuKong/attack3.c3b");
+        _anims["dead"] = cocos2d::Animation3D::create("WuKong/Death.c3b");
+        _anims["roll"] = cocos2d::Animation3D::create("WuKong/Roll.c3b");
+        _anims["skill"] = cocos2d::Animation3D::create("WuKong/Skills.c3b");
+        _anims["hurt"] = cocos2d::Animation3D::create("WuKong/Hurt.c3b");
         _anims["run"] = _anims["run_fwd"];
         playAnim("idle", true);
     
@@ -119,6 +123,7 @@ void Wukong::startJumpAnim()
     auto jump = makeAnimate("jump");
     if (!jump) return;
 
+    _curAnim = "jump";
     _jumpAnimPlaying = true;
 
     // 停掉其它 locomotion 动画（同一个 tag）
@@ -197,3 +202,6 @@ cocos2d::Vec3 Wukong::getWorldPosition3D() const
     m.transformPoint(cocos2d::Vec3::ZERO, &out); // 局部原点 -> 世界
     return out;
 }
+void Wukong::castSkill() { this->getStateMachine().changeState("Skill1"); }
+void Wukong::triggerHurt() { this->getStateMachine().changeState("Hurt"); }
+void Wukong::triggerDead() { this->getStateMachine().changeState("Dead"); }
