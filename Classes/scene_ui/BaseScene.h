@@ -23,6 +23,7 @@ protected:
     void initLights();
     void initInput();
     void initEnemy();
+    void initBoss();
     /* ---------- Update ---------- */
     virtual void update(float dt) override;
     void updateCamera(float dt);
