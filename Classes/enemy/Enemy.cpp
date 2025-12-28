@@ -261,6 +261,13 @@ void Enemy::initCombatComponent() {
 }
 
 void Enemy::onHurtCallback(float damage, Node* attacker) {
+    // 对于Boss类型的敌人，直接切换到Hit状态以播放受击动画
+    if (_enemyType == EnemyType::BOSS && _stateMachine && !isDead()) {
+        _stateMachine->changeState("Hit");
+        return;
+    }
+
+    // 普通敌人的受击处理
     // 受击反馈：闪烁效果
     if (_sprite) {
         _sprite->runAction(Blink::create(0.5f, 5));
@@ -294,8 +301,12 @@ void Enemy::onDeadCallback(Node* attacker) {
     _canMove = false;
     _canAttack = false;
     
+    CCLOG("Enemy onDeadCallback triggered, changing state to Dead");
+    
     if (_stateMachine) {
         _stateMachine->changeState("Dead");
+    } else {
+        CCLOG("WARNING: Enemy state machine is null, cannot change to Dead state!");
     }
 }
 

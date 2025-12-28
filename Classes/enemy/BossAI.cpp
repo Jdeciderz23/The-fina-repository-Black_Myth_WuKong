@@ -21,12 +21,12 @@ void BossAI::initSkills() {
     // 远：> 6m
 
     // Phase 1 技能
-    _skills.push_back(BossAISkill{ "Combo3",     0.f,      M(2.5f), 2.0f, 1.00f, 1 });
-    _skills.push_back(BossAISkill{ "DashSlash",  M(2.5f),  M(6.0f), 4.0f, 0.90f, 1 });
-    _skills.push_back(BossAISkill{ "GroundSlam", 0.f,      M(6.0f), 6.0f, 0.70f, 1 });
+    _skills.push_back(BossAISkill{ "Combo3",     0.f,      M(0.5f), 2.0f, 1.00f, 1 });
+    _skills.push_back(BossAISkill{ "DashSlash",  M(2.5f),  M(3.0f), 4.0f, 0.90f, 1 });
+    _skills.push_back(BossAISkill{ "GroundSlam", 0.f,      M(1.0f), 6.0f, 0.70f, 1 });
 
-    // Phase 2 新技能（远/中距离压迫）
-    _skills.push_back(BossAISkill{ "LeapSlam",   M(2.5f),  M(5.f), 8.0f, 1.20f, 2 });
+    // Phase 2 技能（使用rush+groundslam组合替代leapslam）
+    _skills.push_back(BossAISkill{ "LeapSlam",   M(2.5f),  M(5.f), 10.0f, 1.20f, 2 }); // 增加冷却时间以匹配延长的动画
 
     // 你也可以让 GroundSlam 在二阶段还能用（phaseMask=3）
     // 这里为了简单：Phase2 仍然允许 Combo3/DashSlash/GroundSlam
