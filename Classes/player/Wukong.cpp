@@ -203,6 +203,7 @@ cocos2d::Vec3 Wukong::getWorldPosition3D() const
     m.transformPoint(cocos2d::Vec3::ZERO, &out); // 局部原点 -> 世界
     return out;
 }
+
 void Wukong::castSkill() { this->getStateMachine().changeState("Skill"); }
 void Wukong::triggerHurt() { this->getStateMachine().changeState("Hurt"); }
 void Wukong::triggerDead() { this->getStateMachine().changeState("Dead"); }

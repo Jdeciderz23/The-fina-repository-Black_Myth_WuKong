@@ -1,7 +1,9 @@
 #pragma execution_character_set("utf-8")                // 指示编译器按 UTF-8 解析源文件中的字符串字面量
 #include "UIManager.h"
 #include "GameApp.h"
-#include "SceneManager.h"
+#include "core/AreaManager.h"
+#include "player/Wukong.h"
+#include "combat/HealthComponent.h"
 #include "scene_ui/BaseScene.h"
 #include "AudioManager.h"
 #include <algorithm>
@@ -380,13 +382,87 @@ void UIManager::onExitGame(Ref* sender)
 
 void UIManager::onPauseHeal(Ref* sender)
 {
+    auto scene = Director::getInstance()->getRunningScene();
+    auto baseScene = dynamic_cast<BaseScene*>(scene);
+    if (!baseScene) return;
+
+    auto player = baseScene->getChildByName<Wukong*>("Wukong");
+    if (!player) {
+        // 尝试从成员变量获取或遍历子节点
+        for (auto& child : baseScene->getChildren()) {
+            player = dynamic_cast<Wukong*>(child);
+            if (player) break;
+        }
+    }
+
+    if (player) {
+        Vec3 pos = player->getPosition3D();
+        if (AreaManager::getInstance()->canHeal(pos)) {
+            auto health = player->getComponent("HealthComponent");
+            auto healthComp = dynamic_cast<HealthComponent*>(health);
+            if (healthComp) {
+                healthComp->fullHeal();
+                CCLOG("UIManager: Restored health at teleport point.");
+                // 提示用户回血成功
+                auto vs = Director::getInstance()->getVisibleSize();
+                // 使用转义字符配合系统字体，解决乱码问题
+                auto label = Label::createWithSystemFont("\xe7\x8a\xb6\xe6\x80\x81\xe5\xb7\xb2\xe6\x81\xa2\xe5\xa4\x8d", "Arial", 48); // 状态已恢复
+                
+                label->setColor(Color3B::GREEN);
+                label->enableOutline(Color4B::BLACK, 2);
+                label->setPosition(vs.width/2, vs.height/2 + 150);
+                label->setCameraMask((unsigned short)CameraFlag::DEFAULT);
+                baseScene->addChild(label, 10000);
+                
+                label->runAction(Sequence::create(
+                    Spawn::create(MoveBy::create(1.0f, Vec2(0, 50)), FadeIn::create(0.3f), nullptr),
+                    DelayTime::create(0.8f), 
+                    FadeOut::create(0.4f), 
+                    RemoveSelf::create(), 
+                    nullptr));
+            }
+        } else {
+            CCLOG("UIManager: Cannot heal outside teleport points.");
+            // 提示用户无法回血
+            auto vs = Director::getInstance()->getVisibleSize();
+            // 使用转义字符配合系统字体
+            auto label = Label::createWithSystemFont("\xe5\x8f\xaa\xe6\x9c\x89\xe5\x9c\xa8\xe4\xbc\xa0\xe9\x80\x81\xe7\x82\xb9\xe6\x89\x8d\xe8\x83\xbd\xe4\xbc\x91\xe6\x81\xaf", "Arial", 48); // 只有在传送点才能休息
+            
+            label->setColor(Color3B::RED);
+            label->enableOutline(Color4B::BLACK, 2);
+            label->setPosition(vs.width/2, vs.height/2 + 150);
+            label->setCameraMask((unsigned short)CameraFlag::DEFAULT);
+            baseScene->addChild(label, 10000);
+
+            label->runAction(Sequence::create(
+                Spawn::create(MoveBy::create(1.0f, Vec2(0, 50)), FadeIn::create(0.3f), nullptr),
+                DelayTime::create(0.8f), 
+                FadeOut::create(0.4f), 
+                RemoveSelf::create(), 
+                nullptr));
+        }
+    }
 }
 
 void UIManager::onPauseTeleport(Ref* sender)
 {
-    auto scene = GameApp::getInstance()->getSceneManager()->getCurrentScene();
-    auto base = dynamic_cast<BaseScene*>(scene);
-    if (base) base->teleportPlayerToCenter();
+    auto scene = Director::getInstance()->getRunningScene();
+    auto baseScene = dynamic_cast<BaseScene*>(scene);
+    if (!baseScene) return;
+
+    auto player = baseScene->getChildByName<Wukong*>("Wukong");
+    if (!player) {
+        for (auto& child : baseScene->getChildren()) {
+            player = dynamic_cast<Wukong*>(child);
+            if (player) break;
+        }
+    }
+
+    if (player) {
+        AreaManager::getInstance()->teleport(player);
+        // 传送后自动关闭菜单，方便玩家继续游戏
+        onPauseResume(nullptr);
+    }
 }
 
 void UIManager::onPauseResume(Ref* sender)

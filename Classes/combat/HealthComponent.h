@@ -102,6 +102,11 @@ public:
     void reset();
 
     /**
+     * @brief 恢复全部生命值
+     */
+    void fullHeal();
+
+    /**
      * @brief 直接设置当前生命值
      * @param health 生命值
      */
