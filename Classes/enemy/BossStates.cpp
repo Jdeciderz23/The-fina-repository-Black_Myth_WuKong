@@ -1,6 +1,7 @@
 // BossStates.cpp
 #include "BossStates.h"
 #include "Boss.h"
+#include "Wukong.h"
 #include "cocos2d.h"
 #include <algorithm>
 #include <cmath>
@@ -9,11 +10,11 @@ USING_NS_CC;
 
 static constexpr float PI_F = 3.1415926f;
 
-// ÄãÏîÄ¿ÀïÍ¨³£ 1m¡Ö100 ÊÀ½çµ¥Î»£¨Ö®Ç° viewRange/moveSpeed ºÜÏñ£©
-// Èç¹ûÄã³¡¾°²»ÊÇÕâ¸ö±ÈÀý£¬°ÑÕâ¸öÏµÊý¸ÄÒ»ÏÂ¾ÍÐÐ
+// ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½Í¨ï¿½ï¿½ 1mï¿½ï¿½100 ï¿½ï¿½ï¿½çµ¥Î»ï¿½ï¿½Ö®Ç° viewRange/moveSpeed ï¿½ï¿½ï¿½ï¿½
+// ï¿½ï¿½ï¿½ï¿½ã³¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½Ò»ï¿½Â¾ï¿½ï¿½ï¿½
 static inline float M(float meters) { return meters * 100.0f; }
 
-// worldPos -> parent local£¨ÒòÎª setPosition3D ÊÇ parent space£©
+// worldPos -> parent localï¿½ï¿½ï¿½ï¿½Îª setPosition3D ï¿½ï¿½ parent spaceï¿½ï¿½
 static Vec3 worldToParentSpace(const Node* node, const Vec3& worldPos) {
     auto p = node->getParent();
     if (!p) return worldPos;
@@ -23,7 +24,7 @@ static Vec3 worldToParentSpace(const Node* node, const Vec3& worldPos) {
     return out;
 }
 
-// ÃæÏòÄ³¸öÊÀ½ç·½Ïò£¨ÑØÓÃÄãÐ¡¹ÖµÄ +45 Æ«ÒÆ£¬Èç¹û Boss ³¯Ïò²»¶Ô¾Í¸ÄÕâÀï£©
+// ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ç·½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½Öµï¿½ +45 Æ«ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ Boss ï¿½ï¿½ï¿½ò²»¶Ô¾Í¸ï¿½ï¿½ï¿½ï¿½ï£©
 static void faceToWorldDir(Enemy* e, Vec3 dirW, float yOffsetDeg = 45.0f) {
     if (!e || !e->getSprite()) return;
     dirW.y = 0;
@@ -34,7 +35,7 @@ static void faceToWorldDir(Enemy* e, Vec3 dirW, float yOffsetDeg = 45.0f) {
     e->getSprite()->setRotation3D(Vec3(0, yaw, 0));
 }
 
-// ¼¼ÄÜ±í£º°´Äã¸øµÄÉè¼Æ²ÎÊý
+// ï¿½ï¿½ï¿½Ü±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ²ï¿½ï¿½ï¿½
 static BossSkillConfig getCfg(const std::string& skill) {
     if (skill == "Combo3") {
         return BossSkillConfig{
@@ -72,7 +73,7 @@ static BossSkillConfig getCfg(const std::string& skill) {
         };
     }
 
-    // Ä¬ÈÏ¶µµ×
+    // Ä¬ï¿½Ï¶ï¿½ï¿½ï¿½
     return getCfg("Combo3");
 }
 
@@ -87,9 +88,12 @@ static void applyHitOnce(Enemy* enemy, const BossSkillConfig& cfg, float dmgMul)
         float dmg = cfg.damage * dmgMul;
         CCLOG("[BossAttack] %s HIT dmg=%.2f dist=%.1f", cfg.skill.c_str(), dmg, dist);
 
-        // TODO£º½ÓÄãÕæÊµ¿ÛÑª½Ó¿Ú£¨HealthComponent / CombatComponent£©
-        // auto w = enemy->getTarget();
-        // w->takeDamage(dmg);
+        // ä½¿ç”¨ä¸Žæ™®é€šæ•Œäººç›¸åŒçš„å‡è¡€é€»è¾‘
+        auto target = enemy->getTarget();
+        if (target && target->getHealth()) {
+            target->getHealth()->takeDamage(dmg, enemy);
+            CCLOG("Boss dealt %.2f damage to player", dmg);
+        }
     }
     else {
         CCLOG("[BossAttack] %s miss dist=%.1f", cfg.skill.c_str(), dist);
@@ -179,7 +183,7 @@ void BossPhaseChangeState::onUpdate(Enemy* enemy, float dt) {
     _timer += dt;
     if (_timer >= 1.0f) {
         auto boss = static_cast<Boss*>(enemy);
-        boss->applyPhase2Buff(1.2f, 1.15f); // ¶þ½×¶Î¼ÓËÙ/ÔöÉË
+        boss->applyPhase2Buff(1.2f, 1.15f); // ï¿½ï¿½ï¿½×¶Î¼ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½
         boss->setBusy(false);
 
         enemy->getStateMachine()->changeState("Chase");
@@ -199,7 +203,7 @@ void BossAttackState::onEnter(Enemy* enemy) {
     auto boss = static_cast<Boss*>(enemy);
     boss->setBusy(true);
 
-    // ¶ÁÈ¡ AI Ô¤Ð´ÈëµÄ¼¼ÄÜ£¨Ã»ÓÐ¾ÍÄ¬ÈÏ Combo3£©
+    // ï¿½ï¿½È¡ AI Ô¤Ð´ï¿½ï¿½Ä¼ï¿½ï¿½Ü£ï¿½Ã»ï¿½Ð¾ï¿½Ä¬ï¿½ï¿½ Combo3ï¿½ï¿½
     std::string skill = boss->hasPendingSkill() ? boss->consumePendingSkill() : "Combo3";
     _cfg = getCfg(skill);
 
@@ -207,10 +211,10 @@ void BossAttackState::onEnter(Enemy* enemy) {
 
     _startW = enemy->getWorldPosition3D();
 
-    // Ëø¶¨Âäµã£¨Dash/Leap£©
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£¨Dash/Leapï¿½ï¿½
     _targetW = enemy->getTargetWorldPos();
     if (_cfg.moveTime > 0.f && _cfg.lockTarget) {
-        // µ÷ÕûÄ¿±ê£º³åµ½¡°ÀëÍæ¼Ò dashDistance¡±´¦£¬²»Òª´©¹ýÈ¥
+        // ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ê£ºï¿½åµ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ dashDistanceï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½È¥
         Vec3 toP = _targetW - _startW;
         toP.y = 0;
         if (toP.lengthSquared() > 1e-6f) {
@@ -249,7 +253,7 @@ void BossAttackState::onUpdate(Enemy* enemy, float dt) {
         return;
     }
 
-    // 2) Move£¨Dash/Leap£©
+    // 2) Moveï¿½ï¿½Dash/Leapï¿½ï¿½
     if (_stage == Stage::Move) {
         float denom = std::max(0.0001f, _cfg.moveTime);
         float t01 = std::min(1.0f, _timer / denom);
@@ -266,7 +270,7 @@ void BossAttackState::onUpdate(Enemy* enemy, float dt) {
         return;
     }
 
-    // 3) Active£¨ÉúÐ§´°¿Ú£ºÖ»ÅÐ¶¨Ò»´Î×îÎÈ£©
+    // 3) Activeï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½Ú£ï¿½Ö»ï¿½Ð¶ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½È£ï¿½
     if (_stage == Stage::Active) {
         if (!_didHit) {
             applyHitOnce(enemy, _cfg, boss->getDmgMul());
@@ -336,7 +340,24 @@ void BossDeadState::onEnter(Enemy* enemy) {
     boss->setBusy(true);
 
     enemy->playAnim("dying", false);
-    enemy->runAction(Sequence::create(DelayTime::create(2.0f), RemoveSelf::create(), nullptr));
+    
+    // ä¸Žæ™®é€šæ•Œäººä¸€æ ·çš„æ­»äº¡å¤„ç†æµç¨‹ï¼šå‘é€äº‹ä»¶ + å»¶è¿Ÿç§»é™¤
+    enemy->runAction(Sequence::create(
+        DelayTime::create(2.0f),
+        CallFunc::create([enemy]() {
+            CCLOG("Boss is being removed after death animation");
+            
+            // é€šçŸ¥æ¸¸æˆç®¡ç†å™¨ä»Žæ•Œäººåˆ—è¡¨ä¸­ç§»é™¤æ­¤æ•Œäºº
+            // é€šè¿‡ä¸€ä¸ªå…¨å±€äº‹ä»¶é€šçŸ¥ç³»ç»Ÿ
+            cocos2d::EventCustom event("enemy_died");
+            event.setUserData(enemy);
+            cocos2d::Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
+            
+            // æ‰§è¡Œå®žé™…çš„ç§»é™¤æ“ä½œ
+            enemy->removeFromParent();
+        }),
+        nullptr
+    ));
 }
 
 void BossDeadState::onUpdate(Enemy*, float) {}
