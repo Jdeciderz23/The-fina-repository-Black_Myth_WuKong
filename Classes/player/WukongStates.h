@@ -533,7 +533,7 @@ public:
     }
 
     void onExit(Character* entity) override { (void)entity; }
-    std::string getStateName() const override { return "Skill1"; }
+    std::string getStateName() const override { return "Skill"; }
 
 private:
     float _t;
