@@ -10,33 +10,33 @@
 
 /**
  * @class Wukong
- * @brief 锟斤拷战锟缴拷啵–haracter 锟斤拷锟斤拷锟洁）锟斤拷实锟街讹拷锟斤拷锟斤拷锟斤拷锟斤拷模锟酵癸拷锟截ｏ拷锟斤拷态实锟街ｏ拷
+ * @brief 战斗角色类（Character 的子类），实现悟空的模型加载、动画控制和状态管理。
  */
 class Wukong : public Character {
 public:
     /**
-     * @brief 锟斤拷锟斤拷锟斤拷锟绞碉拷锟斤拷锟絚ocos2d 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
-     * @return Wukong* 锟斤拷锟斤拷锟缴癸拷锟斤拷锟截讹拷锟斤拷指锟诫，失锟杰凤拷锟斤拷 nullptr
+     * @brief 创建悟空实例的静态方法（Cocos2d-x 惯例）
+     * @return Wukong* 创建成功的对象指针，失败返回 nullptr
      */
     static Wukong* create();
 
     /**
-     * @brief 锟斤拷始锟斤拷
-     * @return bool 锟角凤拷锟绞硷拷锟斤拷晒锟?
+     * @brief 初始化方法
+     * @return bool 是否初始化成功
      */
     virtual bool init() override;
 
     /**
-     * @brief 锟斤拷锟脚讹拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷实锟街ｏ拷
-     * @param name 锟斤拷锟斤拷锟斤拷
-     * @param loop 锟角凤拷循锟斤拷
+     * @brief 播放指定名称的动画
+     * @param name 动画名称
+     * @param loop 是否循环播放
      */
     virtual void playAnim(const std::string& name, bool loop) override;
 
-    // 锟斤拷锟斤拷锟皆撅拷锟絇ad -> Start -> Apex(循锟斤拷)
+    // 跳跃动画序列：Start -> Apex (循环)
     void startJumpAnim();
 
-    // 锟斤拷兀锟酵Ｖ笰pex -> Land -> Recovery -> 锟截碉拷Idle/Move
+    // 落地处理：停止 Apex -> Land -> Recovery -> 回到 Idle/Move
     void onJumpLanded();
 
     enum class MoveDir { None, Fwd, Bwd, Left, Right };
@@ -54,7 +54,7 @@ public:
     void triggerDead();
 
 private:
-    cocos2d::Sprite3D* _model; ///< 锟斤拷色模锟酵ｏ拷锟斤拷为锟秸ｏ拷
+    cocos2d::Sprite3D* _model; ///< 角色模型指针
     std::string _curAnim;
     int _animTag = 1001;
     std::unordered_map<std::string, cocos2d::Animation3D*> _anims;

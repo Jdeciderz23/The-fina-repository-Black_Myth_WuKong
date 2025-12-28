@@ -126,9 +126,9 @@ public:
     HealthComponent* getHealth() const { return _health; }
     
     /**
-     * @brief 获取当前生命值比例
-     * @return float 生命值比例 (0.0f - 1.0f)
-     */
+       * @brief 获取当前生命值比例
+       * @return float 生命值比例 (0.0f - 1.0f)
+       */
     float getHealthRatio() const;
 
     /**
@@ -187,7 +187,17 @@ public:
 
     void playAnim(const std::string& name, bool loop); // name="idle"/"chase"..
     
+    /**
+     * @brief 设置模型 Y 轴额外偏移（用于微调）
+     */
+    void setSpriteOffsetY(float offset) { _spriteOffsetY = offset; updateSpritePosition(); }
+    float getSpriteOffsetY() const { return _spriteOffsetY; }
+
 protected:
+    /**
+     * @brief 根据 AABB 和偏移更新精灵位置
+     */
+    void updateSpritePosition();
     /**
      * @brief 应用重力
      */
@@ -203,7 +213,6 @@ protected:
      * @return bool 是否处于低血量状态
      */
     bool isLowHealth() const;
-    
     
     
 protected:
@@ -262,6 +271,7 @@ protected:
     Vec3 _velocity = Vec3::ZERO;
     bool _onGround = true;
     const float _gravity = 980.0f;
+    float _spriteOffsetY = 0.0f; // 模型额外偏移
 
 };
 
