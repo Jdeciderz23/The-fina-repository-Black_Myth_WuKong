@@ -477,27 +477,31 @@ void EnemyDeadState::onEnter(Enemy* enemy) {
     _isDeadProcessed = false;
     enemy->playAnim("dying", false); // 死亡动画
 
-    // 死后消失
+    // 死亡动画结束后自动移除敌人
     // 注意：这个是跑在 enemy Node 上，不会被 playAnim stop 掉
+    // 只有在onEnter中执行一次，onUpdate中不再执行
     enemy->runAction(Sequence::create(
         DelayTime::create(1.5f),
-        RemoveSelf::create(),
+        CallFunc::create([enemy]() {
+            CCLOG("Enemy is being removed after death animation");
+            
+            // 通知游戏管理器从敌人列表中移除此敌人
+            // 通过一个全局事件通知系统
+            cocos2d::EventCustom event("enemy_died");
+            event.setUserData(enemy);
+            cocos2d::Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
+            
+            // 执行实际的移除操作
+            enemy->removeFromParent();
+        }),
         nullptr
     ));
 }
 
 void EnemyDeadState::onUpdate(Enemy* enemy, float deltaTime) {
     // 死亡状态不再切换到任何其他状态
-    if (!_isDeadProcessed) {
-        // 等待一段时间后移除敌人
-        enemy->runAction(Sequence::create(
-            DelayTime::create(1.5f),
-            RemoveSelf::create(),
-            nullptr
-        ));
-        
-        _isDeadProcessed = true;
-    }
+    // 移除操作已经在onEnter中执行，这里不再执行
+    _isDeadProcessed = true; // 标记已处理
 }
 
 void EnemyDeadState::onExit(Enemy* enemy) {

@@ -15,11 +15,11 @@
 
 USING_NS_CC;
 
-// ç›¸æœºæŠ•å½±å‚æ•°ï¼ˆæ–‡ä»¶å†…é™æ€å˜é‡ï¼Œé¿å…å› å¤´æ–‡ä»¶å·®å¼‚å¯¼è‡´æœªå£°æ˜é”™è¯¯ï¼‰
-static float s_fov = 30.0f;          // è§†é‡è§’ï¼ˆåº¦ï¼Œè°ƒå°ä»¥å¢å¼ºâ€œç©ºé—´å·¨å¤§â€çš„æ„Ÿè§‰ï¼‰
-static float s_aspect = 1.0f;        // å®½é«˜æ¯”
-static float s_nearPlane = 1.0f;     // è¿‘è£å‰ªé¢ï¼ˆé€‚å½“æ‹‰è¿‘ï¼‰
-static float s_farPlane = 2000.0f;   // è¿œè£å‰ªé¢ï¼ˆé€‚å½“æ‹‰è¿œï¼‰
+// Ïà»úÍ¶Ó°²ÎÊı£¨ÎÄ¼şÄÚ¾²Ì¬±äÁ¿£¬±ÜÃâÒòÍ·ÎÄ¼ş²îÒìµ¼ÖÂÎ´ÉùÃ÷´íÎó£©
+static float s_fov = 30.0f;          // ÊÓÒ°½Ç£¨¶È£¬µ÷Ğ¡ÒÔÔöÇ¿¡°¿Õ¼ä¾Ş´ó¡±µÄ¸Ğ¾õ£©
+static float s_aspect = 1.0f;        // ¿í¸ß±È
+static float s_nearPlane = 1.0f;     // ½ü²Ã¼ôÃæ£¨ÊÊµ±À­½ü£©
+static float s_farPlane = 2000.0f;   // Ô¶²Ã¼ôÃæ£¨ÊÊµ±À­Ô¶£©
 
 Scene* BaseScene::createScene()
 {
@@ -38,24 +38,24 @@ bool BaseScene::init()
     initInput();
     initEnemy();
 
-    // æ˜¾ç¤º HUD (è¡€æ¡)
+    // ÏÔÊ¾ HUD (ÑªÌõ)
     UIManager::getInstance()->showHUD(this);
 
-    // æ’­æ”¾æ¸¸æˆåœºæ™¯èƒŒæ™¯éŸ³ä¹
+    // ²¥·ÅÓÎÏ·³¡¾°±³¾°ÒôÀÖ
     AudioManager::getInstance()->playBGM("Audio/game_bgm.mp3");
 
     this->scheduleUpdate();
 
-    auto vs = Director::getInstance()->getVisibleSize(); // è·å–å±å¹•å¯è§åŒºåŸŸå¤§å°
-    Vec2 origin = Director::getInstance()->getVisibleOrigin(); // è·å–å¯è§åŒºåŸŸåŸç‚¹åæ ‡
-    auto label = Label::createWithSystemFont("\xe6\x9a\x82\xe5\x81\x9c", "Arial", 24); // åˆ›å»ºâ€œæš‚åœâ€æŒ‰é’®æ–‡å­—æ ‡ç­¾
-    auto item = MenuItemLabel::create(label, [](Ref*) {   // åˆ›å»ºèœå•é¡¹å¹¶ç»‘å®šæš‚åœå›è°ƒ
-        UIManager::getInstance()->showPauseMenu();       // ç‚¹å‡»æ—¶æ˜¾ç¤ºæš‚åœèœå•
+    auto vs = Director::getInstance()->getVisibleSize(); // »ñÈ¡ÆÁÄ»¿É¼ûÇøÓò´óĞ¡
+    Vec2 origin = Director::getInstance()->getVisibleOrigin(); // »ñÈ¡¿É¼ûÇøÓòÔ­µã×ø±ê
+    auto label = Label::createWithSystemFont("\xe6\x9a\x82\xe5\x81\x9c", "Arial", 24); // ´´½¨¡°ÔİÍ£¡±°´Å¥ÎÄ×Ö±êÇ©
+    auto item = MenuItemLabel::create(label, [](Ref*) {   // ´´½¨²Ëµ¥Ïî²¢°ó¶¨ÔİÍ£»Øµ÷
+        UIManager::getInstance()->showPauseMenu();       // µã»÷Ê±ÏÔÊ¾ÔİÍ£²Ëµ¥
         });
-    auto menu = Menu::create(item, nullptr);             // åˆ›å»ºèœå•å®¹å™¨
-    menu->setPosition(origin + Vec2(30, vs.height - 30)); // è®¾ç½®èœå•ä½ç½®åœ¨å·¦ä¸Šè§’
+    auto menu = Menu::create(item, nullptr);             // ´´½¨²Ëµ¥ÈİÆ÷
+    menu->setPosition(origin + Vec2(30, vs.height - 30)); // ÉèÖÃ²Ëµ¥Î»ÖÃÔÚ×óÉÏ½Ç
     menu->setCameraMask((unsigned short)CameraFlag::DEFAULT);
-    addChild(menu, 1000);                                // æ·»åŠ èœå•åˆ°åœºæ™¯ï¼Œå±‚çº§è®¾ä¸ºæœ€é«˜
+    addChild(menu, 1000);                                // Ìí¼Ó²Ëµ¥µ½³¡¾°£¬²ã¼¶ÉèÎª×î¸ß
 
     return true;
 }
@@ -83,10 +83,10 @@ void BaseScene::initSkybox()
     addChild(_skybox, -100);
 }
 
-// é€‰æ‹©å¯ç”¨çš„å¤©ç©ºç›’å…­é¢è´´å›¾ï¼ˆè¿”å› true è¡¨ç¤ºæ‰¾åˆ°å¹¶å¡«å…… outFacesï¼‰
+// Ñ¡Ôñ¿ÉÓÃµÄÌì¿ÕºĞÁùÃæÌùÍ¼£¨·µ»Ø true ±íÊ¾ÕÒµ½²¢Ìî³ä outFaces£©
 bool BaseScene::chooseSkyboxFaces(std::array<std::string, 6>& outFaces)
 {
-    auto fu = FileUtils::getInstance();                        // æ–‡ä»¶å·¥å…·
+    auto fu = FileUtils::getInstance();                        // ÎÄ¼ş¹¤¾ß
 
     std::array<std::string, 6> set1 = {
         "SkyBox/Skybox_right.png", "SkyBox/Skybox_left.png", "SkyBox/Skybox_top.png",
@@ -94,7 +94,7 @@ bool BaseScene::chooseSkyboxFaces(std::array<std::string, 6>& outFaces)
     };
 
 
-    // æ£€æŸ¥ä¸€ç»„æ–‡ä»¶æ˜¯å¦å…¨éƒ¨å­˜åœ¨
+    // ¼ì²éÒ»×éÎÄ¼şÊÇ·ñÈ«²¿´æÔÚ
     auto existsAll = [&](const std::array<std::string, 6>& s) -> bool {
         for (const auto& f : s)
         {
@@ -105,34 +105,34 @@ bool BaseScene::chooseSkyboxFaces(std::array<std::string, 6>& outFaces)
         };
 
     if (existsAll(set1)) { outFaces = set1; return true; }
-    return false;                                          // éƒ½ä¸å­˜åœ¨åˆ™è¿”å›å¤±è´¥
+    return false;                                          // ¶¼²»´æÔÚÔò·µ»ØÊ§°Ü
 }
 
-// æ ¡éªŒå…­é¢è´´å›¾æ˜¯å¦æ»¡è¶³ç«‹æ–¹ä½“è¦æ±‚ï¼ˆæ¯å¼ ä¸ºæ­£æ–¹å½¢ï¼Œä¸”å°ºå¯¸ä¸€è‡´ï¼‰
+// Ğ£ÑéÁùÃæÌùÍ¼ÊÇ·ñÂú×ãÁ¢·½ÌåÒªÇó£¨Ã¿ÕÅÎªÕı·½ĞÎ£¬ÇÒ³ß´çÒ»ÖÂ£©
 bool BaseScene::verifyCubeFacesSquare(const std::array<std::string, 6>& faces)
 {
-    int faceSize = -1;                                               // è®°å½•ç¬¬ä¸€å¼ çš„å°ºå¯¸
+    int faceSize = -1;                                               // ¼ÇÂ¼µÚÒ»ÕÅµÄ³ß´ç
     for (int i = 0; i < 6; ++i)
     {
-        std::string full = FileUtils::getInstance()->fullPathForFilename(faces[i]); // è§£æå®Œæ•´è·¯å¾„
+        std::string full = FileUtils::getInstance()->fullPathForFilename(faces[i]); // ½âÎöÍêÕûÂ·¾¶
         if (full.empty())
             return false;
 
-        auto img = new (std::nothrow) Image();                       // åŠ è½½å›¾ç‰‡ä»¥æ£€æŸ¥å°ºå¯¸
+        auto img = new (std::nothrow) Image();                       // ¼ÓÔØÍ¼Æ¬ÒÔ¼ì²é³ß´ç
         if (!img || !img->initWithImageFile(full))
         {
             CC_SAFE_DELETE(img);
             return false;
         }
 
-        // è¦æ±‚æ­£æ–¹å½¢
+        // ÒªÇóÕı·½ĞÎ
         if (img->getWidth() != img->getHeight())
         {
             CC_SAFE_DELETE(img);
             return false;
         }
 
-        // è¦æ±‚å…­é¢å°ºå¯¸ä¸€è‡´
+        // ÒªÇóÁùÃæ³ß´çÒ»ÖÂ
         if (faceSize < 0) faceSize = img->getWidth();
         else if (faceSize != img->getWidth())
         {
@@ -142,7 +142,7 @@ bool BaseScene::verifyCubeFacesSquare(const std::array<std::string, 6>& faces)
 
         CC_SAFE_DELETE(img);
     }
-    return true;                                                     // é€šè¿‡æ ¡éªŒ
+    return true;                                                     // Í¨¹ıĞ£Ñé
 }
 
 /* ==================== Camera ==================== */
@@ -150,10 +150,10 @@ bool BaseScene::verifyCubeFacesSquare(const std::array<std::string, 6>& faces)
 void BaseScene::initCamera()
 {
     auto vs = Director::getInstance()->getVisibleSize();
-    s_aspect = vs.width / std::max(1.0f, vs.height);              // è®¡ç®—å¯è§†åŒºåŸŸå®½é«˜æ¯”ï¼ˆé¿å…é™¤é›¶ï¼‰
-    s_fov = 30.0f;                                                // åˆå§‹è§†é‡è§’ï¼ˆè¾ƒå°è§†è§’ï¼‰
-    s_nearPlane = 0.1f;                                           // åˆå§‹è¿‘è£å‰ªé¢
-    s_farPlane = 10000.0f;                                         // åˆå§‹è¿œè£å‰ªé¢
+    s_aspect = vs.width / std::max(1.0f, vs.height);              // ¼ÆËã¿ÉÊÓÇøÓò¿í¸ß±È£¨±ÜÃâ³ıÁã£©
+    s_fov = 30.0f;                                                // ³õÊ¼ÊÓÒ°½Ç£¨½ÏĞ¡ÊÓ½Ç£©
+    s_nearPlane = 0.1f;                                           // ³õÊ¼½ü²Ã¼ôÃæ
+    s_farPlane = 10000.0f;                                         // ³õÊ¼Ô¶²Ã¼ôÃæ
 
     //_mainCamera = Camera::createPerspective(s_fov, s_aspect, s_nearPlane, s_farPlane);
     auto visibleSize = cocos2d::Director::getInstance()->getVisibleSize();
@@ -168,7 +168,7 @@ void BaseScene::initCamera()
 
     addChild(_mainCamera);
 
-    // å…³æ‰é»˜è®¤ç›¸æœº
+    // ¹ØµôÄ¬ÈÏÏà»ú
     //this->getDefaultCamera()->setVisible(false);
 
 }
@@ -253,18 +253,18 @@ void BaseScene::initInput()
 
     //mouse->onMouseScroll = [this](EventMouse* e)
     //    {
-    //        //// æ»šè½®ç¼©æ”¾è§†é‡è§’ï¼ˆFOVï¼‰ï¼Œè®©â€œå˜ç„¦â€æ›´ç›´è§‚
-    //        //// æ­£å€¼å‘å‰æ»šï¼šç¼©å° FOVï¼ˆæ”¾å¤§ç”»é¢ï¼‰ï¼Œè´Ÿå€¼å‘åæ»šï¼šå¢å¤§ FOVï¼ˆç¼©å°ç”»é¢ï¼‰
-    //        //float delta = e->getScrollY();                          // è·å–æ»šè½®å¢é‡
-    //        //s_fov -= delta * 2.0f;                                  // è°ƒæ•´ FOVï¼ˆé€‚åº¦çµæ•åº¦ï¼‰
-    //        //s_fov = clampf(s_fov, 25.0f, 80.0f);                    // é™åˆ¶ FOV èŒƒå›´ï¼Œé¿å…è¿‡å¤§/è¿‡å°
+    //        //// ¹öÂÖËõ·ÅÊÓÒ°½Ç£¨FOV£©£¬ÈÃ¡°±ä½¹¡±¸üÖ±¹Û
+    //        //// ÕıÖµÏòÇ°¹ö£ºËõĞ¡ FOV£¨·Å´ó»­Ãæ£©£¬¸ºÖµÏòºó¹ö£ºÔö´ó FOV£¨ËõĞ¡»­Ãæ£©
+    //        //float delta = e->getScrollY();                          // »ñÈ¡¹öÂÖÔöÁ¿
+    //        //s_fov -= delta * 2.0f;                                  // µ÷Õû FOV£¨ÊÊ¶ÈÁéÃô¶È£©
+    //        //s_fov = clampf(s_fov, 25.0f, 80.0f);                    // ÏŞÖÆ FOV ·¶Î§£¬±ÜÃâ¹ı´ó/¹ıĞ¡
 
-    //        //// è®¡ç®—æ–°çš„æŠ•å½±çŸ©é˜µï¼Œå¹¶é€šè¿‡ setAdditionalProjection ç²¾ç¡®æ›¿æ¢å½“å‰æŠ•å½±
+    //        //// ¼ÆËãĞÂµÄÍ¶Ó°¾ØÕó£¬²¢Í¨¹ı setAdditionalProjection ¾«È·Ìæ»»µ±Ç°Í¶Ó°
     //        //Mat4 newProj;
     //        //Mat4::createPerspective(s_fov, s_aspect, s_nearPlane, s_farPlane, &newProj);
     //        //const Mat4& oldProj = _mainCamera->getProjectionMatrix();
-    //        //Mat4 deltaProj = newProj * oldProj.getInversed();       // æ±‚å‡ºæŠ•å½±å˜æ¢å¢é‡
-    //        //_mainCamera->setAdditionalProjection(deltaProj);        // åº”ç”¨æ–°çš„æŠ•å½±ï¼ˆä¸ç´¯è®¡è¯¯å·®ï¼‰
+    //        //Mat4 deltaProj = newProj * oldProj.getInversed();       // Çó³öÍ¶Ó°±ä»»ÔöÁ¿
+    //        //_mainCamera->setAdditionalProjection(deltaProj);        // Ó¦ÓÃĞÂµÄÍ¶Ó°£¨²»ÀÛ¼ÆÎó²î£©
     //        _followDistance = clampf(_followDistance - e->getScrollY() * 25.0f, 140.0f, 380.0f);
     //    };
 
@@ -280,9 +280,9 @@ void BaseScene::update(float dt)
     /*_mouseIdleTime += dt;
     updateCamera(dt);*/
     
-    // æ›´æ–° HUD è¡€æ¡
+    // ¸üĞÂ HUD ÑªÌõ
     if (_player) {
-        // æ‰è½æ­»äº¡æ£€æµ‹
+        // µôÂäËÀÍö¼ì²â
         if (_player->getPositionY() < -500.0f && !_player->isDead()) {
             _player->die();
         }
@@ -292,7 +292,7 @@ void BaseScene::update(float dt)
         UIManager::getInstance()->updatePlayerHP(hp / maxHp);
     }
 
-    // ç›¸æœºç”± PlayerController æ›´æ–°ï¼Œè¿™é‡ŒåªåŒæ­¥ skybox
+    // Ïà»úÓÉ PlayerController ¸üĞÂ£¬ÕâÀïÖ»Í¬²½ skybox
     if (_skybox && _mainCamera) {
         _skybox->setPosition3D(_mainCamera->getPosition3D());
         _skybox->setRotation3D(cocos2d::Vec3::ZERO);
@@ -310,7 +310,7 @@ static float moveTowardAngleDeg(float cur, float target, float maxDeltaDeg)
 void BaseScene::updateCamera(float dt)
 {
     if (!_mainCamera || !_player) return;
-    // ä¸åŠ¨é¼ æ ‡æ—¶ï¼Œé•œå¤´è‡ªåŠ¨å›åˆ°äººç‰©ç§»åŠ¨æ–¹å‘åæ–¹
+    // ²»¶¯Êó±êÊ±£¬¾µÍ·×Ô¶¯»Øµ½ÈËÎïÒÆ¶¯·½Ïòºó·½
     if (_autoFollowYaw && _mouseIdleTime > 0.12f)
     {
         auto intent = _player->getMoveIntent();
@@ -324,11 +324,11 @@ void BaseScene::updateCamera(float dt)
         }
     }
 
-    // ç›®æ ‡ç‚¹ï¼šäººç‰©ä½ç½® + å¤´éƒ¨é«˜åº¦
+    // Ä¿±êµã£ºÈËÎïÎ»ÖÃ + Í·²¿¸ß¶È
     cocos2d::Vec3 playerPos = _player->getPosition3D();
     cocos2d::Vec3 target = playerPos + cocos2d::Vec3(0.0f, _followHeight, 0.0f);
 
-    // æ ¹æ® yaw/pitch å¾—åˆ°ç›¸æœºâ€œæœå‘â€
+    // ¸ù¾İ yaw/pitch µÃµ½Ïà»ú¡°³¯Ïò¡±
     float yawRad = CC_DEGREES_TO_RADIANS(_yaw);
     float pitchRad = CC_DEGREES_TO_RADIANS(_pitch);
 
@@ -339,10 +339,10 @@ void BaseScene::updateCamera(float dt)
     );
     front.normalize();
 
-    // ç›¸æœºæœŸæœ›ä½ç½®ï¼šåœ¨äººç‰©â€œåæ–¹â€ä¸€å®šè·ç¦»
+    // Ïà»úÆÚÍûÎ»ÖÃ£ºÔÚÈËÎï¡°ºó·½¡±Ò»¶¨¾àÀë
     cocos2d::Vec3 desiredPos = target - front * _followDistance;
 
-    // å¹³æ»‘è·Ÿéšï¼ˆæŒ‡æ•°æ’å€¼ï¼Œå¸§ç‡ç¨³å®šï¼‰
+    // Æ½»¬¸úËæ£¨Ö¸Êı²åÖµ£¬Ö¡ÂÊÎÈ¶¨£©
     float t = 1.0f - expf(-_followSmooth * dt);
     _camPos = _camPos.lerp(desiredPos, t);
 
@@ -358,7 +358,7 @@ void BaseScene::updateCamera(float dt)
 void BaseScene::teleportPlayerToCenter()
 {
     if (_player) {
-        _player->setPosition3D(Vec3(0, 200, 0)); // ä¼ é€åˆ°é«˜ç©ºé˜²æ­¢ç›´æ¥æ‰ä¸‹å»
+        _player->setPosition3D(Vec3(0, 200, 0)); // ´«ËÍµ½¸ß¿Õ·ÀÖ¹Ö±½ÓµôÏÂÈ¥
         _player->respawn();
     }
 }
@@ -377,25 +377,25 @@ bool CampScene::init()
     if (!BaseScene::init())
         return false;
 
-    // ä½¿ç”¨3Dæ¨¡å‹ä½œä¸ºåœ°å½¢
+    // Ê¹ÓÃ3DÄ£ĞÍ×÷ÎªµØĞÎ
     auto terrain = Sprite3D::create("scene/terrain.obj");
 
-    // è®¾ç½®åœ°å½¢ä½ç½®å’Œç¼©æ”¾
+    // ÉèÖÃµØĞÎÎ»ÖÃºÍËõ·Å
     terrain->setPosition3D(Vec3(0, 0, 0));
-    terrain->setScale(100.0f);  // æ ¹æ®å®é™…æ¨¡å‹å¤§å°è°ƒæ•´ç¼©æ”¾æ¯”ä¾‹
+    terrain->setScale(100.0f);  // ¸ù¾İÊµ¼ÊÄ£ĞÍ´óĞ¡µ÷ÕûËõ·Å±ÈÀı
 
-    // è®¾ç½®æ¸²æŸ“ç›¸æœº
+    // ÉèÖÃäÖÈ¾Ïà»ú
     terrain->setCameraMask((unsigned short)CameraFlag::USER1);
     addChild(terrain);
 
-    // åˆ›å»ºåœ°å½¢ç¢°æ’å™¨
+    // ´´½¨µØĞÎÅö×²Æ÷
     _terrainCollider = TerrainCollider::create(terrain, "scene/terrain.obj");
     if (_terrainCollider) {
         _terrainCollider->retain();
         if (_player) {
             _player->setTerrainCollider(_terrainCollider);
         }
-        // è®¾ç½®æ‰€æœ‰æ•Œäººçš„åœ°å½¢ç¢°æ’å™¨
+        // ÉèÖÃËùÓĞµĞÈËµÄµØĞÎÅö×²Æ÷
         for (auto enemy : _enemies) {
             enemy->setTerrainCollider(_terrainCollider);
         }
@@ -416,7 +416,7 @@ void BaseScene::initPlayer()
         return;
     }
 
-    // æ”¾åˆ°åœºæ™¯ä¸­å¿ƒï¼Œåœ°é¢ y=0
+    // ·Åµ½³¡¾°ÖĞĞÄ£¬µØÃæ y=0
     _player->setPosition3D(cocos2d::Vec3(0.0f, 0.0f, 0.0f));
     _player->setRotation3D(cocos2d::Vec3::ZERO);
 
@@ -425,7 +425,7 @@ void BaseScene::initPlayer()
     }
 
     addChild(_player, 10);
-    // ç»‘å®šé”®ç›˜æ§åˆ¶ï¼ˆWASD/Shift/Space/J/Kï¼‰
+    // °ó¶¨¼üÅÌ¿ØÖÆ£¨WASD/Shift/Space/J/K£©
     auto controller = PlayerController::create(_player);
     controller->setCamera(_mainCamera);
     addChild(controller, 20);
@@ -451,14 +451,44 @@ void BaseScene::initEnemy()
         e->setPosition3D(s.pos);
         e->setBirthPosition(e->getPosition3D());
         e->setTarget(_player);
-        e->setTerrainCollider(_terrainCollider); // è®¾ç½®åœ°å½¢ç¢°æ’
+        e->setTerrainCollider(_terrainCollider); // ÉèÖÃµØĞÎÅö×²
 
         this->addChild(e);
-        _enemies.push_back(e); // æ·»åŠ åˆ°æ•Œäººåˆ—è¡¨
+        _enemies.push_back(e); // Ìí¼Óµ½µĞÈËÁĞ±í
     }
 
-    // å°†æ•Œäººåˆ—è¡¨åŒæ­¥ç»™ç©å®¶ï¼Œç”¨äºç¢°æ’æ£€æµ‹
+    // ½«µĞÈËÁĞ±íÍ¬²½¸øÍæ¼Ò£¬ÓÃÓÚÅö×²¼ì²â
     if (_player) {
         _player->setEnemies(&_enemies);
+    }
+    
+    // Ìí¼ÓµĞÈËËÀÍöÊÂ¼ş¼àÌıÆ÷
+    auto enemyDeathListener = cocos2d::EventListenerCustom::create("enemy_died", [this](cocos2d::EventCustom* event) {
+        CCLOG("BaseScene: ½ÓÊÕµ½µĞÈËËÀÍöÊÂ¼ş");
+        Enemy* deadEnemy = static_cast<Enemy*>(event->getUserData());
+        if (deadEnemy) {
+            CCLOG("BaseScene: ´¦ÀíµĞÈË %p µÄËÀÍö", (void*)deadEnemy);
+            this->removeDeadEnemy(deadEnemy);
+        }
+    });
+    
+    _eventDispatcher->addEventListenerWithFixedPriority(enemyDeathListener, 1);
+}
+
+void BaseScene::removeDeadEnemy(Enemy* deadEnemy) {
+    if (!deadEnemy) {
+        CCLOG("BaseScene::removeDeadEnemy: ÎŞĞ§µÄµĞÈËÖ¸Õë");
+        return;
+    }
+    
+    CCLOG("BaseScene::removeDeadEnemy: ÒÆ³ıµĞÈË %p", (void*)deadEnemy);
+    
+    // ´ÓµĞÈËÁĞ±íÖĞÒÆ³ıËÀÍöµĞÈË
+    auto it = std::find(_enemies.begin(), _enemies.end(), deadEnemy);
+    if (it != _enemies.end()) {
+        _enemies.erase(it);
+        CCLOG("BaseScene::removeDeadEnemy: µĞÈËÒÑ´ÓÁĞ±íÖĞÒÆ³ı£¬Ê£Óà %zu ¸öµĞÈË", _enemies.size());
+    } else {
+        CCLOG("BaseScene::removeDeadEnemy: µĞÈËÎ´ÔÚÁĞ±íÖĞÕÒµ½");
     }
 }
