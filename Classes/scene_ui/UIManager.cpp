@@ -39,13 +39,13 @@ Scene* UIManager::createStartMenuScene() {
   auto layer = Layer::create();
   scene->addChild(layer);
 
-  // Play menu background music.
+  // 播放菜单背景音乐。
   AudioManager::getInstance()->playBGM("Audio/menu_bgm.mp3");
 
   auto visibleSize = Director::getInstance()->getVisibleSize();
   Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
-  // Background image.
+  // 背景图片。
   auto background = Sprite::create("StartMenu.png");
   if (background) {
     background->setPosition(
@@ -56,13 +56,13 @@ Scene* UIManager::createStartMenuScene() {
     background->setScale(scale);
     layer->addChild(background, -1);
   } else {
-    CCLOG("Error: StartMenu.png not found in Resources!");
+    CCLOG("错误：Resources 中未找到 StartMenu.png！");
     auto bgLayer = LayerColor::create(Color4B(20, 20, 20, 255));
     layer->addChild(bgLayer, -2);
   }
 
-  // Title.
-  auto titleLabel = Label::createWithSystemFont("Black Myth: Wukong", "Arial", 80);
+  // 标题。
+  auto titleLabel = Label::createWithSystemFont("黑神话：悟空", "Arial", 80);
   if (titleLabel) {
     titleLabel->setPosition(Vec2(visibleSize.width / 2 + origin.x,
                                  visibleSize.height * 0.8 + origin.y));
@@ -70,20 +70,20 @@ Scene* UIManager::createStartMenuScene() {
     layer->addChild(titleLabel, 1);
   }
 
-  // Menu buttons.
+  // 菜单按钮。
   MenuItemFont::setFontName("Arial");
   MenuItemFont::setFontSize(50);
 
   auto startItem = MenuItemFont::create(
-      "Start", CC_CALLBACK_1(UIManager::onStartGame, this));
+      "开始游戏", CC_CALLBACK_1(UIManager::onStartGame, this));
   startItem->setColor(Color3B::YELLOW);
 
   auto settingsItem = MenuItemFont::create(
-      "Settings", CC_CALLBACK_1(UIManager::onSettings, this));
+      "设置", CC_CALLBACK_1(UIManager::onSettings, this));
   settingsItem->setColor(Color3B::WHITE);
 
   auto exitItem = MenuItemFont::create(
-      "Exit", CC_CALLBACK_1(UIManager::onExitGame, this));
+      "退出游戏", CC_CALLBACK_1(UIManager::onExitGame, this));
   exitItem->setColor(Color3B(255, 100, 100));
 
   auto menu = Menu::create(startItem, settingsItem, exitItem, nullptr);
@@ -101,7 +101,7 @@ void UIManager::showHUD(Node* parent) {
   auto vs = Director::getInstance()->getVisibleSize();
   Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
-  // 1. Background for health bar.
+  // 1. 血条背景。
   auto bg = DrawNode::create();
   bg->drawSolidRect(Vec2(-_hpBarWidth / 2 - 2, -_hpBarHeight / 2 - 2),
                     Vec2(_hpBarWidth / 2 + 2, _hpBarHeight / 2 + 2),
@@ -109,12 +109,12 @@ void UIManager::showHUD(Node* parent) {
   bg->setPosition(Vec2(vs.width / 2 + origin.x, 50 + origin.y));
   parent->addChild(bg, 999);
 
-  // 2. Health bar DrawNode.
+  // 2. 血条 DrawNode。
   _hpBarDrawNode = DrawNode::create();
   _hpBarDrawNode->setPosition(Vec2(vs.width / 2 + origin.x, 50 + origin.y));
   parent->addChild(_hpBarDrawNode, 1000);
 
-  // 3. Health text.
+  // 3. 生命值文本。
   _hpLabel = Label::createWithSystemFont("100 / 100", "Arial", 16);
   _hpLabel->setPosition(Vec2(vs.width / 2 + origin.x, 50 + origin.y));
   _hpLabel->setTextColor(Color4B::WHITE);
@@ -122,7 +122,7 @@ void UIManager::showHUD(Node* parent) {
 
   updatePlayerHP(1.0f);
 
-  // 4. Boss health bar (top).
+  // 4. Boss 血条（顶部）。
   _bossHpBarDrawNode = DrawNode::create();
   _bossHpBarDrawNode->setPosition(
       Vec2(vs.width / 2 + origin.x, vs.height - 60 + origin.y));
@@ -237,11 +237,11 @@ void UIManager::showDeathMenu() {
   MenuItemFont::setFontSize(40);
 
   auto respawnItem = MenuItemFont::create(
-      "Respawn", CC_CALLBACK_1(UIManager::onDeathRespawn, this));
+      "重新开始", CC_CALLBACK_1(UIManager::onDeathRespawn, this));
   respawnItem->setColor(Color3B(100, 255, 100));
 
   auto titleItem = MenuItemFont::create(
-      "Return to Menu", CC_CALLBACK_1(UIManager::onDeathReturnTitle, this));
+      "返回菜单", CC_CALLBACK_1(UIManager::onDeathReturnTitle, this));
   titleItem->setColor(Color3B(100, 100, 255));
 
   auto menu = Menu::create(respawnItem, titleItem, nullptr);
@@ -299,13 +299,13 @@ void UIManager::showPauseMenu() {
   MenuItemFont::setFontSize(32);
 
   auto healItem =
-      MenuItemFont::create("Heal", CC_CALLBACK_1(UIManager::onPauseHeal, this));
+      MenuItemFont::create("治疗", CC_CALLBACK_1(UIManager::onPauseHeal, this));
   auto teleportItem = MenuItemFont::create(
-      "Teleport", CC_CALLBACK_1(UIManager::onPauseTeleport, this));
+      "传送", CC_CALLBACK_1(UIManager::onPauseTeleport, this));
   auto resumeItem = MenuItemFont::create(
-      "Resume", CC_CALLBACK_1(UIManager::onPauseResume, this));
+      "继续", CC_CALLBACK_1(UIManager::onPauseResume, this));
   auto titleItem = MenuItemFont::create(
-      "Return to Menu", CC_CALLBACK_1(UIManager::onPauseReturnTitle, this));
+      "返回菜单", CC_CALLBACK_1(UIManager::onPauseReturnTitle, this));
 
   auto menu =
       Menu::create(healItem, teleportItem, resumeItem, titleItem, nullptr);
@@ -345,13 +345,13 @@ void UIManager::showSettingsMenu() {
     layer->addChild(background, -1);
   }
 
-  auto title = Label::createWithSystemFont("Settings", "Arial", 60);
+  auto title = Label::createWithSystemFont("设置", "Arial", 60);
   title->setPosition(Vec2(vs.width / 2 + origin.x, vs.height * 0.75f + origin.y));
   layer->addChild(title, 1);
 
   static float currentVolume = 1.0f;
   auto volumeLabel = Label::createWithSystemFont(
-      "Volume: " + std::to_string((int)std::round(currentVolume * 100)) + "%",
+      "音量: " + std::to_string((int)std::round(currentVolume * 100)) + "%",
       "Arial", 40);
   volumeLabel->setPosition(
       Vec2(vs.width / 2 + origin.x, vs.height * 0.55f + origin.y));
@@ -362,7 +362,7 @@ void UIManager::showSettingsMenu() {
     currentVolume = std::max(0.0f, currentVolume - 0.1f);
     currentVolume = std::round(currentVolume * 10.0f) / 10.0f;
     volumeLabel->setString(
-        "Volume: " + std::to_string((int)std::round(currentVolume * 100)) + "%");
+        "音量: " + std::to_string((int)std::round(currentVolume * 100)) + "%");
     AudioManager::getInstance()->setBGMVolume(currentVolume);
     AudioManager::getInstance()->setEffectVolume(currentVolume);
   });
@@ -371,13 +371,13 @@ void UIManager::showSettingsMenu() {
     currentVolume = std::min(1.0f, currentVolume + 0.1f);
     currentVolume = std::round(currentVolume * 10.0f) / 10.0f;
     volumeLabel->setString(
-        "Volume: " + std::to_string((int)std::round(currentVolume * 100)) + "%");
+        "音量: " + std::to_string((int)std::round(currentVolume * 100)) + "%");
     AudioManager::getInstance()->setBGMVolume(currentVolume);
     AudioManager::getInstance()->setEffectVolume(currentVolume);
   });
 
   auto closeItem = MenuItemFont::create(
-      "Back", CC_CALLBACK_1(UIManager::onCloseSettings, this));
+      "返回", CC_CALLBACK_1(UIManager::onCloseSettings, this));
   closeItem->setColor(Color3B(100, 255, 100));
 
   auto menu = Menu::create(volumeDown, volumeUp, closeItem, nullptr);
@@ -428,11 +428,11 @@ void UIManager::onPauseHeal(Ref* sender) {
       auto healthComp = dynamic_cast<HealthComponent*>(health);
       if (healthComp) {
         healthComp->fullHeal();
-        CCLOG("UIManager: Restored health at teleport point.");
-        showNotification("Health Restored", Color3B::GREEN);
+        CCLOG("UIManager: 在传送点恢复了生命值。");
+        showNotification("生命值已恢复", Color3B::GREEN);
       }
     } else {
-      showNotification("Only rest at teleport points", Color3B::RED);
+      showNotification("只有在传送点才能休息", Color3B::RED);
     }
   }
 }
@@ -469,9 +469,9 @@ void UIManager::showVictoryUI() {
   auto vs = Director::getInstance()->getVisibleSize();
   auto origin = Director::getInstance()->getVisibleOrigin();
 
-  auto label = Label::createWithSystemFont("Victory!", "Arial", 120);
+  auto label = Label::createWithSystemFont("胜利！", "Arial", 120);
   if (label) {
-    label->setColor(Color3B(255, 215, 0));  // Gold.
+    label->setColor(Color3B(255, 215, 0));  // 金色。
     label->setPosition(Vec2(vs.width / 2 + origin.x, vs.height / 2 + origin.y));
     label->enableOutline(Color4B::BLACK, 4);
     running->addChild(label, 10000);
