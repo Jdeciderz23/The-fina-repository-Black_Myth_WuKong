@@ -126,6 +126,12 @@ public:
     HealthComponent* getHealth() const { return _health; }
     
     /**
+     * @brief 获取当前生命值比例
+     * @return float 生命值比例 (0.0f - 1.0f)
+     */
+    float getHealthRatio() const;
+
+    /**
      * @brief 设置敌人位置
      * @param position 目标位置
      */
@@ -198,11 +204,7 @@ protected:
      */
     bool isLowHealth() const;
     
-    /**
-     * @brief 获取当前生命值比例
-     * @return float 生命值比例 (0.0f - 1.0f)
-     */
-    float getHealthRatio() const;
+    
     
 protected:
     /**
