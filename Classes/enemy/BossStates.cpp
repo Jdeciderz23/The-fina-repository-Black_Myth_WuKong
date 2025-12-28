@@ -10,11 +10,8 @@ USING_NS_CC;
 
 static constexpr float PI_F = 3.1415926f;
 
-// ����Ŀ��ͨ�� 1m��100 ���絥λ��֮ǰ viewRange/moveSpeed ����
-// ����㳡��������������������ϵ����һ�¾���
 static inline float M(float meters) { return meters * 100.0f; }
 
-// worldPos -> parent local����Ϊ setPosition3D �� parent space��
 static Vec3 worldToParentSpace(const Node* node, const Vec3& worldPos) {
     auto p = node->getParent();
     if (!p) return worldPos;
@@ -24,7 +21,6 @@ static Vec3 worldToParentSpace(const Node* node, const Vec3& worldPos) {
     return out;
 }
 
-// ����ĳ�����緽��������С�ֵ� +45 ƫ�ƣ���� Boss ���򲻶Ծ͸����
 static void faceToWorldDir(Enemy* e, Vec3 dirW, float yOffsetDeg = 45.0f) {
     if (!e || !e->getSprite()) return;
     dirW.y = 0;
@@ -35,7 +31,6 @@ static void faceToWorldDir(Enemy* e, Vec3 dirW, float yOffsetDeg = 45.0f) {
     e->getSprite()->setRotation3D(Vec3(0, yaw, 0));
 }
 
-// ���ܱ������������Ʋ���
 static BossSkillConfig getCfg(const std::string& skill) {
     if (skill == "Combo3") {
         return BossSkillConfig{
@@ -73,7 +68,6 @@ static BossSkillConfig getCfg(const std::string& skill) {
         };
     }
 
-    // Ĭ�϶���
     return getCfg("Combo3");
 }
 
@@ -187,7 +181,7 @@ void BossPhaseChangeState::onUpdate(Enemy* enemy, float dt) {
     // 延长时间从1.0秒到1.5秒，确保roar.c3b动画完整播放
     if (_timer >= 3.5f) {
         auto boss = static_cast<Boss*>(enemy);
-        boss->applyPhase2Buff(1.2f, 1.15f); // ���׶μ���/����
+        boss->applyPhase2Buff(1.2f, 1.15f); 
         boss->setBusy(false);
 
         enemy->getStateMachine()->changeState("Chase");
@@ -207,7 +201,6 @@ void BossAttackState::onEnter(Enemy* enemy) {
     auto boss = static_cast<Boss*>(enemy);
     boss->setBusy(true);
 
-    // ��ȡ AI Ԥд��ļ��ܣ�û�о�Ĭ�� Combo3��
     std::string skill = boss->hasPendingSkill() ? boss->consumePendingSkill() : "Combo3";
     _cfg = getCfg(skill);
 
@@ -215,10 +208,8 @@ void BossAttackState::onEnter(Enemy* enemy) {
 
     _startW = enemy->getWorldPosition3D();
 
-    // ������㣨Dash/Leap��
     _targetW = enemy->getTargetWorldPos();
     if (_cfg.moveTime > 0.f && _cfg.lockTarget) {
-        // ����Ŀ�꣺�嵽������� dashDistance��������Ҫ����ȥ
         Vec3 toP = _targetW - _startW;
         toP.y = 0;
         if (toP.lengthSquared() > 1e-6f) {
@@ -257,7 +248,7 @@ void BossAttackState::onUpdate(Enemy* enemy, float dt) {
         return;
     }
 
-    // 2) Move��Dash/Leap��
+    // 2) Move
     if (_stage == Stage::Move) {
         float denom = std::max(0.0001f, _cfg.moveTime);
         float t01 = std::min(1.0f, _timer / denom);
@@ -274,7 +265,7 @@ void BossAttackState::onUpdate(Enemy* enemy, float dt) {
         return;
     }
 
-    // 3) Active����Ч���ڣ�ֻ�ж�һ�����ȣ�
+    // 3) Active
     if (_stage == Stage::Active) {
         if (!_didHit) {
             applyHitOnce(enemy, _cfg, boss->getDmgMul());
