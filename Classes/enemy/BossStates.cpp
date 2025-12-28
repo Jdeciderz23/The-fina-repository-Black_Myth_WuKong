@@ -40,22 +40,22 @@ static BossSkillConfig getCfg(const std::string& skill) {
     if (skill == "Combo3") {
         return BossSkillConfig{
             "Combo3", "combo3",
-            0.25f, 0.0f, 0.35f, 0.45f,
-            0.f, M(2.5f), 12.f, false
+            0.35f, 0.0f, 0.50f, 0.65f,  // 增加所有时间参数以延长动画播放时间
+            0.f, M(1.2f), 12.f, false
         };
     }
     if (skill == "DashSlash") {
         return BossSkillConfig{
             "DashSlash", "rush",
             0.30f, 0.25f, 0.15f, 0.50f,
-            M(2.0f), M(2.8f), 16.f, true
+            M(2.0f), M(1.4f), 16.f, true
         };
     }
     if (skill == "GroundSlam") {
         return BossSkillConfig{
             "GroundSlam", "groundslam",
             0.60f, 0.0f, 0.20f, 0.80f,
-            0.f, M(3.5f), 20.f, false
+            0.f, M(1.7f), 20.f, false
         };
     }
     if (skill == "Roar") {
@@ -67,9 +67,9 @@ static BossSkillConfig getCfg(const std::string& skill) {
     }
     if (skill == "LeapSlam") {
         return BossSkillConfig{
-            "LeapSlam", "leapslam",
-            0.35f, 0.35f, 0.20f, 0.90f,
-            M(2.0f), M(4.0f), 26.f, true
+            "LeapSlam", "rush",  // 首先播放rush动画
+            0.35f, 0.35f, 0.15f, 1.30f,  // 延长recovery时间以容纳第二个动画
+            M(2.0f), M(3.0f), 26.f, true
         };
     }
 
@@ -166,6 +166,9 @@ void BossPhaseChangeState::onEnter(Enemy* enemy) {
     if (!enemy) return;
 
     _timer = 0.f;
+    CCLOG("Boss phase change triggered, playing roar animation");
+    
+    // 播放roar.c3b动画，这是BOSS血量降到50%以下时的特殊动画
     enemy->playAnim("roar", false);
 
     auto boss = static_cast<Boss*>(enemy);
@@ -181,7 +184,8 @@ void BossPhaseChangeState::onUpdate(Enemy* enemy, float dt) {
     }
 
     _timer += dt;
-    if (_timer >= 1.0f) {
+    // 延长时间从1.0秒到1.5秒，确保roar.c3b动画完整播放
+    if (_timer >= 3.5f) {
         auto boss = static_cast<Boss*>(enemy);
         boss->applyPhase2Buff(1.2f, 1.15f); // ���׶μ���/����
         boss->setBusy(false);
@@ -279,6 +283,11 @@ void BossAttackState::onUpdate(Enemy* enemy, float dt) {
 
         if (_timer >= _cfg.active) {
             gotoStage(Stage::Recovery);
+            
+            // 如果是LeapSlam技能，播放groundslam动画作为第二个动画
+            if (_cfg.skill == "LeapSlam") {
+                enemy->playAnim("groundslam", false);
+            }
         }
         return;
     }
@@ -307,7 +316,9 @@ void BossHitState::onEnter(Enemy* enemy) {
     auto boss = static_cast<Boss*>(enemy);
     boss->setBusy(true);
 
+    // 播放受击动画，确保使用正确的文件名
     enemy->playAnim("hited", false);
+    CCLOG("Boss hit state triggered, playing hited animation");
 }
 
 void BossHitState::onUpdate(Enemy* enemy, float dt) {
@@ -319,7 +330,8 @@ void BossHitState::onUpdate(Enemy* enemy, float dt) {
     }
 
     _timer += dt;
-    if (_timer >= 0.5f) {
+    // 延长受击状态时间从0.5秒到0.8秒，确保hited.c3b动画能够完整播放
+    if (_timer >= 0.8f) {
         auto boss = static_cast<Boss*>(enemy);
         boss->setBusy(false);
         enemy->getStateMachine()->changeState("Chase");
@@ -338,12 +350,16 @@ void BossDeadState::onEnter(Enemy* enemy) {
 
     auto boss = static_cast<Boss*>(enemy);
     boss->setBusy(true);
-
+    
+    CCLOG("Boss entering death state, playing dying animation");
+    
+    // 播放死亡动画 dying.c3b
     enemy->playAnim("dying", false);
     
     // 与普通敌人一样的死亡处理流程：发送事件 + 延迟移除
+    // 延长延迟时间至3秒以确保死亡动画完整播放
     enemy->runAction(Sequence::create(
-        DelayTime::create(2.0f),
+        DelayTime::create(3.0f),
         CallFunc::create([enemy]() {
             CCLOG("Boss is being removed after death animation");
             
