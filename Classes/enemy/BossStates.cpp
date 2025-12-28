@@ -167,7 +167,7 @@ void BossPhaseChangeState::onEnter(Enemy* enemy) {
 
     _timer = 0.f;
     CCLOG("Boss phase change triggered, playing roar animation");
-    
+
     // 播放roar.c3b动画，这是BOSS血量降到50%以下时的特殊动画
     enemy->playAnim("roar", false);
 
@@ -283,7 +283,7 @@ void BossAttackState::onUpdate(Enemy* enemy, float dt) {
 
         if (_timer >= _cfg.active) {
             gotoStage(Stage::Recovery);
-            
+
             // 如果是LeapSlam技能，播放groundslam动画作为第二个动画
             if (_cfg.skill == "LeapSlam") {
                 enemy->playAnim("groundslam", false);
@@ -350,32 +350,31 @@ void BossDeadState::onEnter(Enemy* enemy) {
 
     auto boss = static_cast<Boss*>(enemy);
     boss->setBusy(true);
-    
+
     CCLOG("Boss entering death state, playing dying animation");
-    
+
     // 播放死亡动画 dying.c3b
     enemy->playAnim("dying", false);
-    
+
     // 与普通敌人一样的死亡处理流程：发送事件 + 延迟移除
     // 延长延迟时间至3秒以确保死亡动画完整播放
     enemy->runAction(Sequence::create(
         DelayTime::create(3.0f),
         CallFunc::create([enemy]() {
             CCLOG("Boss is being removed after death animation");
-            
+
             // 通知游戏管理器从敌人列表中移除此敌人
             // 通过一个全局事件通知系统
             cocos2d::EventCustom event("enemy_died");
             event.setUserData(enemy);
             cocos2d::Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
-            
+
             // 执行实际的移除操作
             enemy->removeFromParent();
-        }),
+            }),
         nullptr
     ));
 }
 
 void BossDeadState::onUpdate(Enemy*, float) {}
 void BossDeadState::onExit(Enemy*) {}
-  

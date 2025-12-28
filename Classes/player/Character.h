@@ -144,7 +144,7 @@ public:
     /**
      * @brief 复活
      */
-    void respawn();
+    virtual void respawn();
 
     /**
      * @brief 是否在地面

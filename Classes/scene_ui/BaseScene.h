@@ -1,97 +1,106 @@
+// Copyright 2025 The Black Myth Wukong Authors. All Rights Reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #ifndef __BASE_SCENE_H__
 #define __BASE_SCENE_H__
 
-#include "cocos2d.h"
 #include <array>
-#include "Wukong.h"
+#include <string>
+#include <vector>
+
 #include "../combat/Collider.h"
 #include "Enemy.h"
+#include "Wukong.h"
+#include "cocos2d.h"
+
 class Wukong;
 class TerrainCollider;
-class BaseScene : public cocos2d::Scene
-{
-public:
-    static cocos2d::Scene* createScene();
-    virtual bool init() override;
-    void teleportPlayerToCenter();
-    CREATE_FUNC(BaseScene);
 
-protected:
-    /* ---------- Init ---------- */
-    void initCamera();
-    void initSkybox();
-    void initLights();
-    void initInput();
-    void initEnemy();
-    void initBoss();
-    /* ---------- Update ---------- */
-    virtual void update(float dt) override;
-    void updateCamera(float dt);
+// BaseScene is the foundation class for all 3D game scenes.
+// It handles camera, skybox, lighting, input, player, and enemy management.
+class BaseScene : public cocos2d::Scene {
+ public:
+  static cocos2d::Scene* createScene();
+  virtual bool init() override;
 
-    /* ---------- Skybox ---------- */
-    bool chooseSkyboxFaces(std::array<std::string, 6>& outFaces);
-    bool verifyCubeFacesSquare(const std::array<std::string, 6>& faces);
+  // Teleports the player back to the respawn point and resets enemies.
+  void teleportPlayerToCenter();
 
-    /* ---------- Player ---------- */
-    void initPlayer();
+  CREATE_FUNC(BaseScene);
 
-protected:
-    /* ---------- Camera ---------- */
-    cocos2d::Camera* _mainCamera = nullptr;
-    cocos2d::Skybox* _skybox = nullptr;
-    bool  _autoFollowYaw = true;
-    float _autoYawSpeed = 240.0f;   // 度/秒（越大越快回正）
-    float _mouseIdleTime = 999.0f;   // 距离上次鼠标移动时间
+ protected:
+  // Initialization methods.
+  void initCamera();
+  void initSkybox();
+  void initLights();
+  void initInput();
+  void initEnemy();
+  void initBoss();
+  void initPlayer();
 
-    cocos2d::Vec3 _camPos = cocos2d::Vec3(0.0f, 120.0f, 220.0f);
-    cocos2d::Vec3 _camFront = cocos2d::Vec3(0.0f, 0.0f, -1.0f);
-    cocos2d::Vec3 _camUp = cocos2d::Vec3::UNIT_Y;
+  // Update loop.
+  virtual void update(float dt) override;
+  void updateCamera(float dt);
 
-    float _yaw = -90.0f;
-    float _pitch = -15.0f;
+  // Skybox helpers.
+  bool chooseSkyboxFaces(std::array<std::string, 6>& outFaces);
+  bool verifyCubeFacesSquare(const std::array<std::string, 6>& faces);
 
-    float _moveSpeed = 200.0f;
-    float _mouseSensitivity = 0.15f;
+  // Enemy management.
+  void removeDeadEnemy(Enemy* deadEnemy);
 
-    // 透视投影参数（用于滚轮缩放 FOV）
-    float _fov = 60.0f;        // 视野角（度）
-    float _aspect = 1.0f;      // 宽高比
-    float _nearPlane = 1.0f;   // 近裁剪面
-    float _farPlane = 1000.0f; // 远裁剪面
-    float _followDistance = 220.0f;   // 相机离人物距离
-    float _followHeight = 80.0f;    // 看向人物的高度（头部高度）
-    float _followSmooth = 12.0f;    // 跟随平滑（越大越跟手）
+ protected:
+  // Camera members.
+  cocos2d::Camera* _mainCamera = nullptr;
+  cocos2d::Skybox* _skybox = nullptr;
+  bool _autoFollowYaw = true;
+  float _autoYawSpeed = 240.0f;  // Degrees/second.
+  float _mouseIdleTime = 999.0f; // Time since last mouse movement.
 
+  cocos2d::Vec3 _camPos = cocos2d::Vec3(0.0f, 120.0f, 220.0f);
+  cocos2d::Vec3 _camFront = cocos2d::Vec3(0.0f, 0.0f, -1.0f);
+  cocos2d::Vec3 _camUp = cocos2d::Vec3::UNIT_Y;
 
-    /* ---------- Input ---------- */
-    bool _keyW = false;
-    bool _keyS = false;
-    bool _keyA = false;
-    bool _keyD = false;
-    bool _keyQ = false;
-    bool _keyE = false;
+  float _yaw = -90.0f;
+  float _pitch = -15.0f;
 
-    bool _rotating = false;
+  float _moveSpeed = 200.0f;
+  float _mouseSensitivity = 0.15f;
 
-    cocos2d::Vec2 _lastMousePos;
-    bool _hasLastMouse = false;
+  // Perspective projection parameters.
+  float _fov = 60.0f;         // Field of view in degrees.
+  float _aspect = 1.0f;       // Aspect ratio.
+  float _nearPlane = 1.0f;    // Near clipping plane.
+  float _farPlane = 1000.0f;  // Far clipping plane.
+  float _followDistance = 220.0f;  // Camera distance from character.
+  float _followHeight = 80.0f;     // Camera look-at height.
+  float _followSmooth = 12.0f;     // Camera following smoothness.
 
-    /* ---------- Player ---------- */
-    Wukong* _player = nullptr;
-    TerrainCollider* _terrainCollider = nullptr;
-    std::vector<Enemy*> _enemies;
-    
-    /* ---------- Enemy Management ---------- */
-    void removeDeadEnemy(Enemy* deadEnemy);
+  // Input state.
+  bool _keyW = false;
+  bool _keyS = false;
+  bool _keyA = false;
+  bool _keyD = false;
+  bool _keyQ = false;
+  bool _keyE = false;
+  bool _rotating = false;
+
+  cocos2d::Vec2 _lastMousePos;
+  bool _hasLastMouse = false;
+
+  // Game objects.
+  Wukong* _player = nullptr;
+  TerrainCollider* _terrainCollider = nullptr;
+  std::vector<Enemy*> _enemies;
 };
 
-class CampScene : public BaseScene
-{
-public:
-    static cocos2d::Scene* createScene();
-    virtual bool init() override;
-    CREATE_FUNC(CampScene);
+// CampScene is a specific implementation of BaseScene for the camp area.
+class CampScene : public BaseScene {
+ public:
+  static cocos2d::Scene* createScene();
+  virtual bool init() override;
+  CREATE_FUNC(CampScene);
 };
 
-
-#endif // __BASE_SCENE_H__
+#endif  // __BASE_SCENE_H__

@@ -49,9 +49,19 @@ public:
     // 给敌人/AI 用：返回悟空“世界坐标系”的位置（推荐用这个做距离/追击判断）
     cocos2d::Vec3 getWorldPosition3D() const;
 
+    virtual void update(float dt) override;
+
     void castSkill();
     void triggerHurt();
     void triggerDead();
+
+    // 重置技能（复活时调用）
+    void resetSkill();
+
+    /**
+     * @brief 复活
+     */
+    virtual void respawn() override;
 
 private:
     cocos2d::Sprite3D* _model; ///< 角色模型指针
@@ -67,6 +77,11 @@ private:
     cocos2d::Vec2 _moveAxis{ 0.0f, 0.0f };
     LocomotionDir _locoDir = LocomotionDir::None;
     bool _locoRun = false;
+
+    // 技能系统
+    int _skillCount = 3;             ///< 剩余技能次数
+    float _skillCooldownTimer = 0.0f; ///< 技能冷却计时器（秒）
+    const float SKILL_COOLDOWN = 5.0f; ///< 冷却时间常量
 
 
     void loadAnimIfNeeded(const std::string& key,

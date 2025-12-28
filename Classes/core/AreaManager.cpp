@@ -20,11 +20,11 @@ void AreaManager::init() {
     _areas.clear();
     _teleportPoints.clear();
 
-    // 定义小怪区域 (x: -500 to 500, z: -1500 to -500)
-    _areas.push_back({"NormalMonsterArea", AreaType::NORMAL_MONSTER, Rect(-500, -1500, 1000, 1000)});
+    // 定义小怪区域 (覆盖 (400, 0, -400) 附近)
+    _areas.push_back({"NormalMonsterArea", AreaType::NORMAL_MONSTER, Rect(-100, -900, 1000, 1000)});
 
-    // 定义 Boss 区域 (x: -1000 to 1000, z: -3000 to -2000)
-    _areas.push_back({"BossArea", AreaType::BOSS, Rect(-1000, -3000, 2000, 1000)});
+    // 定义 Boss 区域 (覆盖 (-200, 0, 600) 附近)
+    _areas.push_back({"BossArea", AreaType::BOSS, Rect(-1200, -400, 2000, 2000)});
 
     // 定义两个传送点
     _teleportPoints.push_back({"Point_A_Spawn", Vec3(300, -20, 800)});

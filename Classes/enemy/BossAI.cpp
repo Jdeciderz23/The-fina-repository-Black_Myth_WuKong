@@ -28,6 +28,7 @@ void BossAI::initSkills() {
     // Phase 2 技能（使用rush+groundslam组合替代leapslam）
     _skills.push_back(BossAISkill{ "LeapSlam",   M(2.5f),  M(5.f), 10.0f, 1.20f, 2 }); // 增加冷却时间以匹配延长的动画
 
+
     // 你也可以让 GroundSlam 在二阶段还能用（phaseMask=3）
     // 这里为了简单：Phase2 仍然允许 Combo3/DashSlash/GroundSlam
     // 所以我们把它们 phaseMask 改成 3（1|2）

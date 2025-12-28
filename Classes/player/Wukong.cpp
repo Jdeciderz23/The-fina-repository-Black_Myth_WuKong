@@ -1,5 +1,8 @@
+#pragma execution_character_set("utf-8")
 #include "Wukong.h"
-#include"cocos2d.h"
+#include "cocos2d.h"
+#include "scene_ui/UIManager.h"
+#include "combat/HealthComponent.h"
 
 Wukong* Wukong::create() {
     Wukong* p = new (std::nothrow) Wukong();
@@ -20,7 +23,7 @@ bool Wukong::init() {
     auto full = cocos2d::FileUtils::getInstance()->fullPathForFilename("WuKong/wukong.c3b");
     cocos2d::log("[Wukong] fullPath=%s", full.c_str());
 
-    //åŠ è½½æ¨¡åž‹
+    //¼ÓÔØÄ£ÐÍ
     _model = cocos2d::Sprite3D::create("WuKong/wukong.c3b");
     auto aabb = _model->getAABB();
     auto center = (aabb._min + aabb._max) * 0.5f;
@@ -28,7 +31,7 @@ bool Wukong::init() {
     this->walkSpeed = 140.0f;
     this->runSpeed = 240.0f;
 
-    // XZ å±…ä¸­ï¼ŒY æ–¹å‘æŠŠè„šåº•æŠ¬åˆ° y=0
+    // XZ ¾ÓÖÐ£¬Y ·½Ïò°Ñ½Åµ×Ì§µ½ y=0
     //_model->setPosition3D(cocos2d::Vec3(-center.x, -aabb._min.y, -center.z));
 
     _model->setCameraMask((unsigned short)cocos2d::CameraFlag::USER1, true);
@@ -43,11 +46,11 @@ bool Wukong::init() {
         _model->setCullFaceEnabled(false);
         _visualRoot->addChild(_model);
 
-        // é¢„åŠ è½½
+        // Ô¤¼ÓÔØ
         _anims["idle"] = cocos2d::Animation3D::create("WuKong/Idle.c3b");
         _anims["run_fwd"] = cocos2d::Animation3D::create("WuKong/Jog_Fwd.c3b");
         _anims["run_bwd"] = cocos2d::Animation3D::create("WuKong/Jog_Bwd.c3b");
-        _anims["run_left"] = cocos2d::Animation3D::create("WuKong/Jog_Left.c3b");   // æœ‰å°±å¡«
+        _anims["run_left"] = cocos2d::Animation3D::create("WuKong/Jog_Left.c3b");   // ÓÐ¾ÍÌî
         _anims["run_right"] = cocos2d::Animation3D::create("WuKong/Jog_Right.c3b");
         _anims["jump"] = cocos2d::Animation3D::create("WuKong/Jump.c3b");
         _anims["attack1"] = cocos2d::Animation3D::create("WuKong/attack1.c3b");
@@ -60,7 +63,7 @@ bool Wukong::init() {
         _anims["run"] = _anims["run_fwd"];
         playAnim("idle", true);
 
-        // åˆå§‹åŒ– AABB ç¢°æ’žå™¨ï¼Œæ”¶ç¼© XZ è½´åˆ° 40%ï¼Œé¿å…é‡‘ç®æ£’å¯¼è‡´çš„ç©ºæ°”å¢™è¿‡å¤§
+        // ³õÊ¼»¯ AABB Åö×²Æ÷£¬ÊÕËõ XZ Öáµ½ 40%£¬±ÜÃâ½ð¹¿°ôµ¼ÖÂµÄ¿ÕÆøÇ½¹ý´ó
         _collider.calculateBoundingBox(_model, 0.4f);
     }
     else {
@@ -75,8 +78,8 @@ void Wukong::loadAnimIfNeeded(const std::string& key,
     if (_anims.count(key))
         return;
 
-    // ä½ æŠŠæ–‡ä»¶æ”¾å“ªï¼Œå°±æŠŠè¿™é‡Œè·¯å¾„æ”¹æˆå¯¹åº” Resources è·¯å¾„
-    // æ¯”å¦‚ "Models/Wukong/Idle.FBX"
+    // Äã°ÑÎÄ¼þ·ÅÄÄ£¬¾Í°ÑÕâÀïÂ·¾¶¸Ä³É¶ÔÓ¦ Resources Â·¾¶
+    // ±ÈÈç "Models/Wukong/Idle.FBX"
     cocos2d::Animation3D* anim = cocos2d::Animation3D::create(c3bPath);
     _anims[key] = anim;
 
@@ -127,10 +130,10 @@ void Wukong::startJumpAnim()
     _curAnim = "jump";
     _jumpAnimPlaying = true;
 
-    // åœæŽ‰å…¶å®ƒ locomotion åŠ¨ç”»ï¼ˆåŒä¸€ä¸ª tagï¼‰
+    // Í£µôÆäËü locomotion ¶¯»­£¨Í¬Ò»¸ö tag£©
     _model->stopActionByTag(_animTag);
 
-    // jump æ’­å®Œèµ°è½åœ°é€»è¾‘
+    // jump ²¥Íê×ßÂäµØÂß¼­
     auto done = cocos2d::CallFunc::create([this]() {
         _jumpAnimPlaying = false;
         this->onJumpLanded();
@@ -152,7 +155,7 @@ void Wukong::onJumpLanded()
     }
 }
 
-//æ ¹æ®è¾“å…¥è½´è®¡ç®—æ–¹å‘ï¼Œä¼˜å…ˆâ€œå¹…åº¦æ›´å¤§çš„è½´â€
+//¸ù¾ÝÊäÈëÖá¼ÆËã·½Ïò£¬ÓÅÏÈ¡°·ù¶È¸ü´óµÄÖá¡±
 void Wukong::setMoveAxis(const cocos2d::Vec2& axis) {
     _moveAxis = axis;
 }
@@ -183,7 +186,7 @@ void Wukong::updateLocomotionAnim(bool running) {
     default:                   key = "run_fwd"; break;
     }
 
-    // å·¦å³åŠ¨ç”»æ²¡æ”¾å¯¹åå­—æ—¶ï¼Œè‡³å°‘åˆ«å´©ï¼šå›žé€€åˆ°å‰è·‘
+    // ×óÓÒ¶¯»­Ã»·Å¶ÔÃû×ÖÊ±£¬ÖÁÉÙ±ð±À£º»ØÍËµ½Ç°ÅÜ
     auto it = _anims.find(key);
     if (it == _anims.end() || !it->second) key = "run_fwd";
 
@@ -192,7 +195,7 @@ void Wukong::updateLocomotionAnim(bool running) {
 
 float Wukong::getAnimDuration(const std::string& key) const {
     auto it = _anims.find(key);
-    if (it == _anims.end() || !it->second) return 0.6f; // å…œåº•
+    if (it == _anims.end() || !it->second) return 0.6f; // ¶µµ×
     return it->second->getDuration();
 }
 
@@ -200,10 +203,51 @@ cocos2d::Vec3 Wukong::getWorldPosition3D() const
 {
     cocos2d::Vec3 out = cocos2d::Vec3::ZERO;
     cocos2d::Mat4 m = this->getNodeToWorldTransform();
-    m.transformPoint(cocos2d::Vec3::ZERO, &out); // å±€éƒ¨åŽŸç‚¹ -> ä¸–ç•Œ
+    m.transformPoint(cocos2d::Vec3::ZERO, &out); // ¾Ö²¿Ô­µã -> ÊÀ½ç
     return out;
 }
 
-void Wukong::castSkill() { this->getStateMachine().changeState("Skill"); }
+void Wukong::update(float dt) {
+    Character::update(dt);
+    if (_skillCooldownTimer > 0.0f) {
+        _skillCooldownTimer -= dt;
+    }
+}
+
+void Wukong::castSkill() {
+    if (_skillCount <= 0) {
+        UIManager::getInstance()->showNotification("¼¼ÄÜ´ÎÊýÓÃ¾¡", cocos2d::Color3B::RED);
+        return;
+    }
+
+    if (_skillCooldownTimer > 0.0f) {
+        UIManager::getInstance()->showNotification("¼¼ÄÜÕýÔÚÀäÈ´", cocos2d::Color3B::RED);
+        return;
+    }
+
+    // Ö´ÐÐ¼¼ÄÜ
+    _skillCount--;
+    _skillCooldownTimer = SKILL_COOLDOWN;
+
+    // »ØÑª 20
+    auto health = getHealth();
+    if (health) {
+        health->heal(20.0f);
+    }
+
+    // ÇÐ»»×´Ì¬
+    this->getStateMachine().changeState("Skill");
+}
+
 void Wukong::triggerHurt() { this->getStateMachine().changeState("Hurt"); }
 void Wukong::triggerDead() { this->getStateMachine().changeState("Dead"); }
+
+void Wukong::resetSkill() {
+    _skillCount = 3;
+    _skillCooldownTimer = 0.0f;
+}
+
+void Wukong::respawn() {
+    Character::respawn();
+    resetSkill();
+}
