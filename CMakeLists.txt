@@ -112,13 +112,11 @@ list(APPEND GAME_SOURCE
     Classes/combat/CombatComponent.cpp
     Classes/combat/HealthComponent.cpp
     Classes/combat/Collider.cpp
-    Classes/combat/Skill.cpp
 )
 
 list(APPEND GAME_HEADER
     Classes/combat/CombatComponent.h
     Classes/combat/HealthComponent.h
-    Classes/combat/Skill.h
     Classes/combat/Collider.h
     Classes/combat/CharacterCollider.h
 )
