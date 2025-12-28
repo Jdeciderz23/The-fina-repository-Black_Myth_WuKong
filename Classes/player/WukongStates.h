@@ -142,57 +142,8 @@ private:
  * @class RollState
  * @brief 翻滚状态，短时位移 + 播放 roll，结束后 Idle/Move
  */
-//class RollState : public BaseState<Character> {
-//public:
-//    RollState() : _t(0.0f) {}
-//
-//    void onEnter(Character* entity) override {
-//        if (!entity) return;
-//
-//        entity->playAnim("roll", false);
-//        _t = 0.0f;
-//
-//        // 沿当前 MoveIntent 方向翻滚；没有方向则沿前方（-Z）
-//        auto intent = entity->getMoveIntent();
-//        cocos2d::Vec3 dir = intent.dirWS;
-//        if (dir.lengthSquared() <= 1e-6f) {
-//            dir = cocos2d::Vec3(0.0f, 0.0f, -1.0f);
-//        }
-//        dir.normalize();
-//
-//        const float rollSpeed = entity->runSpeed * 1.25f;
-//        entity->setHorizontalVelocity(cocos2d::Vec3(dir.x * rollSpeed, 0.0f, dir.z * rollSpeed));
-//    }
-//
-//    void onUpdate(Character* entity, float deltaTime) override {
-//        if (!entity) return;
-//        _t += deltaTime;
-//
-//        // 简化：0.45s 结束
-//        if (_t >= 0.45f) {
-//            entity->stopHorizontal();
-//            const auto intent = entity->getMoveIntent();
-//            if (intent.dirWS.lengthSquared() > 1e-6f) {
-//                entity->getStateMachine().changeState("Move");
-//            }
-//            else {
-//                entity->getStateMachine().changeState("Idle");
-//            }
-//        }
-//    }
-//
-//    void onExit(Character* entity) override {
-//        if (!entity) return;
-//        entity->stopHorizontal();
-//    }
-//
-//    std::string getStateName() const override {
-//        return "Roll";
-//    }
-//
-//private:
-//    float _t; ///< 状态计时
-//};
+
+
 class RollState : public BaseState<Character> {
 public:
     RollState() : _t(0.0f), _dur(0.45f), _moveEnd(0.25f), _stopped(false) {}
@@ -271,6 +222,7 @@ private:
     float _moveEnd;
     bool  _stopped;
 };
+
 /**
  * @class AttackState
  * @brief 攻击状态，支持 1/2/3 段，期间触发 consumeComboBuffered() 为 true 则进下一段
@@ -462,13 +414,19 @@ public:
         }
     }
 
-    void onExit(Character* entity) override { (void)entity; }
-    std::string getStateName() const override { return "Hurt"; }
+    void onExit(Character* entity) override {
+        (void)entity;
+    }
+
+    std::string getStateName() const override {
+        return "Hurt";
+    }
 
 private:
-    float _t;
+    float _t; ///< 状态计时
     float _dur;
 };
+
 /**
  * @class DeadState
  * @brief 死亡状态，播放 dead，停止移动
@@ -539,4 +497,5 @@ private:
     float _t;
     float _dur;
 };
+
 #endif // WUKONGSTATES_H

@@ -276,6 +276,16 @@ void HealthComponent::reset() {
  * @brief 直接设置当前生命值
  * @param health 生命值
  */
+void HealthComponent::fullHeal() {
+    float oldHealth = _currentHealth;
+    _currentHealth = _maxHealth;
+    
+    if (_onHealthChangeCallback && oldHealth != _currentHealth) {
+        _onHealthChangeCallback(_currentHealth, _currentHealth - oldHealth);
+    }
+    CCLOG("HealthComponent: Full heal performed. HP: %.2f/%.2f", _currentHealth, _maxHealth);
+}
+
 void HealthComponent::setCurrentHealth(float health) {
     float oldHealth = _currentHealth;
     _currentHealth = std::max(0.0f, std::min(health, _maxHealth));
