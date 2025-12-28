@@ -82,7 +82,6 @@ Classes/
 │  ├─ Collider.h / Collider.cpp    # TerrainCollider：地形三角网格 + 网格加速 + 射线求交
 │  ├─ CombatComponent.h/.cpp       # 战斗组件：近战命中检测、伤害结算入口
 │  ├─ HealthComponent.h/.cpp       # 生命值组件：扣血/死亡/无敌时间/回调等
-│  └─ Skill.h/.cpp                 # 技能数据与执行逻辑（与SkillState/释放接口对接）
 │
 ├─ core/                           # 核心框架：应用入口、场景管理、事件、状态机
 │  ├─ StateMachine.h               # 模板状态机：StateMachine<T> / 切换/更新
