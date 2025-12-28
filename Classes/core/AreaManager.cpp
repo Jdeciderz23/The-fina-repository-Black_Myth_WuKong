@@ -27,7 +27,7 @@ void AreaManager::init() {
     _areas.push_back({"BossArea", AreaType::BOSS, Rect(-1000, -3000, 2000, 1000)});
 
     // 定义两个传送点
-    _teleportPoints.push_back({"Point_A_Spawn", Vec3(300, 0, 800)});
+    _teleportPoints.push_back({"Point_A_Spawn", Vec3(300, -20, 800)});
     _teleportPoints.push_back({"Point_B_BossGate", Vec3(0, 0, -960)});
 }
 

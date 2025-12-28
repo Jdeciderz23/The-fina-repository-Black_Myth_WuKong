@@ -322,6 +322,21 @@ cocos2d::Vec3 Enemy::getWorldPosition3D() const {
     return out;
 }
 
+void Enemy::updateSpritePosition() {
+    if (!_sprite) return;
+    
+    _sprite->updateTransform();
+    auto aabb = _sprite->getAABB();
+    if (aabb.isEmpty()) {
+        _sprite->setPosition3D(Vec3(0, _spriteOffsetY, 0));
+    } else {
+        // 修正模型位置，确保脚底在地面（y=0），并加上微调偏移
+        _sprite->setPosition3D(Vec3(0, -aabb._min.y + _spriteOffsetY, 0));
+        CCLOG("Enemy sprite repositioned: min.y=%f, offset=%f, final.y=%f", 
+            aabb._min.y, _spriteOffsetY, -aabb._min.y + _spriteOffsetY);
+    }
+}
+
 //加载模型
 bool Enemy::initWithResRoot(const std::string& resRoot, const std::string& modelFile) {
     _resRoot = resRoot;
@@ -349,9 +364,8 @@ bool Enemy::initWithResRoot(const std::string& resRoot, const std::string& model
     _sprite->setCullFaceEnabled(false);
     this->addChild(_sprite);
 
-    // 修正模型位置，确保脚底在地面（y=0）
-    auto aabb = _sprite->getAABB();
-    _sprite->setPosition3D(Vec3(0, -aabb._min.y, 0));
+    // 更新精灵位置（包含 AABB 修正和初始偏移）
+    updateSpritePosition();
 
     // 初始化 AABB 碰撞器，收缩 XZ 轴到 40%
     _collider.calculateBoundingBox(_sprite, 0.4f);
