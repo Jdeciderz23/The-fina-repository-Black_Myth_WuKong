@@ -1,70 +1,59 @@
+// Copyright 2025 The Black Myth Wukong Authors. All Rights Reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #ifndef __AUDIO_MANAGER_H__
 #define __AUDIO_MANAGER_H__
 
-#include "cocos2d.h"
-#include "audio/include/AudioEngine.h"
 #include <string>
 
-/**
- * @class AudioManager
- * @brief 游戏音效管理类，负责背景音乐和音效的播放与控制
- */
+#include "audio/include/AudioEngine.h"
+#include "cocos2d.h"
+
+// AudioManager manages background music and sound effects for the game.
+// It provides a singleton interface for playing, stopping, and controlling volume.
 class AudioManager {
-public:
-    // 获取单例实例
-    static AudioManager* getInstance();
+ public:
+  // Returns the singleton instance of AudioManager.
+  static AudioManager* getInstance();
 
-    /**
-     * @brief 播放背景音乐
-     * @param fileName 音乐文件路径
-     * @param loop 是否循环播放，默认为 true
-     */
-    void playBGM(const std::string& fileName, bool loop = true);
+  // Plays background music from the given file path.
+  // @param fileName The path to the music file.
+  // @param loop Whether to loop the music (default is true).
+  void playBGM(const std::string& fileName, bool loop = true);
 
-    /**
-     * @brief 停止当前背景音乐
-     */
-    void stopBGM();
+  // Stops the currently playing background music.
+  void stopBGM();
 
-    /**
-     * @brief 播放音效
-     * @param fileName 音效文件路径
-     * @param loop 是否循环播放，默认为 false
-     * @return 音效的 ID
-     */
-    int playEffect(const std::string& fileName, bool loop = false);
+  // Plays a sound effect from the given file path.
+  // @param fileName The path to the sound effect file.
+  // @param loop Whether to loop the sound effect (default is false).
+  // @return The unique ID of the playing audio.
+  int playEffect(const std::string& fileName, bool loop = false);
 
-    /**
-     * @brief 停止指定 ID 的音效
-     * @param audioID 音效 ID
-     */
-    void stopEffect(int audioID);
+  // Stops a specific sound effect by its ID.
+  // @param audioID The ID of the sound effect to stop.
+  void stopEffect(int audioID);
 
-    /**
-     * @brief 停止所有声音
-     */
-    void stopAll();
+  // Stops all sounds (BGM and effects).
+  void stopAll();
 
-    /**
-     * @brief 设置背景音乐音量
-     * @param volume 音量 (0.0 - 1.0)
-     */
-    void setBGMVolume(float volume);
+  // Sets the volume for background music.
+  // @param volume The volume level (0.0 to 1.0).
+  void setBGMVolume(float volume);
 
-    /**
-     * @brief 设置所有音效音量
-     * @param volume 音量 (0.0 - 1.0)
-     */
-    void setEffectVolume(float volume);
+  // Sets the volume for all subsequent sound effects.
+  // @param volume The volume level (0.0 to 1.0).
+  void setEffectVolume(float volume);
 
-private:
-    AudioManager();
-    ~AudioManager();
+ private:
+  AudioManager();
+  ~AudioManager();
 
-    static AudioManager* _instance;
-    int _bgmID;           // 当前背景音乐的 ID
-    float _bgmVolume;     // 背景音乐音量
-    float _effectVolume;  // 音效音量
+  static AudioManager* _instance;
+  int _bgmID;           // Current background music ID.
+  float _bgmVolume;     // Background music volume level.
+  float _effectVolume;  // Sound effects volume level.
 };
 
-#endif // __AUDIO_MANAGER_H__
+#endif  // __AUDIO_MANAGER_H__

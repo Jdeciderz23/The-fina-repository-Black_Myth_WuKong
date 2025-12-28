@@ -272,16 +272,16 @@ void Enemy::onHurtCallback(float damage, Node* attacker) {
     if (_sprite) {
         _sprite->runAction(Blink::create(0.5f, 5));
     }
-    
+
     // 临时禁用移动和攻击
     _canMove = false;
     _canAttack = false;
-    
+
     // 切换到受击状态
     if (_stateMachine) {
         _stateMachine->changeState("Hit");
     }
-    
+
     // 一段时间后恢复移动和攻击能力
     this->runAction(Sequence::create(
         DelayTime::create(0.5f),
@@ -291,7 +291,7 @@ void Enemy::onHurtCallback(float damage, Node* attacker) {
                 _canMove = true;
                 _canAttack = true;
             }
-        }),
+            }),
         nullptr
     ));
 }
@@ -300,12 +300,13 @@ void Enemy::onDeadCallback(Node* attacker) {
     // 当HealthComponent检测到死亡时，只做行为与状态切换
     _canMove = false;
     _canAttack = false;
-    
+
     CCLOG("Enemy onDeadCallback triggered, changing state to Dead");
-    
+
     if (_stateMachine) {
         _stateMachine->changeState("Dead");
-    } else {
+    }
+    else {
         CCLOG("WARNING: Enemy state machine is null, cannot change to Dead state!");
     }
 }
