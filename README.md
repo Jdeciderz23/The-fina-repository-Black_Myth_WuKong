@@ -30,7 +30,7 @@
   - ✅ Boss 对玩家的伤害： **BossAttack**（`BossStates.cpp` 中），接入 `HealthComponent/CombatComponent`
 
 - **敌人 AI**
-  - ✅ 敌人 AI（见 `EnemyStates.cpp`）：Idle / Patrol / Chase / Attack / Hit / Dead / Return
+  - ✅ 敌人 AI（见 `EnemyStates.cpp`）：Idle（待机）/ Patrol（巡逻） / Chase（追击） / Attack（攻击） / Hited（受击） / Dead（死亡） / Return（）返回
   - ✅ Boss 二阶段/怒气思路：Phase + Buff + BossAI（技能权重、CD、距离分层）
 
 - **场景功能**
