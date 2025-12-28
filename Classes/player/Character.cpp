@@ -76,11 +76,10 @@ bool Character::init() {
 }
 
 void Character::update(float dt) {
+    _fsm.update(dt);
     if (isDead()) {
         return;
     }
-
-    _fsm.update(dt);
 
     applyGravity(dt);
     applyMovement(dt);
@@ -168,8 +167,6 @@ void Character::die() {
     _lifeState = LifeState::Dead;
     _fsm.changeState("Dead");
 
-    // 弹出死亡界面
-    UIManager::getInstance()->showDeathMenu();
 }
 
 void Character::respawn() {

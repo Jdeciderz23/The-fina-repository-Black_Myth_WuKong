@@ -1,7 +1,6 @@
 #pragma once
 
 #include "cocos2d.h"
-#include "Skill.h"
 #include "CharacterCollider.h"
 #include <vector>
 #include <functional>

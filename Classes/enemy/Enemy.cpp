@@ -261,20 +261,27 @@ void Enemy::initCombatComponent() {
 }
 
 void Enemy::onHurtCallback(float damage, Node* attacker) {
+    // 对于Boss类型的敌人，直接切换到Hit状态以播放受击动画
+    if (_enemyType == EnemyType::BOSS && _stateMachine && !isDead()) {
+        _stateMachine->changeState("Hit");
+        return;
+    }
+
+    // 普通敌人的受击处理
     // 受击反馈：闪烁效果
     if (_sprite) {
         _sprite->runAction(Blink::create(0.5f, 5));
     }
-    
+
     // 临时禁用移动和攻击
     _canMove = false;
     _canAttack = false;
-    
+
     // 切换到受击状态
     if (_stateMachine) {
         _stateMachine->changeState("Hit");
     }
-    
+
     // 一段时间后恢复移动和攻击能力
     this->runAction(Sequence::create(
         DelayTime::create(0.5f),
@@ -284,7 +291,7 @@ void Enemy::onHurtCallback(float damage, Node* attacker) {
                 _canMove = true;
                 _canAttack = true;
             }
-        }),
+            }),
         nullptr
     ));
 }
@@ -293,9 +300,14 @@ void Enemy::onDeadCallback(Node* attacker) {
     // 当HealthComponent检测到死亡时，只做行为与状态切换
     _canMove = false;
     _canAttack = false;
-    
+
+    CCLOG("Enemy onDeadCallback triggered, changing state to Dead");
+
     if (_stateMachine) {
         _stateMachine->changeState("Dead");
+    }
+    else {
+        CCLOG("WARNING: Enemy state machine is null, cannot change to Dead state!");
     }
 }
 
@@ -320,6 +332,22 @@ cocos2d::Vec3 Enemy::getWorldPosition3D() const {
     cocos2d::Mat4 m = this->getNodeToWorldTransform();
     m.transformPoint(cocos2d::Vec3::ZERO, &out);
     return out;
+}
+
+void Enemy::updateSpritePosition() {
+    if (!_sprite) return;
+    
+    _sprite->updateTransform();
+    auto aabb = _sprite->getAABB();
+    if (aabb.isEmpty()) {
+        _sprite->setPosition3D(Vec3(0, _spriteOffsetY, 0));
+        CCLOG("Enemy sprite AABB is empty, using offset: %f", _spriteOffsetY);
+    } else {
+        // 修正模型位置，确保脚底在地面（y=0），并加上微调偏移
+        _sprite->setPosition3D(Vec3(0, -aabb._min.y + _spriteOffsetY, 0));
+        CCLOG("Enemy sprite AABB: min.y=%f, max.y=%f, offset=%f, final.y=%f", 
+            aabb._min.y, aabb._max.y, _spriteOffsetY, -aabb._min.y + _spriteOffsetY);
+    }
 }
 
 //加载模型
@@ -349,9 +377,8 @@ bool Enemy::initWithResRoot(const std::string& resRoot, const std::string& model
     _sprite->setCullFaceEnabled(false);
     this->addChild(_sprite);
 
-    // 修正模型位置，确保脚底在地面（y=0）
-    auto aabb = _sprite->getAABB();
-    _sprite->setPosition3D(Vec3(0, -aabb._min.y, 0));
+    // 更新精灵位置（包含 AABB 修正和初始偏移）
+    updateSpritePosition();
 
     // 初始化 AABB 碰撞器，收缩 XZ 轴到 40%
     _collider.calculateBoundingBox(_sprite, 0.4f);
@@ -387,4 +414,15 @@ void Enemy::playAnim(const std::string& name, bool loop) {
     auto act = cocos2d::Animate3D::create(anim);
     if (loop) _sprite->runAction(cocos2d::RepeatForever::create(act));
     else _sprite->runAction(act);
+}
+
+void Enemy::resetEnemy() {
+    if (_health) {
+        _health->reset();
+    }
+    this->setPosition3D(_birthPosition);
+    if (_stateMachine) {
+        _stateMachine->changeState("Idle");
+    }
+    CCLOG("Enemy %p reset to birth position.", this);
 }
