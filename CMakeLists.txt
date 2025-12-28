@@ -69,6 +69,7 @@ list(APPEND GAME_SOURCE
 list(APPEND GAME_HEADER
      Classes/AppDelegate.h
      )
+
 # =========================
 # Core（核心框架，A负责）
 # =========================
@@ -76,6 +77,7 @@ list(APPEND GAME_SOURCE
     Classes/core/GameApp.cpp
     Classes/core/SceneManager.cpp
     Classes/core/EventManager.cpp
+    Classes/core/AreaManager.cpp
 )
 
 list(APPEND GAME_HEADER
@@ -84,15 +86,16 @@ list(APPEND GAME_HEADER
     Classes/core/EventManager.h
     Classes/core/BaseState.h
     Classes/core/StateMachine.h
+    Classes/core/AreaManager.h
 )
 
 # =========================
 # Player（角色系统，A负责）
 # =========================
 list(APPEND GAME_SOURCE
+    Classes/player/Character.cpp
     Classes/player/Wukong.cpp
     Classes/player/InputController.cpp
-    Classes/player/Character.cpp
 )
 
 list(APPEND GAME_HEADER
@@ -100,7 +103,6 @@ list(APPEND GAME_HEADER
     Classes/player/Wukong.h
     Classes/player/InputController.h
     Classes/player/WukongStates.h
-
 )
 
 # =========================
@@ -109,10 +111,8 @@ list(APPEND GAME_HEADER
 list(APPEND GAME_SOURCE
     Classes/combat/CombatComponent.cpp
     Classes/combat/HealthComponent.cpp
+    Classes/combat/Collider.cpp
     Classes/combat/Skill.cpp
-       Classes/combat/Collider.cpp
-
-
 )
 
 list(APPEND GAME_HEADER
@@ -121,7 +121,6 @@ list(APPEND GAME_HEADER
     Classes/combat/Skill.h
     Classes/combat/Collider.h
     Classes/combat/CharacterCollider.h
-
 )
 
 # =========================
@@ -129,20 +128,18 @@ list(APPEND GAME_HEADER
 # =========================
 list(APPEND GAME_SOURCE
     Classes/enemy/BossAI.cpp
-     Classes/enemy/Enemy.cpp
-    Classes/enemy/BossAI.cpp
+    Classes/enemy/Boss.cpp
     Classes/enemy/Enemy.cpp
-    Classes/enemy/EnemyAI.cpp
-Classes/enemy/NormalEnemyAI.cpp
     Classes/enemy/EnemyStates.cpp
+    Classes/enemy/BossStates.cpp
 )
 
 list(APPEND GAME_HEADER
     Classes/enemy/Enemy.h
     Classes/enemy/BossAI.h
-    Classes/enemy/EnemyAI.h
-Classes/enemy/NormalEnemyAI.h
+    Classes/enemy/Boss.h
     Classes/enemy/EnemyStates.h
+    Classes/enemy/BossStates.h
 )
 
 # =========================
