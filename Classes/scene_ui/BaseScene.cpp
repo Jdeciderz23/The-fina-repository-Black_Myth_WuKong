@@ -13,6 +13,8 @@
 #include "../combat/Collider.h"
 #include "Enemy.h"
 #include "AudioManager.h"
+#include "Boss.h"
+#include "BossAI.h"
 
 USING_NS_CC;
 
@@ -38,6 +40,7 @@ bool BaseScene::init()
     initPlayer();
     initInput();
     initEnemy();
+    initBoss();
 
     // ��ʾ HUD (Ѫ��)
     UIManager::getInstance()->showHUD(this);
@@ -509,4 +512,29 @@ void BaseScene::removeDeadEnemy(Enemy* deadEnemy) {
     } else {
         CCLOG("BaseScene::removeDeadEnemy: ����δ���б����ҵ�");
     }
+}
+
+void BaseScene::initBoss()
+{
+    // 1) 创建 Boss（路径按你 Resources 调整）
+    auto boss = Boss::createBoss("Enemy/boss", "boss.c3b");
+    if (!boss) {
+        CCLOG("[Boss] create failed");
+        return;
+    }
+
+    // 2) 放到场景里（注意 y 高度跟地形一致）
+    boss->setPosition3D(cocos2d::Vec3(0, 250, 100));
+
+    // 3) 出生点（如果你 Boss 不需要回家也无所谓，但建议设置）
+    boss->setBirthPosition(boss->getPosition3D());
+
+    // 4) 绑定目标（悟空）
+    boss->setTarget(_player); // 你的玩家指针叫什么就换成什么
+
+    // 5) 绑定 AI（BossAI 内部会读 boss->distanceToPlayer/phase/hp 等）
+    boss->setAI(new BossAI(boss));
+
+    // 6) 加入场景
+    this->addChild(boss);
 }
