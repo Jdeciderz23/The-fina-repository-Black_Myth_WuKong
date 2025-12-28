@@ -66,6 +66,7 @@ private:
     LocomotionDir _locoDir = LocomotionDir::None;
     bool _locoRun = false;
 
+
     void loadAnimIfNeeded(const std::string& key,
         const std::string& c3bPath);
     MoveDir _runDir = MoveDir::None;        // 当前奔跑方向（防止每帧重复切）

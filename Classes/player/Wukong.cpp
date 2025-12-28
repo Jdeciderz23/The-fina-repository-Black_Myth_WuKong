@@ -59,7 +59,6 @@ bool Wukong::init() {
         _anims["hurt"] = cocos2d::Animation3D::create("WuKong/Hurt.c3b");
         _anims["run"] = _anims["run_fwd"];
         playAnim("idle", true);
-    
 
         // 初始化 AABB 碰撞器，收缩 XZ 轴到 40%，避免金箍棒导致的空气墙过大
         _collider.calculateBoundingBox(_model, 0.4f);
@@ -76,6 +75,8 @@ void Wukong::loadAnimIfNeeded(const std::string& key,
     if (_anims.count(key))
         return;
 
+    // 你把文件放哪，就把这里路径改成对应 Resources 路径
+    // 比如 "Models/Wukong/Idle.FBX"
     cocos2d::Animation3D* anim = cocos2d::Animation3D::create(c3bPath);
     _anims[key] = anim;
 

@@ -2,6 +2,8 @@
 #include "WukongStates.h"
 #include "scene_ui/UIManager.h"
 #include "enemy/Enemy.h"
+#include "../combat/HealthComponent.h"
+#include "../combat/CombatComponent.h"
 
 Character::Character()
     : _visualRoot(nullptr),
@@ -12,6 +14,8 @@ Character::Character()
     _lifeState(LifeState::Alive),
     _comboBuffered(false),
     _fsm(this),
+    _health(nullptr),
+    _combat(nullptr),
     _terrainCollider(nullptr),
     _enemies(nullptr) {
 }
@@ -27,6 +31,26 @@ bool Character::init() {
 
     _visualRoot = cocos2d::Node::create();
     this->addChild(_visualRoot);
+
+    // 初始化健康组件
+    _health = HealthComponent::create(100.0f);
+    if (_health) {
+        _health->setOnHurtCallback([this](float damage, Node* attacker) {
+            this->takeHit((int)damage);
+        });
+        _health->setOnDeadCallback([this](Node* attacker) {
+            this->die();
+        });
+        this->addComponent(_health);
+    }
+
+    // 初始化战斗组件
+    _combat = CombatComponent::create();
+    if (_combat) {
+        _combat->setAttackPower(20.0f);
+        _combat->setDefense(10.0f);
+        this->addComponent(_combat);
+    }
 
     // ===== 注册状态（对象由 Character 持有，FSM 只保存裸指针映射）=====
     _ownedStates.emplace_back(std::make_unique<IdleState>());
@@ -94,26 +118,27 @@ void Character::attackLight() {
         return;
     }
 
-    //BaseState<Character>* cur = _fsm.getCurrentState();
-    //const std::string curName = cur ? cur->getStateName() : "";
-
-    //// 若正在攻击，按一次只做“输入缓冲”，由 AttackState 在窗口内接续
-    //if (!curName.empty() && curName.rfind("Attack", 0) == 0) {
-    //    _comboBuffered = true;
-    //    return;
-    //}
-
-    //_comboBuffered = false;
-    //_fsm.changeState("Attack1");
     BaseState<Character>* cur = _fsm.getCurrentState();
-    const std::string curName = cur->getStateName() ;
-    if (curName == "Attack1" || curName == "Attack2") {
+    const std::string curName = cur ? cur->getStateName() : "";
+
+    // 若正在攻击，按一次只做“输入缓冲”，由 AttackState 在窗口内接续
+    if (!curName.empty() && curName.rfind("Attack", 0) == 0) {
         _comboBuffered = true;
         return;
     }
-    if (curName == "Attack3") return;
 
-    getStateMachine().changeState("Attack1");
+    _comboBuffered = false;
+    _fsm.changeState("Attack1");
+}
+
+int Character::getHP() const {
+    if (_health) return (int)_health->getCurrentHealth();
+    return _hp;
+}
+
+int Character::getMaxHP() const {
+    if (_health) return (int)_health->getMaxHealth();
+    return 100;
 }
 
 void Character::takeHit(int damage) {
@@ -121,7 +146,13 @@ void Character::takeHit(int damage) {
         return;
     }
 
-    _hp -= damage;
+    // 更新内部 HP（保持同步，虽然以后可以完全用 HealthComponent）
+    if (_health) {
+        _hp = (int)_health->getCurrentHealth();
+    } else {
+        _hp -= damage;
+    }
+
     if (_hp <= 0) {
         die();
         return;
@@ -142,9 +173,17 @@ void Character::die() {
 }
 
 void Character::respawn() {
-    _hp = 100;
     _lifeState = LifeState::Alive;
+    
+    if (_health) {
+        _health->reset();
+        _hp = (int)_health->getCurrentHealth();
+    } else {
+        _hp = 100;
+    }
+    
     _fsm.changeState("Idle");
+    CCLOG("Character::respawn: Entity respawned, HP: %d", _hp);
 }
 
 bool Character::isOnGround() const {

@@ -5,13 +5,16 @@
 #include "BaseState.h"
 #include "Character.h"
 #include "Wukong.h"
+#include "enemy/Enemy.h"
+#include "../combat/CombatComponent.h"
 #include <string>
 #include <cmath>
 #include <unordered_map>
+#include <vector>
 
 /**
  * @class IdleState
- * @brief ´ı»ú×´Ì¬£º²¥·Å idle£¬µÈ´ıÒÆ¶¯/¹¥»÷/ÌøÔ¾/·­¹ö´¥·¢ÇĞ»»
+ * @brief å¾…æœºçŠ¶æ€ï¼Œæ’­æ”¾ idleï¼Œç­‰å¾…ç§»åŠ¨/æ”»å‡»/è·³è·ƒ/ç¿»æ»šç­‰è¾“å…¥åˆ‡æ¢
  */
 class IdleState : public BaseState<Character> {
 public:
@@ -42,7 +45,7 @@ public:
 
 /**
  * @class MoveState
- * @brief ÒÆ¶¯×´Ì¬£º¸ù¾İ MoveIntent ¼ÆËãËÙ¶È£¬²¢²¥·Å run ¶¯»­£¨Ò²¿É»» walk£©
+ * @brief ç§»åŠ¨çŠ¶æ€ï¼Œæ ¹æ® MoveIntent æ›´æ–°é€Ÿåº¦ï¼Œæ’­æ”¾ run åŠ¨ç”»ï¼ˆä¹Ÿå¯ä»¥æ˜¯ walkï¼‰
  */
 class MoveState : public BaseState<Character> {
 public:
@@ -93,7 +96,7 @@ public:
 
 /**
  * @class JumpState
- * @brief ÌøÔ¾×´Ì¬£º²¥·Å jump£¬ÂäµØºóÇĞ»Ø Idle/Move
+ * @brief è·³è·ƒçŠ¶æ€ï¼Œæ’­æ”¾ jumpï¼Œè½åœ°ååˆ‡æ¢ Idle/Move
  */
 class JumpState : public BaseState<Character> {
 public:
@@ -112,15 +115,14 @@ public:
         _t += deltaTime;
         if (_landTriggered) return;
 
-        // ÆğÌø±£»¤Ê±¼ä£º±ÜÃâ¸Õ½ø JumpState µØÃæ×´Ì¬»¹Ã»Ë¢ĞÂ
+        // èµ·è·³ä¿æŠ¤æ—¶é—´ï¼šé˜²æ­¢åˆšè·³èµ·å°±åˆ¤å®šè½åœ°
         if (_t < 0.08f) return;
 
-        // ¹Ø¼ü£º±ØĞë¹Û²ìµ½¡°ÀëµØ¡±Ö®ºó£¬²ÅÔÊĞí´¥·¢¡°ÂäµØ¡±
+        // å…³é”®é€»è¾‘ï¼šå…ˆè§‚å¯Ÿåˆ°â€œç¦»åœ°â€ï¼Œä¹‹åå†åˆ¤å®šâ€œç€åœ°â€ã€‚
         if (!_leftGround) {
             if (!entity->isOnGround()) _leftGround = true;
 
-            // ¶µµ×£ºÈç¹ûÒ»Ö±¼ì²â²»µ½ÀëµØ£¨Ä³Ğ©µØÃæÅĞ¶¨Ğ´·¨»áÕâÑù£©£¬
-            // Ò²±ğÁ¢¿ÌÂäµØ´ò¶Ï¶¯»­£¬ÖÁÉÙÈÃÆğÌø¶¯»­²¥Ò»¶ÎÊ±¼ä
+            // å…œåº•ï¼šå¦‚æœä¸€ç›´æ²¡æ£€æµ‹åˆ°ç¦»åœ°ï¼ŒæŸä¸ªæ—¶é—´åä¹Ÿå¼ºåˆ¶å…è®¸åˆ¤å®š
             if (!_leftGround && _t < 0.35f) return;
         }
 
@@ -138,7 +140,7 @@ private:
 
 /**
  * @class RollState
- * @brief ·­¹ö×´Ì¬£º¶ÌÊ±¼ä³å´Ì + ²¥·Å roll£¬½áÊøºó»Ø Idle/Move
+ * @brief ç¿»æ»šçŠ¶æ€ï¼ŒçŸ­æ—¶ä½ç§» + æ’­æ”¾ rollï¼Œç»“æŸå Idle/Move
  */
 //class RollState : public BaseState<Character> {
 //public:
@@ -150,7 +152,7 @@ private:
 //        entity->playAnim("roll", false);
 //        _t = 0.0f;
 //
-//        // ÑØµ±Ç° MoveIntent ·½Ïò·­¹ö£»Ã»ÓĞ·½ÏòÔòÑØÇ°·½£¨-Z£©
+//        // æ²¿å½“å‰ MoveIntent æ–¹å‘ç¿»æ»šï¼›æ²¡æœ‰æ–¹å‘åˆ™æ²¿å‰æ–¹ï¼ˆ-Zï¼‰
 //        auto intent = entity->getMoveIntent();
 //        cocos2d::Vec3 dir = intent.dirWS;
 //        if (dir.lengthSquared() <= 1e-6f) {
@@ -166,7 +168,7 @@ private:
 //        if (!entity) return;
 //        _t += deltaTime;
 //
-//        // ¼ò»¯£º0.45s ½áÊø
+//        // ç®€åŒ–ï¼š0.45s ç»“æŸ
 //        if (_t >= 0.45f) {
 //            entity->stopHorizontal();
 //            const auto intent = entity->getMoveIntent();
@@ -189,7 +191,7 @@ private:
 //    }
 //
 //private:
-//    float _t; ///< ×´Ì¬¼ÆÊ±
+//    float _t; ///< çŠ¶æ€è®¡æ—¶
 //};
 class RollState : public BaseState<Character> {
 public:
@@ -204,7 +206,7 @@ public:
         _t = 0.0f;
         _stopped = false;
 
-        // 1) Ê±³¤¸Ä³É¡°¶¯»­ÕæÊµÊ±³¤¡±
+        // 1) æ—¶é•¿æ”¹æˆâ€œåŠ¨ç”»çœŸå®æ—¶é•¿â€
         if (auto* wk = dynamic_cast<Wukong*>(entity)) {
             _dur = wk->getAnimDuration("roll");
         }
@@ -213,21 +215,21 @@ public:
         }
         if (_dur < 0.05f) _dur = 0.45f;
 
-        // 2) Î»ÒÆÖ»ÔÚÇ°°ë¶Î¸ø£¨ºó°ë¶ÎÒ»°ãÊÇÊÕÊÆ£¬²»ÒªÒ»Ö±»¬£©
+        // 2) ä½ç§»åªåœ¨å‰åŠæ®µç»™ï¼ˆååŠæ®µä¸€èˆ¬æ˜¯æ”¶åŠ¿ï¼Œä¸è¦ä¸€ç›´æ»‘ï¼‰
         _moveEnd = 0.55f * _dur;
 
-        // 3) ·­¹ö·½Ïò£ºÓĞÊäÈëÓÃÊäÈë£»Ã»ÊäÈëÓÃ¡°½ÇÉ«³¯Ïò¡±
+        // 3) ç¿»æ»šæ–¹å‘ï¼šæœ‰è¾“å…¥ç”¨è¾“å…¥ï¼›æ²¡è¾“å…¥ç”¨â€œè§’è‰²æœå‘â€
         auto intent = entity->getMoveIntent();
         cocos2d::Vec3 dir = intent.dirWS;
 
         if (dir.lengthSquared() <= 1e-6f) {
-            // ÓÃ½ÇÉ« yaw ÍÆ forward£¨yaw=0 => +Z£©
+            // ç”¨è§’è‰² yaw æ¨ forwardï¼ˆyaw=0 => +Zï¼‰
             const float yawRad = CC_DEGREES_TO_RADIANS(entity->getRotation3D().y);
             dir = cocos2d::Vec3(std::sinf(yawRad), 0.0f, std::cosf(yawRad));
         }
 
         if (dir.lengthSquared() <= 1e-6f) {
-            dir = cocos2d::Vec3(0.0f, 0.0f, 1.0f); // ÔÙ¶µµ×Ò»´Î
+            dir = cocos2d::Vec3(0.0f, 0.0f, 1.0f); // å†å…œåº•ä¸€æ¬¡
         }
         dir.normalize();
 
@@ -239,13 +241,13 @@ public:
         if (!entity) return;
         _t += dt;
 
-        // Î»ÒÆµ½µã¾ÍÍ££¬±ÜÃâÒ»Ö±»¬
+        // ä½ç§»åˆ°ç‚¹å°±åœï¼Œé¿å…ä¸€ç›´æ»‘
         if (!_stopped && _t >= _moveEnd) {
             entity->stopHorizontal();
             _stopped = true;
         }
 
-        // µ½¶¯»­Ä©Î²ÔÙÇĞ×´Ì¬£¬±ÜÃâ½Ø¶Ï roll ¶¯»­
+        // åˆ°åŠ¨ç”»æœ«å°¾å†åˆ‡çŠ¶æ€ï¼Œé¿å…æˆªæ–­ roll åŠ¨ç”»
         const float endTime = 0.95f * _dur;
         if (_t >= endTime) {
             entity->stopHorizontal();
@@ -271,12 +273,16 @@ private:
 };
 /**
  * @class AttackState
- * @brief ¹¥»÷×´Ì¬£¨Ö§³Ö 1/2/3 ¶Î£©£ºÔÚ´°¿ÚÄÚÈô consumeComboBuffered() Îª true£¬Ôò½ÓÏÂÒ»¶Î
+ * @brief æ”»å‡»çŠ¶æ€ï¼Œæ”¯æŒ 1/2/3 æ®µï¼ŒæœŸé—´è§¦å‘ consumeComboBuffered() ä¸º true åˆ™è¿›ä¸‹ä¸€æ®µ
  */
 class AttackState : public BaseState<Character> {
 public:
+    /**
+     * @brief æ„é€ æ”»å‡»çŠ¶æ€
+     * @param step è¿æ‹›æ®µæ•°1/2/3
+     */
     explicit AttackState(int step)
-        : _step(step), _t(0.0f), _queuedNext(false), _dur(0.6f) {
+        : _step(step), _t(0.0f), _queuedNext(false), _dur(0.6f), _damageDealt(false) {
     }
 
     void onEnter(Character* entity) override {
@@ -284,12 +290,13 @@ public:
 
         _t = 0.0f;
         _queuedNext = false;
+        _damageDealt = false;
         entity->stopHorizontal();
 
         std::string key = (_step == 1) ? "attack1" : ((_step == 2) ? "attack2" : "attack3");
         entity->playAnim(key, false);
 
-        // ÓÃÕæÊµ¶¯»­Ê±³¤£¨ĞèÒª entity ÊÇ Wukong£©
+        // ç”¨çœŸå®åŠ¨ç”»æ—¶é•¿ï¼ˆéœ€è¦ entity æ˜¯ Wukongï¼‰
         if (auto* wk = dynamic_cast<Wukong*>(entity)) {
             _dur = wk->getAnimDuration(key);
         }
@@ -302,7 +309,10 @@ public:
         if (!entity) return;
         _t += dt;
 
-        // Á¬¶ÎÊäÈë´°¿Ú£º°´Ê±³¤±ÈÀı¸üÎÈ£¨ÄãÒ²ÄÜ×Ô¼ºµ÷£©
+        // æ”»å‡»ä¼¤å®³æ£€æµ‹æ—¶é—´çª—å£ï¼šä¸åŒæ®µæ•°æ”»å‡»çš„ä¼¤å®³æ£€æµ‹æ—¶æœºä¸åŒ
+        performAttackHitCheck(entity);
+
+        // è¿æ®µè¾“å…¥çª—å£ï¼šæŒ‰æ—¶é•¿æ¯”ä¾‹æ›´ç¨³ï¼ˆä½ ä¹Ÿèƒ½è‡ªå·±è°ƒï¼‰
         const float winStart = 0.20f * _dur;
         const float winEnd = 0.65f * _dur;
 
@@ -312,7 +322,7 @@ public:
             }
         }
 
-        // ÈÃµ±Ç°¶Î¡°»ù±¾²¥Íê¡±ÔÙÇĞÏÂÒ»¶Î
+        // è®©å½“å‰æ®µâ€œåŸºæœ¬æ’­å®Œâ€å†åˆ‡ä¸‹ä¸€æ®µ
         const float endTime = 0.95f * _dur;
         if (_t >= endTime) {
             if (_queuedNext && _step < 3) {
@@ -326,9 +336,10 @@ public:
         }
     }
 
-    void onExit(Character* entity)override {
+    void onExit(Character* entity) override {
         (void)entity;
     }
+
     std::string getStateName() const override {
         if (_step == 1) return "Attack1";
         if (_step == 2) return "Attack2";
@@ -336,53 +347,90 @@ public:
     }
 
 private:
-    int _step;
-    float _t;
+    /**
+     * @brief æ‰§è¡Œæ”»å‡»ä¼¤å®³æ£€æµ‹
+     * @param entity æ”»å‡»è€…å®ä½“
+     */
+    void performAttackHitCheck(Character* entity) {
+        if (!entity || _damageDealt) return;
+
+        // æ ¹æ®æ”»å‡»æ®µæ•°è®¾ç½®ä¸åŒçš„ä¼¤å®³æ£€æµ‹æ—¶æœºå’ŒèŒƒå›´
+        float hitTimeRatio = 0.0f;
+        float hitWindow = 0.1f; // ä¼¤å®³æ£€æµ‹çª—å£å®½åº¦ï¼ˆç§’ï¼‰
+        
+        switch (_step) {
+        case 1: 
+            hitTimeRatio = 0.35f; // ç¬¬ä¸€æ®µæ”»å‡»æ—©æœŸæ£€æµ‹ï¼ˆå¿«é€Ÿå‡ºæ‰‹ï¼‰
+            hitWindow = 0.08f;    // è¾ƒçŸ­çš„æ£€æµ‹çª—å£
+            break;
+        case 2: 
+            hitTimeRatio = 0.45f; // ç¬¬äºŒæ®µæ”»å‡»ä¸­æœŸæ£€æµ‹ï¼ˆè“„åŠ›æ”»å‡»ï¼‰
+            hitWindow = 0.12f;    // ä¸­ç­‰æ£€æµ‹çª—å£
+            break;
+        case 3: 
+            hitTimeRatio = 0.40f; // ç¬¬ä¸‰æ®µæ”»å‡»æ—©æœŸæ£€æµ‹ï¼ˆç»ˆç»“æŠ€ï¼‰
+            hitWindow = 0.15f;    // è¾ƒé•¿çš„æ£€æµ‹çª—å£ï¼ˆç¡®ä¿å‘½ä¸­ï¼‰
+            break;
+        default: 
+            hitTimeRatio = 0.40f; 
+            hitWindow = 0.1f; 
+            break;
+        }
+
+        float hitTime = hitTimeRatio * _dur;
+
+        // åœ¨åˆé€‚çš„æ—¶æœºæ‰§è¡Œä¸€æ¬¡ä¼¤å®³æ£€æµ‹
+        if (_t >= hitTime && _t <= hitTime + hitWindow) {
+            auto* combat = entity->getCombat();
+            if (combat) {
+                // è·å–æ•Œäººåˆ—è¡¨
+                auto* enemies = entity->getEnemies();
+                if (enemies && !enemies->empty()) {
+                    // å°† Enemy* è½¬æ¢ä¸º Node* ä»¥åŒ¹é…å‡½æ•°å‚æ•°ç±»å‹
+                    // åŒæ—¶åªä¿ç•™å­˜æ´»çš„æ•Œäºº
+                    std::vector<Node*> nodeTargets;
+                    nodeTargets.reserve(enemies->size());
+                    for (auto* enemy : *enemies) {
+                        // åªå¯¹å­˜æ´»çš„æ•Œäººè¿›è¡Œæ”»å‡»æ£€æµ‹
+                        if (enemy && !enemy->isDead()) {
+                            nodeTargets.push_back(dynamic_cast<Node*>(enemy));
+                        }
+                    }
+                    
+                    // æ‰§è¡Œè¿‘æˆ˜æ”»å‡»
+                    if (!nodeTargets.empty()) {
+                        int hitCount = combat->executeMeleeAttack(
+                            entity->getCollider(), 
+                            nodeTargets
+                        );
+
+                        if (hitCount > 0) {
+                            CCLOG("AttackState: %s hit %d enemies!", getStateName().c_str(), hitCount);
+                            
+                            // å¯ä»¥åœ¨è¿™é‡Œæ·»åŠ æ”»å‡»å‘½ä¸­ç‰¹æ•ˆæˆ–éŸ³æ•ˆ
+                            // TODO: æ·»åŠ æ”»å‡»å‘½ä¸­åé¦ˆ
+                        }
+                    } else {
+                        CCLOG("AttackState: %s - no alive enemies to attack", getStateName().c_str());
+                    }
+                }
+            }
+            _damageDealt = true; // æ ‡è®°å·²ç»æ‰§è¡Œè¿‡ä¼¤å®³æ£€æµ‹ï¼Œé¿å…é‡å¤ä¼¤å®³
+        }
+    }
+
+private:
+    int _step;  ///< è¿æ‹›æ®µæ•°
+    float _t;   ///< è®¡æ—¶
     bool _queuedNext;
+    bool _damageDealt;  ///< æ˜¯å¦å·²ç»æ‰§è¡Œè¿‡ä¼¤å®³æ£€æµ‹
     float _dur;
 };
 
 /**
  * @class HurtState
- * @brief ÊÜ»÷×´Ì¬£º²¥·Å hurt£¬¶ÌÔİÓ²Ö±ºó»Ø Idle/Move
+ * @brief å—å‡»çŠ¶æ€ï¼Œæ’­æ”¾ hurtï¼ŒçŸ­æ—¶ç¡¬ç›´åå›åˆ° Idle/Move
  */
-//class HurtState : public BaseState<Character> {
-//public:
-//    HurtState() : _t(0.0f) {}
-//
-//    void onEnter(Character* entity) override {
-//        if (!entity) return;
-//        _t = 0.0f;
-//        entity->stopHorizontal();
-//        entity->playAnim("hurt", false);
-//    }
-//
-//    void onUpdate(Character* entity, float deltaTime) override {
-//        if (!entity) return;
-//        _t += deltaTime;
-//
-//        if (_t >= 0.35f) {
-//            const auto intent = entity->getMoveIntent();
-//            if (intent.dirWS.lengthSquared() > 1e-6f) {
-//                entity->getStateMachine().changeState("Move");
-//            }
-//            else {
-//                entity->getStateMachine().changeState("Idle");
-//            }
-//        }
-//    }
-//
-//    void onExit(Character* entity) override {
-//        (void)entity;
-//    }
-//
-//    std::string getStateName() const override {
-//        return "Hurt";
-//    }
-//
-//private:
-//    float _t; ///< ×´Ì¬¼ÆÊ±
-//};
 class HurtState : public BaseState<Character> {
 public:
     HurtState() : _t(0.0f), _dur(0.35f) {}
@@ -423,7 +471,7 @@ private:
 };
 /**
  * @class DeadState
- * @brief ËÀÍö×´Ì¬£º²¥·Å dead£¬Í£Ö¹ÒÆ¶¯
+ * @brief æ­»äº¡çŠ¶æ€ï¼Œæ’­æ”¾ deadï¼Œåœæ­¢ç§»åŠ¨
  */
 class DeadState : public BaseState<Character> {
 public:
@@ -436,7 +484,7 @@ public:
     void onUpdate(Character* entity, float deltaTime) override {
         (void)entity;
         (void)deltaTime;
-        // ËÀÍöÒ»°ã²»ÔÙÇĞ×´Ì¬
+        // æ­»äº¡ä¸€èˆ¬ä¸ä¸»åŠ¨è·³å‡ºçŠ¶æ€
     }
 
     void onExit(Character* entity) override {
@@ -467,14 +515,14 @@ public:
         }
         if (_dur < 0.05f) _dur = 0.8f;
 
-        // TODO£ºÈç¹ûÄãÒª×ö¡°¼¼ÄÜÉËº¦´°¿Ú/ÌØĞ§/ÕğÆÁ¡±£¬½¨ÒéÔÚ onUpdate ÓÃÊ±¼ä´°´¥·¢
+        // TODOï¼šå¦‚æœä½ è¦åšâ€œæŠ€èƒ½ä¼¤å®³çª—å£/ç‰¹æ•ˆ/éœ‡å±â€ï¼Œå»ºè®®åœ¨ onUpdate ç”¨æ—¶é—´çª—è§¦å‘
     }
 
     void onUpdate(Character* entity, float dt) override {
         if (!entity) return;
         _t += dt;
 
-        // TODO£ºÊ¾Àı£ºÔÚ 25%~45% ¶¯»­Çø¼ä×öÅĞ¶¨£¨ÄãºóĞø½Ó hitbox ¾Í·ÅÕâÀï£©
+        // TODOï¼šç¤ºä¾‹ï¼šåœ¨ 25%~45% åŠ¨ç”»åŒºé—´åšåˆ¤å®šï¼ˆä½ åç»­æ¥ hitbox å°±æ”¾è¿™é‡Œï¼‰
 
         if (_t >= 0.95f * _dur) {
             const auto intent = entity->getMoveIntent();
