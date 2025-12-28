@@ -341,11 +341,12 @@ void Enemy::updateSpritePosition() {
     auto aabb = _sprite->getAABB();
     if (aabb.isEmpty()) {
         _sprite->setPosition3D(Vec3(0, _spriteOffsetY, 0));
+        CCLOG("Enemy sprite AABB is empty, using offset: %f", _spriteOffsetY);
     } else {
         // 修正模型位置，确保脚底在地面（y=0），并加上微调偏移
         _sprite->setPosition3D(Vec3(0, -aabb._min.y + _spriteOffsetY, 0));
-        CCLOG("Enemy sprite repositioned: min.y=%f, offset=%f, final.y=%f", 
-            aabb._min.y, _spriteOffsetY, -aabb._min.y + _spriteOffsetY);
+        CCLOG("Enemy sprite AABB: min.y=%f, max.y=%f, offset=%f, final.y=%f", 
+            aabb._min.y, aabb._max.y, _spriteOffsetY, -aabb._min.y + _spriteOffsetY);
     }
 }
 

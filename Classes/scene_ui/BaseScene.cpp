@@ -25,7 +25,7 @@
 
 USING_NS_CC;
 
-// Camera projection parameters.
+// 摄像机投影参数。
 static float s_fov = 30.0f;
 static float s_aspect = 1.0f;
 static float s_nearPlane = 1.0f;
@@ -39,40 +39,37 @@ bool BaseScene::init() {
   initCamera();
   initSkybox();
   initLights();
-  initPlayer();
   initInput();
-  initEnemy();
-  initBoss();
+  
+  // 基础场景不再在这里初始化游戏对象，因为它们依赖于地形碰撞器。
+  // 子类（如 CampScene）在加载完地形后应显式调用 initGameObjects()。
 
-  // Initialize HUD.
-  UIManager::getInstance()->showHUD(this);
-
-  // Initialize teleport markers.
+  // 初始化传送点标记。
   auto points = AreaManager::getInstance()->getTeleportPoints();
   for (const auto& pt : points) {
     auto marker = Sprite3D::create("WuKong/wukong.c3b");
     if (marker) {
       marker->setPosition3D(pt.position);
       marker->setScale(0.5f);
-      marker->setColor(Color3B(255, 215, 0));  // Golden color.
+      marker->setColor(Color3B(255, 215, 0));  // 金色。
       marker->setCameraMask((unsigned short)CameraFlag::USER1);
       this->addChild(marker);
 
-      // Simple rotation animation for the marker.
+      // 为标记添加简单的旋转动画。
       marker->runAction(
           RepeatForever::create(RotateBy::create(2.0f, Vec3(0, 180, 0))));
     }
   }
 
-  // Play background music.
+  // 播放背景音乐。
   AudioManager::getInstance()->playBGM("Audio/game_bgm1.mp3");
 
   this->scheduleUpdate();
 
-  // Setup pause button in HUD.
+  // 在 HUD 中设置暂停按钮。
   auto vs = Director::getInstance()->getVisibleSize();
   Vec2 origin = Director::getInstance()->getVisibleOrigin();
-  auto label = Label::createWithSystemFont("Pause", "Arial", 24);
+  auto label = Label::createWithSystemFont("暂停", "Arial", 24);
   auto item = MenuItemLabel::create(label, [](Ref*) {
     UIManager::getInstance()->showPauseMenu();
   });
@@ -84,12 +81,21 @@ bool BaseScene::init() {
   return true;
 }
 
-/* ==================== Skybox ==================== */
+void BaseScene::initGameObjects() {
+  initPlayer();
+  initEnemy();
+  initBoss();
+
+  // 初始化 HUD。
+  UIManager::getInstance()->showHUD(this);
+}
+
+/* ==================== 天空盒 ==================== */
 
 void BaseScene::initSkybox() {
   std::array<std::string, 6> faces;
   if (!chooseSkyboxFaces(faces) || !verifyCubeFacesSquare(faces)) {
-    CCLOG("Skybox invalid, fallback to color brush.");
+    CCLOG("天空盒无效，回退到颜色刷。");
     auto brush = CameraBackgroundBrush::createColorBrush(
         Color4F(0.08f, 0.09f, 0.11f, 1.0f), 1.0f);
     _mainCamera->setBackgroundBrush(brush);
@@ -103,7 +109,7 @@ void BaseScene::initSkybox() {
   addChild(_skybox, -100);
 }
 
-// Selects skybox textures. Returns true if all textures exist.
+// 选择天空盒贴图。如果所有贴图都存在，返回 true。
 bool BaseScene::chooseSkyboxFaces(std::array<std::string, 6>& outFaces) {
   auto fu = FileUtils::getInstance();
 
@@ -112,7 +118,7 @@ bool BaseScene::chooseSkyboxFaces(std::array<std::string, 6>& outFaces) {
       "SkyBox/Skybox_top.png",   "SkyBox/Skybox_bottom.png",
       "SkyBox/Skybox_front.png", "SkyBox/Skybox_back.png"};
 
-  // Helper lambda to check file existence.
+  // 辅助 lambda 函数检查文件是否存在。
   auto existsAll = [&](const std::array<std::string, 6>& s) -> bool {
     for (const auto& f : s) {
       if (!fu->isFileExist(f)) return false;
@@ -127,7 +133,7 @@ bool BaseScene::chooseSkyboxFaces(std::array<std::string, 6>& outFaces) {
   return false;
 }
 
-// Verifies that all cubemap faces are square and have consistent dimensions.
+// 验证所有立方体贴图面是否为正方形且尺寸一致。
 bool BaseScene::verifyCubeFacesSquare(const std::array<std::string, 6>& faces) {
   int faceSize = -1;
   for (int i = 0; i < 6; ++i) {
@@ -140,13 +146,13 @@ bool BaseScene::verifyCubeFacesSquare(const std::array<std::string, 6>& faces) {
       return false;
     }
 
-    // Check if the image is square.
+    // 检查图像是否为正方形。
     if (img->getWidth() != img->getHeight()) {
       CC_SAFE_DELETE(img);
       return false;
     }
 
-    // Check if all faces have the same size.
+    // 检查所有面是否大小相同。
     if (faceSize < 0)
       faceSize = img->getWidth();
     else if (faceSize != img->getWidth()) {
@@ -159,7 +165,7 @@ bool BaseScene::verifyCubeFacesSquare(const std::array<std::string, 6>& faces) {
   return true;
 }
 
-/* ==================== Camera ==================== */
+/* ==================== 摄像机 ==================== */
 
 void BaseScene::initCamera() {
   auto vs = Director::getInstance()->getVisibleSize();
@@ -179,7 +185,7 @@ void BaseScene::initCamera() {
   addChild(_mainCamera);
 }
 
-/* ==================== Lights ==================== */
+/* ==================== 光照 ==================== */
 
 void BaseScene::initLights() {
   auto ambient = AmbientLight::create(Color3B(180, 180, 180));
@@ -193,20 +199,20 @@ void BaseScene::initLights() {
   addChild(dirLight);
 }
 
-/* ==================== Input ==================== */
+/* ==================== 输入 ==================== */
 
 void BaseScene::initInput() {
-  // Input initialization logic (e.g., keyboard/mouse listeners) would go here.
-  // Currently using scheduleUpdate for polling input.
+  // 输入初始化逻辑（例如键盘/鼠标监听器）将放在这里。
+  // 目前使用 scheduleUpdate 来轮询输入。
   scheduleUpdate();
 }
 
-/* ==================== Update ==================== */
+/* ==================== 更新 ==================== */
 
 void BaseScene::update(float dt) {
-  // Update HUD and game state.
+  // 更新 HUD 和游戏状态。
   if (_player) {
-    // Check if player fell off the world.
+    // 检查玩家是否掉出世界。
     if (_player->getPositionY() < -500.0f && !_player->isDead()) {
       _player->die();
     }
@@ -216,7 +222,7 @@ void BaseScene::update(float dt) {
     UIManager::getInstance()->updatePlayerHP(hp / maxHp);
   }
 
-  // Update skybox position to follow camera.
+  // 更新天空盒位置以跟随摄像机。
   if (_skybox && _mainCamera) {
     _skybox->setPosition3D(_mainCamera->getPosition3D());
     _skybox->setRotation3D(cocos2d::Vec3::ZERO);
@@ -233,7 +239,7 @@ static float moveTowardAngleDeg(float cur, float target, float maxDeltaDeg) {
 void BaseScene::updateCamera(float dt) {
   if (!_mainCamera || !_player) return;
 
-  // Auto-follow yaw logic.
+  // 自动跟随偏航角逻辑。
   if (_autoFollowYaw && _mouseIdleTime > 0.12f) {
     auto intent = _player->getMoveIntent();
     cocos2d::Vec3 d = intent.dirWS;
@@ -257,7 +263,7 @@ void BaseScene::updateCamera(float dt) {
 
   cocos2d::Vec3 desiredPos = target - front * _followDistance;
 
-  // Smoothly interpolate camera position.
+  // 平滑插值摄像机位置。
   float t = 1.0f - expf(-_followSmooth * dt);
   _camPos = _camPos.lerp(desiredPos, t);
 
@@ -272,28 +278,36 @@ void BaseScene::updateCamera(float dt) {
 
 void BaseScene::teleportPlayerToCenter() {
   if (_player) {
-    _player->setPosition3D(Vec3(0, 0, -960));  // Back to portal 2.
+    cocos2d::Vec3 teleportPos(0, 0, -960);
+    if (_terrainCollider) {
+        CustomRay ray(teleportPos + cocos2d::Vec3(0, 500, 0), cocos2d::Vec3(0, -1, 0));
+        float hitDist;
+        if (_terrainCollider->rayIntersects(ray, hitDist)) {
+            teleportPos.y = ray.origin.y - hitDist;
+        }
+    }
+    _player->setPosition3D(teleportPos);  // 回到传送点 2。
     _player->respawn();
   }
 
-  // Reset all enemies.
+  // 重置所有敌人。
   for (auto enemy : _enemies) {
     if (enemy) {
       enemy->resetEnemy();
     }
   }
 
-  CCLOG("BaseScene: Player respawned and all enemies reset.");
+  CCLOG("BaseScene: 玩家已重生，所有敌人已重置。");
 }
 
-/* ==================== Debug ==================== */
+/* ==================== 调试 ==================== */
 
 Scene* CampScene::createScene() { return CampScene::create(); }
 
 bool CampScene::init() {
   if (!BaseScene::init()) return false;
 
-  // Load terrain model.
+  // 加载地形模型。
   auto terrain = Sprite3D::create("scene/terrain.obj");
   if (terrain) {
     terrain->setPosition3D(Vec3(0, 0, 0));
@@ -301,7 +315,7 @@ bool CampScene::init() {
     terrain->setCameraMask((unsigned short)CameraFlag::USER1);
     addChild(terrain);
 
-    // Initialize terrain collider.
+    // 初始化地形碰撞器。
     _terrainCollider = TerrainCollider::create(terrain, "scene/terrain.obj");
     if (_terrainCollider) {
       _terrainCollider->retain();
@@ -311,23 +325,37 @@ bool CampScene::init() {
       for (auto enemy : _enemies) {
         enemy->setTerrainCollider(_terrainCollider);
       }
+
+      // 初始化游戏对象（玩家、敌人、Boss）。
+      initGameObjects();
     }
   }
 
   return true;
 }
 
-/* ---------- Player ---------- */
+/* ---------- 玩家 ---------- */
 
 void BaseScene::initPlayer() {
   _player = Wukong::create();
   if (!_player) {
-    CCLOG("Error: Wukong create failed!");
+    CCLOG("错误：悟空创建失败！");
     return;
   }
 
-  // Spawn player at portal 2.
-  _player->setPosition3D(cocos2d::Vec3(0.0f, 0.0f, -960.0f));
+  // 在传送点 2 生成玩家。
+  cocos2d::Vec3 playerSpawnPos(0.0f, 0.0f, -960.0f);
+  if (_terrainCollider) {
+      CustomRay ray(playerSpawnPos + cocos2d::Vec3(0, 500, 0), cocos2d::Vec3(0, -1, 0));
+      float hitDist;
+      if (_terrainCollider->rayIntersects(ray, hitDist)) {
+          playerSpawnPos.y = ray.origin.y - hitDist;
+          CCLOG("Player spawned at ground Y: %f (hitDist: %f)", playerSpawnPos.y, hitDist);
+      } else {
+          CCLOG("Warning: Player terrain raycast failed!");
+      }
+  }
+  _player->setPosition3D(playerSpawnPos);
   _player->setRotation3D(cocos2d::Vec3::ZERO);
 
   if (_terrainCollider) {
@@ -336,7 +364,7 @@ void BaseScene::initPlayer() {
 
   addChild(_player, 10);
 
-  // Initialize player controller.
+  // 初始化玩家控制器。
   auto controller = PlayerController::create(_player);
   if (controller) {
     controller->setCamera(_mainCamera);
@@ -361,12 +389,24 @@ void BaseScene::initEnemy() {
     auto e = Enemy::createWithResRoot(s.root, s.model);
     if (!e) continue;
 
-    e->setPosition3D(s.pos);
+    cocos2d::Vec3 spawnPos = s.pos;
+    if (_terrainCollider) {
+        CustomRay ray(spawnPos + cocos2d::Vec3(0, 500, 0), cocos2d::Vec3(0, -1, 0));
+        float hitDist;
+        if (_terrainCollider->rayIntersects(ray, hitDist)) {
+            spawnPos.y = ray.origin.y - hitDist;
+            CCLOG("Enemy spawned at ground Y: %f (hitDist: %f)", spawnPos.y, hitDist);
+        } else {
+            CCLOG("Warning: Enemy terrain raycast failed!");
+        }
+    }
+
+    e->setPosition3D(spawnPos);
     e->setBirthPosition(e->getPosition3D());
     e->setTarget(_player);
     e->setTerrainCollider(_terrainCollider);
 
-    // Set enemy health to 10.
+    // 设置小怪血量为 10。
     if (e->getHealth()) {
       e->getHealth()->setMaxHealth(10.0f);
     }
@@ -379,13 +419,13 @@ void BaseScene::initEnemy() {
     _player->setEnemies(&_enemies);
   }
 
-  // Enemy death listener.
+  // 敌人死亡监听器。
   auto enemyDeathListener = cocos2d::EventListenerCustom::create(
       "enemy_died", [this](cocos2d::EventCustom* event) {
-        CCLOG("BaseScene: Enemy death event triggered");
+        CCLOG("BaseScene: 触发敌人死亡事件");
         Enemy* deadEnemy = static_cast<Enemy*>(event->getUserData());
         if (deadEnemy) {
-          CCLOG("BaseScene: Removing dead enemy %p", (void*)deadEnemy);
+          CCLOG("BaseScene: 正在移除死亡敌人 %p", (void*)deadEnemy);
           this->removeDeadEnemy(deadEnemy);
         }
       });
@@ -395,32 +435,32 @@ void BaseScene::initEnemy() {
 
 void BaseScene::removeDeadEnemy(Enemy* deadEnemy) {
   if (!deadEnemy) {
-    CCLOG("BaseScene::removeDeadEnemy: Invalid deadEnemy pointer");
+    CCLOG("BaseScene::removeDeadEnemy: 无效的死亡敌人指针");
     return;
   }
 
-  CCLOG("BaseScene::removeDeadEnemy: Removing enemy %p", (void*)deadEnemy);
+  CCLOG("BaseScene::removeDeadEnemy: 正在移除敌人 %p", (void*)deadEnemy);
 
-  // Remove from the enemies vector.
+  // 从敌人向量中移除。
   auto it = std::find(_enemies.begin(), _enemies.end(), deadEnemy);
   if (it != _enemies.end()) {
     _enemies.erase(it);
-    CCLOG("BaseScene::removeDeadEnemy: Enemy removed, %zu remaining",
+    CCLOG("BaseScene::removeDeadEnemy: 敌人已移除，剩余 %zu 个",
           _enemies.size());
   } else {
-    CCLOG("BaseScene::removeDeadEnemy: Enemy not found in the list");
+    CCLOG("BaseScene::removeDeadEnemy: 列表中未找到该敌人");
   }
 }
 
 void BaseScene::initBoss() {
-  // Initialize Boss.
+  // 初始化 Boss。
   auto boss = Boss::createBoss("Enemy/boss", "boss.c3b");
   if (!boss) {
-    CCLOG("Error: Boss create failed!");
+    CCLOG("错误：Boss 创建失败！");
     return;
   }
 
-  // Set Boss spawn position near (-200, 0, 600).
+  // 设置 Boss 在 (-200, 0, 600) 附近生成。
   boss->setPosition3D(cocos2d::Vec3(-200, 0, 600));
   boss->setBirthPosition(boss->getPosition3D());
   boss->setTarget(_player);
@@ -429,13 +469,30 @@ void BaseScene::initBoss() {
     boss->setTerrainCollider(_terrainCollider);
   }
 
-  // Set Boss AI.
+  // 设置 Boss AI。
   boss->setAI(new BossAI(boss));
 
   auto sprite = boss->getSprite();
   if (sprite) {
     sprite->setScale(0.5f);
-    boss->setSpriteOffsetY(40.0f);
+    // 移除手动偏移，由 Enemy::updateSpritePosition 自动处理模型对齐
+    boss->setSpriteOffsetY(0.0f);
+    // 显式更新 AABB 修正，确保缩放后位置依然正确
+    // setSpriteOffsetY 内部已经调用了 updateSpritePosition
+  }
+
+  // 尝试根据地形对齐初始高度
+  if (_terrainCollider) {
+      CustomRay ray(cocos2d::Vec3(-200, 500, 600), cocos2d::Vec3(0, -1, 0));
+      float hitDist;
+      if (_terrainCollider->rayIntersects(ray, hitDist)) {
+          float groundY = ray.origin.y - hitDist;
+          boss->setPosition3D(cocos2d::Vec3(-200, groundY, 600));
+          boss->setBirthPosition(boss->getPosition3D());
+          CCLOG("Boss spawned at ground Y: %f (hitDist: %f)", groundY, hitDist);
+      } else {
+          CCLOG("Warning: Boss terrain raycast failed!");
+      }
   }
 
   this->addChild(boss);
@@ -445,19 +502,19 @@ void BaseScene::initBoss() {
     _player->setEnemies(&_enemies);
   }
 
-  CCLOG("Boss initialized at: %f, %f, %f with AI", boss->getPositionX(),
+  CCLOG("Boss 已初始化在: %f, %f, %f 带有 AI", boss->getPositionX(),
         boss->getPositionY(), boss->getPositionZ());
 
-  // Add Boss death event listener.
+  // 添加 Boss 死亡事件监听器。
   auto bossDeathListener = cocos2d::EventListenerCustom::create(
       "enemy_died", [this](cocos2d::EventCustom* event) {
-        CCLOG("BaseScene: Boss death event triggered");
+        CCLOG("BaseScene: 触发 Boss 死亡事件");
         Enemy* deadEnemy = static_cast<Enemy*>(event->getUserData());
         if (deadEnemy && deadEnemy->getEnemyType() == Enemy::EnemyType::BOSS) {
-          CCLOG("BaseScene: Removing dead Boss %p", (void*)deadEnemy);
+          CCLOG("BaseScene: 正在移除死亡 Boss %p", (void*)deadEnemy);
           this->removeDeadEnemy(deadEnemy);
 
-          // Show victory UI.
+          // 显示胜利界面。
           UIManager::getInstance()->showVictoryUI();
         }
       });

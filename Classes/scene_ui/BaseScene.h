@@ -17,46 +17,47 @@
 class Wukong;
 class TerrainCollider;
 
-// BaseScene is the foundation class for all 3D game scenes.
-// It handles camera, skybox, lighting, input, player, and enemy management.
+// BaseScene 是所有 3D 游戏场景的基础类。
+// 它处理摄像机、天空盒、光照、输入、玩家和敌人管理。
 class BaseScene : public cocos2d::Scene {
  public:
   static cocos2d::Scene* createScene();
   virtual bool init() override;
 
-  // Teleports the player back to the respawn point and resets enemies.
+  // 将玩家传送到重生点并重置敌人。
   void teleportPlayerToCenter();
 
   CREATE_FUNC(BaseScene);
 
  protected:
-  // Initialization methods.
+  // 初始化方法。
   void initCamera();
   void initSkybox();
   void initLights();
   void initInput();
+  void initGameObjects(); // 初始化玩家、敌人等游戏对象
   void initEnemy();
   void initBoss();
   void initPlayer();
 
-  // Update loop.
+  // 更新循环。
   virtual void update(float dt) override;
   void updateCamera(float dt);
 
-  // Skybox helpers.
+  // 天空盒辅助方法。
   bool chooseSkyboxFaces(std::array<std::string, 6>& outFaces);
   bool verifyCubeFacesSquare(const std::array<std::string, 6>& faces);
 
-  // Enemy management.
+  // 敌人管理。
   void removeDeadEnemy(Enemy* deadEnemy);
 
  protected:
-  // Camera members.
+  // 摄像机相关成员。
   cocos2d::Camera* _mainCamera = nullptr;
   cocos2d::Skybox* _skybox = nullptr;
   bool _autoFollowYaw = true;
-  float _autoYawSpeed = 240.0f;  // Degrees/second.
-  float _mouseIdleTime = 999.0f; // Time since last mouse movement.
+  float _autoYawSpeed = 240.0f;  // 度/秒。
+  float _mouseIdleTime = 999.0f; // 自上次鼠标移动以来的时间。
 
   cocos2d::Vec3 _camPos = cocos2d::Vec3(0.0f, 120.0f, 220.0f);
   cocos2d::Vec3 _camFront = cocos2d::Vec3(0.0f, 0.0f, -1.0f);
@@ -68,16 +69,16 @@ class BaseScene : public cocos2d::Scene {
   float _moveSpeed = 200.0f;
   float _mouseSensitivity = 0.15f;
 
-  // Perspective projection parameters.
-  float _fov = 60.0f;         // Field of view in degrees.
-  float _aspect = 1.0f;       // Aspect ratio.
-  float _nearPlane = 1.0f;    // Near clipping plane.
-  float _farPlane = 1000.0f;  // Far clipping plane.
-  float _followDistance = 220.0f;  // Camera distance from character.
-  float _followHeight = 80.0f;     // Camera look-at height.
-  float _followSmooth = 12.0f;     // Camera following smoothness.
+  // 透视投影参数。
+  float _fov = 60.0f;         // 视野（度）。
+  float _aspect = 1.0f;       // 宽高比。
+  float _nearPlane = 1.0f;    // 近裁剪面。
+  float _farPlane = 1000.0f;  // 远裁剪面。
+  float _followDistance = 220.0f;  // 摄像机离角色的距离。
+  float _followHeight = 80.0f;     // 摄像机观察高度。
+  float _followSmooth = 12.0f;     // 摄像机跟随平滑度。
 
-  // Input state.
+  // 输入状态。
   bool _keyW = false;
   bool _keyS = false;
   bool _keyA = false;
@@ -89,13 +90,13 @@ class BaseScene : public cocos2d::Scene {
   cocos2d::Vec2 _lastMousePos;
   bool _hasLastMouse = false;
 
-  // Game objects.
+  // 游戏对象。
   Wukong* _player = nullptr;
   TerrainCollider* _terrainCollider = nullptr;
   std::vector<Enemy*> _enemies;
 };
 
-// CampScene is a specific implementation of BaseScene for the camp area.
+// CampScene 是 BaseScene 的特定实现，用于营地场景。
 class CampScene : public BaseScene {
  public:
   static cocos2d::Scene* createScene();

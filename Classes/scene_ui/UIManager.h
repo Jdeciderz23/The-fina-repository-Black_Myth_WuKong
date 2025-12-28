@@ -10,43 +10,43 @@
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
 
-// UIManager handles the game's UI, including menus, HUD, and notifications.
-// It is implemented as a singleton for easy global access.
+// UIManager 处理游戏的 UI，包括菜单、HUD 和通知。
+// 它被实现为单例，方便全局访问。
 class UIManager {
  public:
-  // Returns the singleton instance of UIManager.
+  // 获取 UIManager 的单例实例。
   static UIManager* getInstance();
 
-  // Destroys the singleton instance of UIManager.
+  // 销毁 UIManager 的单例实例。
   static void destroyInstance();
 
-  // Creates the start menu scene.
+  // 创建开始菜单场景。
   cocos2d::Scene* createStartMenuScene();
 
-  // Displays the pause menu.
+  // 显示暂停菜单。
   void showPauseMenu();
 
-  // Displays the death menu.
+  // 显示死亡菜单。
   void showDeathMenu();
 
-  // Shows the HUD (Heads-Up Display) on the specified parent node.
+  // 在指定的父节点上显示 HUD（抬头显示）。
   void showHUD(cocos2d::Node* parent);
 
-  // Updates the player's health bar.
-  // |percent| is the health percentage (0.0 to 1.0).
+  // 更新玩家的血条。
+  // |percent| 是生命值百分比（0.0 到 1.0）。
   void updatePlayerHP(float percent);
 
-  // Updates the Boss's health bar.
-  // |percent| is the health percentage (0.0 to 1.0).
+  // 更新 Boss 的血条。
+  // |percent| 是生命值百分比（0.0 到 1.0）。
   void updateBossHP(float percent);
 
-  // Shows or hides the Boss health bar.
+  // 显示或隐藏 Boss 血条。
   void showBossHPBar(bool show);
 
-  // Displays the victory UI when the Boss is defeated.
+  // 在击败 Boss 时显示胜利 UI。
   void showVictoryUI();
 
-  // Shows a temporary notification message on the screen.
+  // 在屏幕上显示临时的通知消息。
   void showNotification(const std::string& text,
                         const cocos2d::Color3B& color = cocos2d::Color3B::WHITE);
 
@@ -54,7 +54,7 @@ class UIManager {
   UIManager();
   ~UIManager();
 
-  // Button callbacks.
+  // 按钮回调。
   void onStartGame(cocos2d::Ref* sender);
   void onSettings(cocos2d::Ref* sender);
   void onExitGame(cocos2d::Ref* sender);
@@ -68,7 +68,7 @@ class UIManager {
   void onVolumeSliderChanged(cocos2d::Ref* sender,
                              cocos2d::ui::Slider::EventType type);
 
-  // UI helper methods.
+  // UI 辅助方法。
   void showSettingsMenu();
 
   static UIManager* _instance;

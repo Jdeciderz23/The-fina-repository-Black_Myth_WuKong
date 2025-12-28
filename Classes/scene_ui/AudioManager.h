@@ -10,40 +10,40 @@
 #include "audio/include/AudioEngine.h"
 #include "cocos2d.h"
 
-// AudioManager manages background music and sound effects for the game.
-// It provides a singleton interface for playing, stopping, and controlling volume.
+// AudioManager 管理游戏的背景音乐和音效。
+// 它提供了一个单例接口，用于播放、停止和控制音量。
 class AudioManager {
  public:
-  // Returns the singleton instance of AudioManager.
+  // 获取 AudioManager 的单例实例。
   static AudioManager* getInstance();
 
-  // Plays background music from the given file path.
-  // @param fileName The path to the music file.
-  // @param loop Whether to loop the music (default is true).
+  // 播放指定路径的背景音乐。
+  // @param fileName 音乐文件的路径。
+  // @param loop 是否循环播放（默认为 true）。
   void playBGM(const std::string& fileName, bool loop = true);
 
-  // Stops the currently playing background music.
+  // 停止当前正在播放的背景音乐。
   void stopBGM();
 
-  // Plays a sound effect from the given file path.
-  // @param fileName The path to the sound effect file.
-  // @param loop Whether to loop the sound effect (default is false).
-  // @return The unique ID of the playing audio.
+  // 播放指定路径的音效。
+  // @param fileName 音效文件的路径。
+  // @param loop 是否循环播放（默认为 false）。
+  // @return 播放中的音频唯一 ID。
   int playEffect(const std::string& fileName, bool loop = false);
 
-  // Stops a specific sound effect by its ID.
-  // @param audioID The ID of the sound effect to stop.
+  // 通过 ID 停止特定的音效。
+  // @param audioID 要停止的音效 ID。
   void stopEffect(int audioID);
 
-  // Stops all sounds (BGM and effects).
+  // 停止所有声音（背景音乐和音效）。
   void stopAll();
 
-  // Sets the volume for background music.
-  // @param volume The volume level (0.0 to 1.0).
+  // 设置背景音乐的音量。
+  // @param volume 音量级别（0.0 到 1.0）。
   void setBGMVolume(float volume);
 
-  // Sets the volume for all subsequent sound effects.
-  // @param volume The volume level (0.0 to 1.0).
+  // 设置后续所有音效的音量。
+  // @param volume 音量级别（0.0 到 1.0）。
   void setEffectVolume(float volume);
 
  private:
@@ -51,9 +51,9 @@ class AudioManager {
   ~AudioManager();
 
   static AudioManager* _instance;
-  int _bgmID;           // Current background music ID.
-  float _bgmVolume;     // Background music volume level.
-  float _effectVolume;  // Sound effects volume level.
+  int _bgmID;           // 当前背景音乐 ID。
+  float _bgmVolume;     // 背景音乐音量级别。
+  float _effectVolume;  // 音效音量级别。
 };
 
 #endif  // __AUDIO_MANAGER_H__
