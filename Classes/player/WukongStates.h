@@ -205,7 +205,7 @@ public:
      * @param step 连招段数1/2/3
      */
     explicit AttackState(int step)
-        : _step(step), _t(0.0f), _queuedNext(false), _dur(0.6f) {
+        : _step(step), _t(0.0f), _queuedNext(false), _dur(0.6f), _damageDealt(false) {
     }
 
     void onEnter(Character* entity) override {
@@ -213,6 +213,7 @@ public:
 
         _t = 0.0f;
         _queuedNext = false;
+        _damageDealt = false;
         entity->stopHorizontal();
 
         std::string key = (_step == 1) ? "attack1" : ((_step == 2) ? "attack2" : "attack3");
@@ -230,6 +231,9 @@ public:
     void onUpdate(Character* entity, float dt) override {
         if (!entity) return;
         _t += dt;
+
+        // 攻击伤害检测时间窗口：不同段数攻击的伤害检测时机不同
+        performAttackHitCheck(entity);
 
         // 连段输入窗口：按时长比例更稳（你也能自己调）
         const float winStart = 0.20f * _dur;
@@ -266,9 +270,83 @@ public:
     }
 
 private:
+    /**
+     * @brief 执行攻击伤害检测
+     * @param entity 攻击者实体
+     */
+    void performAttackHitCheck(Character* entity) {
+        if (!entity || _damageDealt) return;
+
+        // 根据攻击段数设置不同的伤害检测时机和范围
+        float hitTimeRatio = 0.0f;
+        float hitWindow = 0.1f; // 伤害检测窗口宽度（秒）
+        
+        switch (_step) {
+        case 1: 
+            hitTimeRatio = 0.35f; // 第一段攻击早期检测（快速出手）
+            hitWindow = 0.08f;    // 较短的检测窗口
+            break;
+        case 2: 
+            hitTimeRatio = 0.45f; // 第二段攻击中期检测（蓄力攻击）
+            hitWindow = 0.12f;    // 中等检测窗口
+            break;
+        case 3: 
+            hitTimeRatio = 0.40f; // 第三段攻击早期检测（终结技）
+            hitWindow = 0.15f;    // 较长的检测窗口（确保命中）
+            break;
+        default: 
+            hitTimeRatio = 0.40f; 
+            hitWindow = 0.1f; 
+            break;
+        }
+
+        float hitTime = hitTimeRatio * _dur;
+
+        // 在合适的时机执行一次伤害检测
+        if (_t >= hitTime && _t <= hitTime + hitWindow) {
+            auto* combat = entity->getCombat();
+            if (combat) {
+                // 获取敌人列表
+                auto* enemies = entity->getEnemies();
+                if (enemies && !enemies->empty()) {
+                    // 将 Enemy* 转换为 Node* 以匹配函数参数类型
+                    // 同时只保留存活的敌人
+                    std::vector<Node*> nodeTargets;
+                    nodeTargets.reserve(enemies->size());
+                    for (auto* enemy : *enemies) {
+                        // 只对存活的敌人进行攻击检测
+                        if (enemy && !enemy->isDead()) {
+                            nodeTargets.push_back(dynamic_cast<Node*>(enemy));
+                        }
+                    }
+                    
+                    // 执行近战攻击
+                    if (!nodeTargets.empty()) {
+                        int hitCount = combat->executeMeleeAttack(
+                            entity->getCollider(), 
+                            nodeTargets
+                        );
+
+                        if (hitCount > 0) {
+                            CCLOG("AttackState: %s hit %d enemies!", getStateName().c_str(), hitCount);
+                            
+                            // 可以在这里添加攻击命中特效或音效
+                            // TODO: 添加攻击命中反馈
+                        }
+                    } else {
+                        CCLOG("AttackState: %s - no alive enemies to attack", getStateName().c_str());
+                    }
+                }
+            }
+            _damageDealt = true; // 标记已经执行过伤害检测，避免重复伤害
+        }
+    }
+
+private:
     int _step;  ///< 连招段数
     float _t;   ///< 计时
     bool _queuedNext;
+    bool _damageDealt;  ///< 是否已经执行过伤害检测
     float _dur;
 };
 

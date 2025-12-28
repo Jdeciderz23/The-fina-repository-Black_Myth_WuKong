@@ -79,6 +79,9 @@ protected:
     Wukong* _player = nullptr;
     TerrainCollider* _terrainCollider = nullptr;
     std::vector<Enemy*> _enemies;
+    
+    /* ---------- Enemy Management ---------- */
+    void removeDeadEnemy(Enemy* deadEnemy);
 };
 
 class CampScene : public BaseScene
