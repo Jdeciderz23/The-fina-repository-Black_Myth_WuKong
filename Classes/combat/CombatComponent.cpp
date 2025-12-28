@@ -1,5 +1,7 @@
 #include "CombatComponent.h"
 #include "HealthComponent.h"
+#include "../player/Character.h"
+#include "../enemy/Enemy.h"
 
 /**
  * @brief CombatComponent构造函数
@@ -10,13 +12,14 @@
  * - 默认暴击伤害倍率：200%
  * - 默认武器伤害：0.0
  */
-CombatComponent::CombatComponent() : 
+CombatComponent::CombatComponent() :
     _attackPower(10.0f),   // 基础攻击强度10
     _defense(0.0f),        // 基础防御值0
     _critRate(0.05f),      // 5% 暴击率
     _critDamage(2.0f),     // 200% 暴击伤害
     _weaponDamage(0.0f)    // 武器附加伤害
 {
+    setName("CombatComponent");  // 设置唯一组件名称
 }
 
 /**
@@ -26,7 +29,7 @@ CombatComponent::CombatComponent() :
  * - 清空技能列表和技能映射表
  */
 CombatComponent::~CombatComponent() {
-  
+
 }
 
 /**
@@ -135,43 +138,107 @@ bool CombatComponent::attack(Node* target) {
     if (!target) {
         return false;  // 目标不存在，攻击失败
     }
-    
+
     // 检查是否设置了自定义攻击回调
     if (_attackCallback) {
         return _attackCallback(target);  // 调用自定义攻击逻辑
     }
-    
+
     // 默认攻击逻辑
     // 1. 获取目标的健康组件
     HealthComponent* targetHealth = dynamic_cast<HealthComponent*>(target->getComponent("HealthComponent"));
-    if (!targetHealth) {
-        return false;  // 目标没有健康组件，攻击失败
+    if (!targetHealth || targetHealth->isDead()) {
+        return false;  // 目标没有健康组件或已死亡
     }
-    
+
     // 2. 计算总伤害
     float totalDamage = _attackPower + _weaponDamage;
-    
+
     // 3. 检查是否触发暴击
-    // 使用rand()生成0-99的随机数，与暴击率比较
     if (rand() % 100 < _critRate * 100) {
-        totalDamage *= _critDamage;  // 暴击时伤害翻倍
+        totalDamage *= _critDamage;
         CCLOG("Critical hit! Damage: %f", totalDamage);
     }
-    
+
     // 4. 获取目标的防御值（从目标的CombatComponent获取）
     float targetDefense = 0.0f;
     CombatComponent* targetCombat = dynamic_cast<CombatComponent*>(target->getComponent("CombatComponent"));
     if (targetCombat) {
         targetDefense = targetCombat->getDefense();
     }
-    
+
     // 5. 计算防御减免后的最终伤害
     float finalDamage = calculateDamage(totalDamage, targetDefense);
-    
-    // 5. 对目标造成伤害
+
+    // 6. 对目标造成伤害
     targetHealth->takeDamage(finalDamage, this->getOwner());
-    
+
     return true;  // 攻击成功
+}
+
+/**
+ * @brief 执行近战范围攻击
+ * @param attackerCollider 攻击者的碰撞器
+ * @param potentialTargets 潜在的目标列表
+ * @return int 命中的目标数量
+ */
+int CombatComponent::executeMeleeAttack(const CharacterCollider& attackerCollider, const std::vector<Node*>& potentialTargets) {
+    int hitCount = 0;
+    const AABB& attackerAABB = attackerCollider.worldAABB;
+
+    for (Node* target : potentialTargets) {
+        if (!target || target == this->getOwner()) continue;
+
+        // 1. 检查目标是否具有健康组件且存活
+        HealthComponent* health = dynamic_cast<HealthComponent*>(target->getComponent("HealthComponent"));
+        if (!health || health->isDead()) {
+            CCLOG("MeleeAttack: Target has no HealthComponent or is dead");
+            continue;
+        }
+
+        // 2. 获取目标的 AABB 碰撞体
+        AABB targetAABB;
+        bool hasCollider = false;
+
+        auto character = dynamic_cast<Character*>(target);
+        if (character) {
+            targetAABB = character->getCollider().worldAABB;
+            hasCollider = true;
+        } else {
+            auto enemy = dynamic_cast<Enemy*>(target);
+            if (enemy) {
+                targetAABB = enemy->getCollider().worldAABB;
+                hasCollider = true;
+            }
+        }
+
+        if (!hasCollider) {
+            CCLOG("MeleeAttack: Target has no collider");
+            continue;
+        }
+
+        // 3. 碰撞检测：增加一定的攻击范围（膨胀 AABB）
+        // 我们给攻击者 AABB 在 XZ 轴上各增加 30 像素的“触手”范围
+        AABB attackAABB = attackerAABB;
+        attackAABB._min.x -= 30.0f;
+        attackAABB._max.x += 30.0f;
+        attackAABB._min.z -= 30.0f;
+        attackAABB._max.z += 30.0f;
+
+        if (attackAABB.intersects(targetAABB)) {
+            CCLOG("MeleeAttack: Hit detected! Dealing damage.");
+            // 4. 执行攻击结算
+            if (this->attack(target)) {
+                hitCount++;
+            }
+        } else {
+            // 调试日志，帮助判断距离
+            float dist = this->getOwner()->getPosition3D().distance(target->getPosition3D());
+            CCLOG("MeleeAttack: No intersection. Distance: %.2f", dist);
+        }
+    }
+
+    return hitCount;
 }
 
 /**
@@ -198,10 +265,10 @@ float CombatComponent::calculateDamage(float baseDamage, float targetDefense) co
     // 伤害减免比例 = 防御 / (防御 + 100)
     // 当防御为0时，减免0%；当防御为100时，减免50%；当防御为200时，减免66.7%...
     float damageReduction = targetDefense / (targetDefense + 100.0f);
-    
+
     // 最终伤害 = 基础伤害 * (1 - 伤害减免比例)
     float finalDamage = baseDamage * (1.0f - damageReduction);
-    
+
     // 确保伤害不小于1（防止出现0伤害的情况）
     return std::max(1.0f, finalDamage);
 }

@@ -10,6 +10,8 @@
 #include <memory>
 
 class Enemy;
+class HealthComponent;
+class CombatComponent;
 
 /**
  * @class Character
@@ -81,10 +83,25 @@ public:
     void setEnemies(const std::vector<Enemy*>* enemies) { _enemies = enemies; }
 
     /**
+     * @brief 获取敌人列表
+     */
+    const std::vector<Enemy*>* getEnemies() const { return _enemies; }
+
+    /**
      * @brief 获取碰撞组件
      */
     CharacterCollider& getCollider() { return _collider; }
     const CharacterCollider& getCollider() const { return _collider; }
+
+    /**
+     * @brief 获取健康组件
+     */
+    HealthComponent* getHealth() const { return _health; }
+
+    /**
+     * @brief 获取战斗组件
+     */
+    CombatComponent* getCombat() const { return _combat; }
 
     /**
      * @brief 发起跳跃请求（最终是否能跳由状态/是否在地面决定）
@@ -105,13 +122,13 @@ public:
      * @brief 获取当前生命值
      * @return int 当前生命值
      */
-    int getHP() const { return _hp; }
+    int getHP() const;
 
     /**
      * @brief 获取最大生命值
      * @return int 最大生命值
      */
-    int getMaxHP() const { return 100; } // 初始默认 100
+    int getMaxHP() const;
 
     /**
      * @brief 受到伤害/进入受击
@@ -214,6 +231,9 @@ protected:
     StateMachine<Character> _fsm;         ///< 角色状态机（拥有状态映射）
 
     std::vector<std::unique_ptr<BaseState<Character>>> _ownedStates; ///< 状态对象所有权（由角色持有）
+
+    HealthComponent* _health = nullptr;  ///< 健康组件
+    CombatComponent* _combat = nullptr;  ///< 战斗组件
 
     TerrainCollider* _terrainCollider = nullptr; ///< 地形碰撞器
     CharacterCollider _collider;                 ///< 角色碰撞器

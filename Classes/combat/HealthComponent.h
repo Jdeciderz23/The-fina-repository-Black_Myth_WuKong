@@ -29,6 +29,12 @@ public:
     virtual ~HealthComponent();
 
     /**
+     * @brief 获取组件名称
+     * @return std::string 组件名称
+     */
+    virtual const std::string& getName() const { return Component::getName(); }
+
+    /**
      * @brief 初始化组件
      * @param maxHealth 最大生命值
      * @return bool 初始化是否成功
@@ -89,6 +95,17 @@ public:
      * @return bool 是否无敌
      */
     bool isInvincible() const;
+
+    /**
+     * @brief 重置生命值状态（用于复活）
+     */
+    void reset();
+
+    /**
+     * @brief 直接设置当前生命值
+     * @param health 生命值
+     */
+    void setCurrentHealth(float health);
 
     /**
      * @brief 设置受伤回调

@@ -55,7 +55,6 @@ bool Wukong::init() {
         _anims["attack3"] = cocos2d::Animation3D::create("WuKong/attack3.c3b");
         _anims["run"] = _anims["run_fwd"];
         playAnim("idle", true);
-    
 
         // 初始化 AABB 碰撞器，收缩 XZ 轴到 40%，避免金箍棒导致的空气墙过大
         _collider.calculateBoundingBox(_model, 0.4f);
