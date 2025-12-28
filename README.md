@@ -94,7 +94,7 @@ Classes/
 │
 ├─ enemy/                          # 敌人与Boss：实体类 + AI状态 + BossAI决策
 │  ├─ Enemy.h/.cpp                 # 敌人基类：移动/感知/追击距离/出生点/组件引用
-│  ├─ EnemyStates.h/.cpp           # 敌人AI状态：Idle/Patrol/Chase/Attack/Hit/Dead/Return
+│  ├─ EnemyStates.h/.cpp           # 普通敌人状态机：Idle/Patrol/Chase/Attack/Hit/Dead/Return
 │  ├─ Boss.h/.cpp                  # Boss：继承Enemy，含phase、倍率buff、pendingSkill等
 │  ├─ BossAI.h/.cpp                # Boss决策：距离区间+权重随机+冷却+阶段过滤
 │  └─ BossStates.h/.cpp            # Boss状态：Idle/Chase/PhaseChange/Attack/Hit/Dead等
@@ -206,10 +206,11 @@ Classes/
 - Wukong 的动作动画必须执行完一个动画才能进行下一个动画，动画不够连续
 - AttackState 中3段攻击是通过缓冲区进行输入，如果连点三次攻击就会完成三段并不能随时选择是否要进行攻击
 - 由于 cocos2d 引擎的限制，我们的模型不能选择骨骼数多、节点数多的模型；场景内生成的模型也不能拥有太多不同套的骨骼，否则以上问题都会导致导入的模型渲染错乱无法正常显示
+- 会产生位移的动画加载过程中，节点无法跟随移动，导致节点计算出现偏差
 
 ### 7.2 推荐的下一步完善点
 1. **技能/攻击命中反馈**：命中特效、震屏、音效、短暂停顿（hit stop）
-
+2、**boss/小怪的动作逻辑**：根据距离、血量等多个参数共同决策下一步做什么
 
 ---
 
