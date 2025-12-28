@@ -4,6 +4,8 @@
 #include "Enemy.h"
 #include "core/StateMachine.h"   // 你工程里 BaseState/StateMachine 很可能在这里
 #include <string>
+#include "combat/HealthComponent.h"
+#include "combat/CombatComponent.h"
 
 // ========== 技能配置（AttackState 用）==========
 struct BossSkillConfig {
