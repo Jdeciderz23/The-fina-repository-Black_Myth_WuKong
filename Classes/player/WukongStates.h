@@ -142,21 +142,94 @@ private:
  * @class RollState
  * @brief 翻滚状态，短时位移 + 播放 roll，结束后 Idle/Move
  */
+//class RollState : public BaseState<Character> {
+//public:
+//    RollState() : _t(0.0f) {}
+//
+//    void onEnter(Character* entity) override {
+//        if (!entity) return;
+//
+//        entity->playAnim("roll", false);
+//        _t = 0.0f;
+//
+//        // 沿当前 MoveIntent 方向翻滚；没有方向则沿前方（-Z）
+//        auto intent = entity->getMoveIntent();
+//        cocos2d::Vec3 dir = intent.dirWS;
+//        if (dir.lengthSquared() <= 1e-6f) {
+//            dir = cocos2d::Vec3(0.0f, 0.0f, -1.0f);
+//        }
+//        dir.normalize();
+//
+//        const float rollSpeed = entity->runSpeed * 1.25f;
+//        entity->setHorizontalVelocity(cocos2d::Vec3(dir.x * rollSpeed, 0.0f, dir.z * rollSpeed));
+//    }
+//
+//    void onUpdate(Character* entity, float deltaTime) override {
+//        if (!entity) return;
+//        _t += deltaTime;
+//
+//        // 简化：0.45s 结束
+//        if (_t >= 0.45f) {
+//            entity->stopHorizontal();
+//            const auto intent = entity->getMoveIntent();
+//            if (intent.dirWS.lengthSquared() > 1e-6f) {
+//                entity->getStateMachine().changeState("Move");
+//            }
+//            else {
+//                entity->getStateMachine().changeState("Idle");
+//            }
+//        }
+//    }
+//
+//    void onExit(Character* entity) override {
+//        if (!entity) return;
+//        entity->stopHorizontal();
+//    }
+//
+//    std::string getStateName() const override {
+//        return "Roll";
+//    }
+//
+//private:
+//    float _t; ///< 状态计时
+//};
 class RollState : public BaseState<Character> {
 public:
-    RollState() : _t(0.0f) {}
+    RollState() : _t(0.0f), _dur(0.45f), _moveEnd(0.25f), _stopped(false) {}
 
     void onEnter(Character* entity) override {
         if (!entity) return;
 
+        entity->stopHorizontal();
         entity->playAnim("roll", false);
-        _t = 0.0f;
 
-        // 朝当前 MoveIntent 方向翻滚，如果没有方向，则朝前方（-Z）
+        _t = 0.0f;
+        _stopped = false;
+
+        // 1) 时长改成“动画真实时长”
+        if (auto* wk = dynamic_cast<Wukong*>(entity)) {
+            _dur = wk->getAnimDuration("roll");
+        }
+        else {
+            _dur = 0.45f;
+        }
+        if (_dur < 0.05f) _dur = 0.45f;
+
+        // 2) 位移只在前半段给（后半段一般是收势，不要一直滑）
+        _moveEnd = 0.55f * _dur;
+
+        // 3) 翻滚方向：有输入用输入；没输入用“角色朝向”
         auto intent = entity->getMoveIntent();
         cocos2d::Vec3 dir = intent.dirWS;
+
         if (dir.lengthSquared() <= 1e-6f) {
-            dir = cocos2d::Vec3(0.0f, 0.0f, -1.0f);
+            // 用角色 yaw 推 forward（yaw=0 => +Z）
+            const float yawRad = CC_DEGREES_TO_RADIANS(entity->getRotation3D().y);
+            dir = cocos2d::Vec3(std::sinf(yawRad), 0.0f, std::cosf(yawRad));
+        }
+
+        if (dir.lengthSquared() <= 1e-6f) {
+            dir = cocos2d::Vec3(0.0f, 0.0f, 1.0f); // 再兜底一次
         }
         dir.normalize();
 
@@ -164,20 +237,24 @@ public:
         entity->setHorizontalVelocity(cocos2d::Vec3(dir.x * rollSpeed, 0.0f, dir.z * rollSpeed));
     }
 
-    void onUpdate(Character* entity, float deltaTime) override {
+    void onUpdate(Character* entity, float dt) override {
         if (!entity) return;
-        _t += deltaTime;
+        _t += dt;
 
-        // 简化：0.45s 结束
-        if (_t >= 0.45f) {
+        // 位移到点就停，避免一直滑
+        if (!_stopped && _t >= _moveEnd) {
+            entity->stopHorizontal();
+            _stopped = true;
+        }
+
+        // 到动画末尾再切状态，避免截断 roll 动画
+        const float endTime = 0.95f * _dur;
+        if (_t >= endTime) {
             entity->stopHorizontal();
             const auto intent = entity->getMoveIntent();
-            if (intent.dirWS.lengthSquared() > 1e-6f) {
-                entity->getStateMachine().changeState("Move");
-            }
-            else {
-                entity->getStateMachine().changeState("Idle");
-            }
+            entity->getStateMachine().changeState(
+                intent.dirWS.lengthSquared() > 1e-6f ? "Move" : "Idle"
+            );
         }
     }
 
@@ -186,14 +263,14 @@ public:
         entity->stopHorizontal();
     }
 
-    std::string getStateName() const override {
-        return "Roll";
-    }
+    std::string getStateName() const override { return "Roll"; }
 
 private:
-    float _t; ///< 状态计时
+    float _t;
+    float _dur;
+    float _moveEnd;
+    bool  _stopped;
 };
-
 /**
  * @class AttackState
  * @brief 攻击状态，支持 1/2/3 段，期间触发 consumeComboBuffered() 为 true 则进下一段
@@ -356,42 +433,42 @@ private:
  */
 class HurtState : public BaseState<Character> {
 public:
-    HurtState() : _t(0.0f) {}
+    HurtState() : _t(0.0f), _dur(0.35f) {}
 
     void onEnter(Character* entity) override {
         if (!entity) return;
         _t = 0.0f;
         entity->stopHorizontal();
         entity->playAnim("hurt", false);
+
+        if (auto* wk = dynamic_cast<Wukong*>(entity)) {
+            _dur = wk->getAnimDuration("hurt");
+        }
+        else {
+            _dur = 0.35f;
+        }
+        if (_dur < 0.05f) _dur = 0.35f;
     }
 
-    void onUpdate(Character* entity, float deltaTime) override {
+    void onUpdate(Character* entity, float dt) override {
         if (!entity) return;
-        _t += deltaTime;
+        _t += dt;
 
-        if (_t >= 0.35f) {
+        if (_t >= 0.95f * _dur) {
             const auto intent = entity->getMoveIntent();
-            if (intent.dirWS.lengthSquared() > 1e-6f) {
-                entity->getStateMachine().changeState("Move");
-            }
-            else {
-                entity->getStateMachine().changeState("Idle");
-            }
+            entity->getStateMachine().changeState(
+                intent.dirWS.lengthSquared() > 1e-6f ? "Move" : "Idle"
+            );
         }
     }
 
-    void onExit(Character* entity) override {
-        (void)entity;
-    }
-
-    std::string getStateName() const override {
-        return "Hurt";
-    }
+    void onExit(Character* entity) override { (void)entity; }
+    std::string getStateName() const override { return "Hurt"; }
 
 private:
-    float _t; ///< 状态计时
+    float _t;
+    float _dur;
 };
-
 /**
  * @class DeadState
  * @brief 死亡状态，播放 dead，停止移动
@@ -419,4 +496,47 @@ public:
     }
 };
 
+class SkillState : public BaseState<Character> {
+public:
+    SkillState() : _t(0.0f), _dur(0.8f) {}
+
+    void onEnter(Character* entity) override {
+        if (!entity) return;
+        _t = 0.0f;
+
+        entity->stopHorizontal();
+        entity->playAnim("skill", false);
+
+        if (auto* wk = dynamic_cast<Wukong*>(entity)) {
+            _dur = wk->getAnimDuration("skill");
+        }
+        else {
+            _dur = 0.8f;
+        }
+        if (_dur < 0.05f) _dur = 0.8f;
+
+        // TODO：如果你要做“技能伤害窗口/特效/震屏”，建议在 onUpdate 用时间窗触发
+    }
+
+    void onUpdate(Character* entity, float dt) override {
+        if (!entity) return;
+        _t += dt;
+
+        // TODO：示例：在 25%~45% 动画区间做判定（你后续接 hitbox 就放这里）
+
+        if (_t >= 0.95f * _dur) {
+            const auto intent = entity->getMoveIntent();
+            entity->getStateMachine().changeState(
+                intent.dirWS.lengthSquared() > 1e-6f ? "Move" : "Idle"
+            );
+        }
+    }
+
+    void onExit(Character* entity) override { (void)entity; }
+    std::string getStateName() const override { return "Skill"; }
+
+private:
+    float _t;
+    float _dur;
+};
 #endif // WUKONGSTATES_H

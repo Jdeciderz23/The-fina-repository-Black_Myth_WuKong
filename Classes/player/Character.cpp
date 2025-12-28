@@ -60,6 +60,7 @@ bool Character::init() {
     _ownedStates.emplace_back(std::make_unique<AttackState>(1));
     _ownedStates.emplace_back(std::make_unique<AttackState>(2));
     _ownedStates.emplace_back(std::make_unique<AttackState>(3));
+    _ownedStates.emplace_back(std::make_unique<SkillState>());
     _ownedStates.emplace_back(std::make_unique<HurtState>());
     _ownedStates.emplace_back(std::make_unique<DeadState>());
 
