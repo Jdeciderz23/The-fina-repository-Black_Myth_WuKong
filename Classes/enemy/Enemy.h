@@ -188,6 +188,11 @@ public:
     void playAnim(const std::string& name, bool loop); // name="idle"/"chase"..
     
     /**
+     * @brief 重置敌人状态（用于复活时重置）
+     */
+    virtual void resetEnemy();
+
+    /**
      * @brief 设置模型 Y 轴额外偏移（用于微调）
      */
     void setSpriteOffsetY(float offset) { _spriteOffsetY = offset; updateSpritePosition(); }

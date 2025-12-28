@@ -58,7 +58,7 @@ protected:
     float _aspect = 1.0f;      // 宽高比
     float _nearPlane = 1.0f;   // 近裁剪面
     float _farPlane = 1000.0f; // 远裁剪面
-    float _followDistance = 450.0f;   // 相机离人物距离
+    float _followDistance = 220.0f;   // 相机离人物距离
     float _followHeight = 80.0f;    // 看向人物的高度（头部高度）
     float _followSmooth = 12.0f;    // 跟随平滑（越大越跟手）
 

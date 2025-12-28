@@ -138,6 +138,18 @@ void UIManager::showHUD(Node* parent)
 
     // 初始更新
     updatePlayerHP(1.0f);
+
+    // 4. Boss 血条 (顶部)
+    _bossHpBarDrawNode = DrawNode::create();
+    _bossHpBarDrawNode->setPosition(Vec2(vs.width / 2 + origin.x, vs.height - 60 + origin.y));
+    _bossHpBarDrawNode->setVisible(false);
+    parent->addChild(_bossHpBarDrawNode, 1000);
+
+    _bossNameLabel = Label::createWithSystemFont("BOSS", "Arial", 24);
+    _bossNameLabel->setPosition(Vec2(vs.width / 2 + origin.x, vs.height - 35 + origin.y));
+    _bossNameLabel->setTextColor(Color4B::YELLOW);
+    _bossNameLabel->setVisible(false);
+    parent->addChild(_bossNameLabel, 1001);
 }
 
 void UIManager::updatePlayerHP(float percent)
@@ -166,6 +178,47 @@ void UIManager::updatePlayerHP(float percent)
         sprintf(buf, "%d / 100", (int)(percent * 100));
         _hpLabel->setString(buf);
     }
+}
+
+void UIManager::updateBossHP(float percent)
+{
+    if (!_bossHpBarDrawNode) return;
+
+    _bossHpBarDrawNode->clear();
+    percent = std::max(0.0f, std::min(1.0f, percent));
+
+    // 绘制底色框
+    _bossHpBarDrawNode->drawSolidRect(
+        Vec2(-_bossHpBarWidth / 2 - 2, -_bossHpBarHeight / 2 - 2),
+        Vec2(_bossHpBarWidth / 2 + 2, _bossHpBarHeight / 2 + 2),
+        Color4F(0, 0, 0, 0.6f)
+    );
+
+    // 绘制血条背景（暗红色）
+    _bossHpBarDrawNode->drawSolidRect(
+        Vec2(-_bossHpBarWidth / 2, -_bossHpBarHeight / 2),
+        Vec2(_bossHpBarWidth / 2, _bossHpBarHeight / 2),
+        Color4F(0.3f, 0, 0, 1.0f)
+    );
+
+    // 绘制当前血量（亮黄色/橙色）
+    float currentWidth = _bossHpBarWidth * percent;
+    _bossHpBarDrawNode->drawSolidRect(
+        Vec2(-_bossHpBarWidth / 2, -_bossHpBarHeight / 2),
+        Vec2(-_bossHpBarWidth / 2 + currentWidth, _bossHpBarHeight / 2),
+        Color4F(1.0f, 0.7f, 0.0f, 1.0f)
+    );
+
+    // 如果血量大于 0，自动显示血条
+    if (percent > 0 && percent < 1.0f) {
+        showBossHPBar(true);
+    }
+}
+
+void UIManager::showBossHPBar(bool show)
+{
+    if (_bossHpBarDrawNode) _bossHpBarDrawNode->setVisible(show);
+    if (_bossNameLabel) _bossNameLabel->setVisible(show);
 }
 
 void UIManager::showDeathMenu()

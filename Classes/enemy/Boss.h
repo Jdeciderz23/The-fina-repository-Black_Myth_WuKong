@@ -73,6 +73,11 @@ public:
     void setAI(BossAI* ai);     // Boss 拥有 ai 的生命周期（内部会 delete）
     BossAI* getAI() const { return _ai; }
 
+    /**
+     * @brief 重置 Boss 状态
+     */
+    void resetEnemy() override;
+
 private:
     BossAI* _ai = nullptr;
 
@@ -81,6 +86,7 @@ private:
     float _dmgMul = 1.0f;
 
     bool _busy = false;
+    bool _hasHealed = false; // 是否已经触发过半血回满
 
     std::string _pendingSkill; // 例如 "Combo3" / "DashSlash" / ...
 };

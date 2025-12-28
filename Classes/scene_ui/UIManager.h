@@ -46,6 +46,18 @@ public:
      */
     void updatePlayerHP(float percent);
 
+    /**
+     * @brief 更新 Boss 血条显示
+     * @param percent 生命值百分比（0.0-1.0）
+     */
+    void updateBossHP(float percent);
+
+    /**
+     * @brief 显示或隐藏 Boss 血条
+     * @param show 是否显示
+     */
+    void showBossHPBar(bool show);
+
 private:
     /**
      * @brief 构造函数（私有）
@@ -64,6 +76,11 @@ private:
     cocos2d::Label* _hpLabel = nullptr;          // 血量文字标签
     float _hpBarWidth = 400.0f;                  // 血条宽度
     float _hpBarHeight = 20.0f;                  // 血条高度
+
+    cocos2d::DrawNode* _bossHpBarDrawNode = nullptr; // Boss 血条绘制节点
+    cocos2d::Label* _bossNameLabel = nullptr;        // Boss 名字标签
+    float _bossHpBarWidth = 800.0f;                  // Boss 血条宽度
+    float _bossHpBarHeight = 15.0f;                  // Boss 血条高度
 
     // ---------------- 菜单按钮回调 ----------------
 

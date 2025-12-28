@@ -379,9 +379,18 @@ void BaseScene::updateCamera(float dt)
 void BaseScene::teleportPlayerToCenter()
 {
     if (_player) {
-        _player->setPosition3D(Vec3(0, 200, 0)); // ?????????????????
+        _player->setPosition3D(Vec3(0, 200, 0)); // 传送回出生点附近
         _player->respawn();
     }
+
+    // 重置所有敌人（包括位置和血量）
+    for (auto enemy : _enemies) {
+        if (enemy) {
+            enemy->resetEnemy();
+        }
+    }
+    
+    CCLOG("BaseScene: Player respawned and all enemies reset.");
 }
 
 

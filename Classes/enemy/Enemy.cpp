@@ -402,3 +402,14 @@ void Enemy::playAnim(const std::string& name, bool loop) {
     if (loop) _sprite->runAction(cocos2d::RepeatForever::create(act));
     else _sprite->runAction(act);
 }
+
+void Enemy::resetEnemy() {
+    if (_health) {
+        _health->reset();
+    }
+    this->setPosition3D(_birthPosition);
+    if (_stateMachine) {
+        _stateMachine->changeState("Idle");
+    }
+    CCLOG("Enemy %p reset to birth position.", this);
+}
