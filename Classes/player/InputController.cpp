@@ -172,7 +172,7 @@ void PlayerController::bindKeyboard() {
         case cocos2d::EventKeyboard::KeyCode::KEY_J:
             if (_target) _target->attackLight();
             break;
-        case cocos2d::EventKeyboard::KeyCode::KEY_K:
+        case cocos2d::EventKeyboard::KeyCode::KEY_C:
             if (_target) _target->roll();
             break;
         case cocos2d::EventKeyboard::KeyCode::KEY_1:

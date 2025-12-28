@@ -26,7 +26,7 @@ void BossAI::initSkills() {
     _skills.push_back(BossAISkill{ "GroundSlam", 0.f,      M(6.0f), 6.0f, 0.70f, 1 });
 
     // Phase 2 新技能（远/中距离压迫）
-    _skills.push_back(BossAISkill{ "LeapSlam",   M(2.5f),  M(999.f), 8.0f, 1.20f, 2 });
+    _skills.push_back(BossAISkill{ "LeapSlam",   M(2.5f),  M(5.f), 8.0f, 1.20f, 2 });
 
     // 你也可以让 GroundSlam 在二阶段还能用（phaseMask=3）
     // 这里为了简单：Phase2 仍然允许 Combo3/DashSlash/GroundSlam

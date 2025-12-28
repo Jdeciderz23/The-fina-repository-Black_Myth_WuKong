@@ -36,8 +36,8 @@ bool Boss::initBoss(const std::string& resRoot, const std::string& modelFile) {
 
     // 你可以再覆盖 Boss 的数值（按你手感调）
     // 注意：这些成员在 Enemy 里是 protected，Boss 继承可直接改
-    _viewRange = 1500.0f;      // 约 15m（假设 1m=100）
-    _maxChaseRange = 999999.f; // Boss 基本不回家
+    _viewRange = 500.0f;      // 约 15m（假设 1m=100）
+    _maxChaseRange = 500.f; // Boss 基本不回家
 
     _phase = 1;
     _moveMul = 1.0f;
