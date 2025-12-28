@@ -46,7 +46,7 @@ static BossSkillConfig getCfg(const std::string& skill) {
     }
     if (skill == "DashSlash") {
         return BossSkillConfig{
-            "DashSlash", "dashslash",
+            "DashSlash", "rush",
             0.30f, 0.25f, 0.15f, 0.50f,
             M(2.0f), M(2.8f), 16.f, true
         };

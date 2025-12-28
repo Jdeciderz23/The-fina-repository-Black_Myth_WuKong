@@ -7,6 +7,7 @@
 #include "Wukong.h"
 #include "enemy/Enemy.h"
 #include "../combat/CombatComponent.h"
+#include "../scene_ui/UIManager.h"
 #include <string>
 #include <cmath>
 #include <unordered_map>
@@ -433,16 +434,37 @@ private:
  */
 class DeadState : public BaseState<Character> {
 public:
+    DeadState() : _t(0.0f), _dur(1.0f), _menuShown(false) {}
+
     void onEnter(Character* entity) override {
         if (!entity) return;
         entity->stopHorizontal();
         entity->playAnim("dead", false);
+        
+        _t = 0.0f;
+        _menuShown = false;
+        
+        // 获取死亡动画持续时间
+        if (auto* wk = dynamic_cast<Wukong*>(entity)) {
+            _dur = wk->getAnimDuration("dead");
+        }
+        else {
+            _dur = 1.0f;
+        }
+        if (_dur < 0.5f) _dur = 1.0f; // 确保至少有一定时间播放动画
     }
 
     void onUpdate(Character* entity, float deltaTime) override {
-        (void)entity;
-        (void)deltaTime;
-        // 死亡一般不主动跳出状态
+        if (!entity || _menuShown) return;
+        
+        _t += deltaTime;
+        
+        // 当动画播放完成后显示死亡菜单
+        if (_t >= _dur) {
+            _menuShown = true;
+            // 弹出死亡界面
+            UIManager::getInstance()->showDeathMenu();
+        }
     }
 
     void onExit(Character* entity) override {
@@ -452,6 +474,11 @@ public:
     std::string getStateName() const override {
         return "Dead";
     }
+    
+private:
+    float _t; // 计时器
+    float _dur; // 动画持续时间
+    bool _menuShown; // 是否已显示菜单
 };
 
 class SkillState : public BaseState<Character> {

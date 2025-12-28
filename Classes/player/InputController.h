@@ -74,7 +74,7 @@ private:
 
     float _camYawDeg = 0.0f;    // 0 表示相机在角色“后方”（你的坐标下相机 offset 是 +Z）
     float _camPitchDeg = -15.0f;  // 负值：略向下俯视
-    float _camDist = 32.0f;
+    float _camDist = 96.0f;
 
     float _camFollowPosK = 12.0f;     // 位置跟随平滑（越大越“跟手”）
     float _autoYawSpeed = 240.0f;    // 不转鼠标时，相机自动追随角色朝向（度/秒）
@@ -83,8 +83,8 @@ private:
     float _mouseSens = 0.12f;         // 鼠标灵敏度
     float _minPitch = -35.0f;
     float _maxPitch = -8.0f;
-    float _minDist = 18.0f;
-    float _maxDist = 90.0f;
+    float _minDist = 38.0f;
+    float _maxDist = 120.0f;
 
     float _lookAtHeight = 12.0f;      // 镜头看向角色“胸口”高度
 };
