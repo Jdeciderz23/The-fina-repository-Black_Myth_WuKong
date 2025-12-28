@@ -76,10 +76,7 @@ bool Character::init() {
 }
 
 void Character::update(float dt) {
-    // 无论角色是否死亡，都更新状态机
     _fsm.update(dt);
-    
-    // 只有活着的时候才执行其他更新
     if (isDead()) {
         return;
     }

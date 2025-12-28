@@ -1,8 +1,9 @@
 #include "Boss.h"
 #include "BossAI.h"
-// ºóÃæÐ´ BossAI Ê±ÔÙÔÚ Boss.cpp Àï include ²¢ new BossAI(this) Ò²ÐÐ
 #include "BossStates.h"
 #include "cocos2d.h"
+#include "scene_ui/UIManager.h"
+#include "combat/HealthComponent.h"
 
 USING_NS_CC;
 
@@ -26,37 +27,62 @@ Boss::~Boss() {
 }
 
 bool Boss::initBoss(const std::string& resRoot, const std::string& modelFile) {
-    // ¸´ÓÃ Enemy µÄ×ÊÔ´¼ÓÔØ£¨ÄãÒÑ¾­ÊµÏÖÁË initWithResRoot£©
     if (!this->initWithResRoot(resRoot, modelFile)) {
         return false;
     }
 
-    // ÉèÎª Boss ÀàÐÍ£¨»áµ÷»ù´¡ËÙ¶È/ÊÓÒ°µÈ£©
     setEnemyType(EnemyType::BOSS);
 
-    // Äã¿ÉÒÔÔÙ¸²¸Ç Boss µÄÊýÖµ£¨°´ÄãÊÖ¸Ðµ÷£©
-    // ×¢Òâ£ºÕâÐ©³ÉÔ±ÔÚ Enemy ÀïÊÇ protected£¬Boss ¼Ì³Ð¿ÉÖ±½Ó¸Ä
-    _viewRange = 500.0f;      // Ô¼ 15m£¨¼ÙÉè 1m=100£©
-    _maxChaseRange = 500.f; // Boss »ù±¾²»»Ø¼Ò
+    _viewRange = 500.0f;
+    _maxChaseRange = 500.f;
 
     _phase = 1;
     _moveMul = 1.0f;
     _dmgMul = 1.0f;
     _busy = false;
+    _hasHealed = false;
     _pendingSkill.clear();
 
-    // AI ÏÈ²»ÔÚÕâÀï new£¬±ÜÃâÄã»¹Ã»Ð´ BossAI ¾Í±àÒëÕ¨
-    // µÈÄãÐ´ BossAI.cpp Ê±£¬ÔÙÔÚ BaseScene ´´½¨ boss ºó boss->setAI(new BossAI(boss));
+    if (_health) {
+        _health->setOnHealthChangeCallback([this](float current, float max) {
+            float percent = current / max;
+            UIManager::getInstance()->updateBossHP(percent);
+
+            if (!_hasHealed && percent <= 0.5f && !isDead()) {
+                _hasHealed = true;
+                _phase = 2; // è®¾ç½®ä¸ºç¬¬äºŒé˜¶æ®µ
+                _health->fullHeal();
+                CCLOG("Boss: Phase 2 triggered! HP restored to 100%%");
+                
+                if (_stateMachine) {
+                    _stateMachine->changeState("PhaseChange");
+                }
+            }
+        });
+    }
+
     return true;
 }
 
+void Boss::resetEnemy() {
+    Enemy::resetEnemy();
+    _phase = 1;
+    _hasHealed = false;
+    _busy = false;
+    _pendingSkill.clear();
+    
+    // é‡ç½® Boss è¡€æ¡ UI
+    UIManager::getInstance()->updateBossHP(1.0f);
+    UIManager::getInstance()->showBossHPBar(false);
+    
+    CCLOG("Boss: Reset to initial state");
+}
+
 void Boss::update(float dt) {
-    // ÏÈ×ß Enemy£¨¸üÐÂ×´Ì¬»ú£©
     Enemy::update(dt);
 
-    // AI ¾ö²ß£¨¿ÉÑ¡£©
     if (_ai) {
-        _ai->update(dt);  // µÈÄãÐ´ BossAI.h/.cpp ºóÔÙ´ò¿ªÕâÐÐ
+        _ai->update(dt);
     }
 }
 
