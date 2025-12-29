@@ -1,3 +1,7 @@
+// 功能描述：
+// Enemy类的实现文件，包含所有敌人通用的行为逻辑、状态管理、
+// 物理系统交互、碰撞检测和战斗系统实现。
+
 #include "Enemy.h"
 #include "EnemyStates.h"
 #include "combat/HealthComponent.h"
@@ -5,6 +9,8 @@
 #include "combat/Collider.h"
 #include "player/Wukong.h"
 
+// 创建Enemy实例的静态工厂方法
+// @return Enemy* 创建成功返回敌人指针，失败返回nullptr
 Enemy* Enemy::create() {
     auto enemy = new (std::nothrow) Enemy();
     if (enemy && enemy->init()) {
@@ -15,6 +21,7 @@ Enemy* Enemy::create() {
     return nullptr;
 }
 
+// Enemy构造函数，初始化所有成员变量的默认值
 Enemy::Enemy()
     : _enemyType(EnemyType::NORMAL)
     , _stateMachine(nullptr)
@@ -35,6 +42,7 @@ Enemy::Enemy()
 {
 }
 
+// Enemy析构函数，负责释放状态机资源
 Enemy::~Enemy() {
     if (_stateMachine) {
         delete _stateMachine;
@@ -42,6 +50,9 @@ Enemy::~Enemy() {
     }
 }
 
+// 初始化Enemy
+// 初始化父类Node，创建状态机、生命值组件和战斗组件
+// @return bool 初始化成功返回true，失败返回false
 bool Enemy::init() {
     if (!Node::init()) {
         return false;
@@ -68,6 +79,9 @@ bool Enemy::init() {
     return true;
 }
 
+// 每帧更新函数
+// 处理状态机更新、重力应用和移动应用
+// @param deltaTime 帧间隔时间
 void Enemy::update(float deltaTime) {
     Node::update(deltaTime);
     
@@ -83,6 +97,9 @@ void Enemy::update(float deltaTime) {
     _collider.update(this);
 }
 
+// 应用重力效果
+// 根据重力加速度更新敌人的垂直速度
+// @param dt 帧间隔时间
 void Enemy::applyGravity(float dt) {
     if (_onGround && _terrainCollider) {
         return;
@@ -90,6 +107,9 @@ void Enemy::applyGravity(float dt) {
     _velocity.y -= _gravity * dt;
 }
 
+// 应用移动效果
+// 处理敌人的位置更新和地形碰撞检测
+// @param dt 帧间隔时间
 void Enemy::applyMovement(float dt) {
     Vec3 oldPos = this->getPosition3D();
     Vec3 newPos = oldPos + _velocity * dt;
@@ -140,35 +160,51 @@ void Enemy::applyMovement(float dt) {
     }
 }
 
+// 获取移动速度
+// @return float 当前移动速度
 float Enemy::getMoveSpeed() const {
     return _moveSpeed;
 }
 
+// 获取旋转速度
+// @return float 当前旋转速度
 float Enemy::getRotateSpeed() const {
     return _rotateSpeed;
 }
 
+// 获取视野范围
+// @return float 当前视野范围
 float Enemy::getViewRange() const {
     return _viewRange;
 }
 
+// 获取是否可以移动
+// @return bool 是否允许移动且未死亡
 bool Enemy::canMove() const {
     return _canMove && !isDead();
 }
 
+// 获取是否可以攻击
+// @return bool 是否允许攻击且未死亡
 bool Enemy::canAttack() const {
     return _canAttack && !isDead();
 }
 
+// 获取是否已死亡
+// @return bool 是否处于死亡状态
 bool Enemy::isDead() const {
     // 直接查询HealthComponent
     return _health ? _health->isDead() : false;
 }
 
+// 获取敌人类型
+// @return EnemyType 当前敌人类型
 Enemy::EnemyType Enemy::getEnemyType() const {
     return _enemyType;
 }
 
+// 设置敌人类型
+// @param type 要设置的敌人类型
 void Enemy::setEnemyType(EnemyType type) {
     _enemyType = type;
     
@@ -187,37 +223,50 @@ void Enemy::setEnemyType(EnemyType type) {
     }
 }
 
+// 设置3D位置
+// @param position 要设置的3D位置
 void Enemy::setPosition3D(const Vec3& position) {
     Node::setPosition3D(position);
 }
 
-
+// 获取3D位置
+// @return Vec3 当前3D位置
 Vec3 Enemy::getPosition3D() const {
     return Node::getPosition3D();
 }
 
+// 获取状态机指针
+// @return StateMachine<Enemy>* 状态机指针
 StateMachine<Enemy>* Enemy::getStateMachine() const {
     return _stateMachine;
 }
 
+// 获取精灵指针
+// @return Sprite3D* 3D精灵指针
 Sprite3D* Enemy::getSprite() const {
     return _sprite;
 }
 
-// 设置出生点
+// 设置出生点位置
+// @param pos 出生点的3D位置
 void Enemy::setBirthPosition(const Vec3& pos) {
     _birthPosition = pos;
+    setPosition3D(pos);
 }
 
-// 获取出生点
+// 获取出生点位置
+// @return const Vec3& 出生点的3D位置引用
 const Vec3& Enemy::getBirthPosition() const {
     return _birthPosition;
 }
 
 // 获取最大追击距离
+// @return float 最大追击距离
 float Enemy::getMaxChaseRange() const {
     return _maxChaseRange;
 }
+// 初始化状态机
+// 创建并配置敌人的状态机，注册所有必要的状态并设置初始状态为Idle
 void Enemy::initStateMachine() {
     // 创建状态机实例
     _stateMachine = new StateMachine<Enemy>(this);
@@ -235,6 +284,8 @@ void Enemy::initStateMachine() {
     _stateMachine->changeState("Idle");
 }
 
+// 初始化生命值组件
+// 创建健康组件并注册受伤和死亡回调函数，设置默认生命值为100
 void Enemy::initHealthComponent() {
     // 创建生命值组件，设置默认生命值为 100
     _health = HealthComponent::create(100.0f);
@@ -247,6 +298,8 @@ void Enemy::initHealthComponent() {
     }
 }
 
+// 初始化战斗组件
+// 创建战斗组件并设置各种战斗属性，包括攻击力、防御力、暴击率和暴击伤害
 void Enemy::initCombatComponent() {
     // 创建战斗组件
     _combat = CombatComponent::create();
@@ -260,6 +313,9 @@ void Enemy::initCombatComponent() {
     }
 }
 
+/// @brief 受伤回调函数
+/// @param damage 受伤数值
+/// @param attacker 攻击者节点指针
 void Enemy::onHurtCallback(float damage, Node* attacker) {
     // 对于Boss类型的敌人，直接切换到Hit状态以播放受击动画
     if (_enemyType == EnemyType::BOSS && _stateMachine && !isDead()) {
@@ -296,6 +352,8 @@ void Enemy::onHurtCallback(float damage, Node* attacker) {
     ));
 }
 
+/// @brief 死亡回调函数
+/// @param attacker 攻击者节点指针
 void Enemy::onDeadCallback(Node* attacker) {
     // 当HealthComponent检测到死亡时，只做行为与状态切换
     _canMove = false;
@@ -311,22 +369,39 @@ void Enemy::onDeadCallback(Node* attacker) {
     }
 }
 
+// 检查是否低生命值状态
+// 当生命值百分比低于30%时返回true
+// @return bool 是否处于低生命值状态
 bool Enemy::isLowHealth() const {
     if (!_health) return false;
     return _health->getHealthPercentage() <= 0.3f;
 }
 
+// 获取生命值比例
+// 返回当前生命值百分比（0-1之间），如果没有健康组件则返回1.0f
+// @return float 生命值比例
 float Enemy::getHealthRatio() const {
     return _health ? _health->getHealthPercentage() : 1.0f;
 }
 
+// 设置目标
+// @param w 悟空角色指针
 void Enemy::setTarget(Wukong* w) { _target = w; }
+
+// 获取目标
+// @return Wukong* 悟空角色指针
 Wukong* Enemy::getTarget() const { return _target; }
 
+// 获取目标的世界坐标
+// 获取悟空的世界坐标位置，如果没有目标则返回零向量
+// @return Vec3 目标的世界坐标
 cocos2d::Vec3 Enemy::getTargetWorldPos() const {
     return _target ? _target->getWorldPosition3D() : cocos2d::Vec3::ZERO;
 }
 
+// 获取敌人自身的世界坐标
+// 通过矩阵变换获取敌人在世界空间中的坐标位置
+// @return Vec3 敌人自身的世界坐标
 cocos2d::Vec3 Enemy::getWorldPosition3D() const {
     cocos2d::Vec3 out = cocos2d::Vec3::ZERO;
     cocos2d::Mat4 m = this->getNodeToWorldTransform();
@@ -334,6 +409,8 @@ cocos2d::Vec3 Enemy::getWorldPosition3D() const {
     return out;
 }
 
+// 更新精灵位置
+// 处理精灵的位置更新，确保模型底部正确对齐地面
 void Enemy::updateSpritePosition() {
     if (!_sprite) return;
     
@@ -350,7 +427,10 @@ void Enemy::updateSpritePosition() {
     }
 }
 
-//加载模型
+// 使用指定资源根目录初始化敌人
+// @param resRoot 资源根目录，如 "Enemy/enemy1" 或 "Enemy/boss"
+// @param modelFile 模型文件，如 "enemy1.c3b" 或 "boss.c3b"
+// @return bool 初始化成功返回true，失败返回false
 bool Enemy::initWithResRoot(const std::string& resRoot, const std::string& modelFile) {
     _resRoot = resRoot;
     _modelFile = modelFile;
@@ -391,6 +471,10 @@ bool Enemy::initWithResRoot(const std::string& resRoot, const std::string& model
     return true;
 }
 
+// 使用指定资源根目录创建敌人实例的静态工厂方法
+// @param resRoot 资源根目录，如 "Enemy/enemy1" 或 "Enemy/boss"
+// @param modelFile 模型文件，如 "enemy1.c3b" 或 "boss.c3b"
+// @return Enemy* 创建成功返回敌人指针，失败返回nullptr
 Enemy* Enemy::createWithResRoot(const std::string& resRoot,
     const std::string& modelFile) {
     auto enemy = new (std::nothrow) Enemy();
@@ -402,7 +486,9 @@ Enemy* Enemy::createWithResRoot(const std::string& resRoot,
     return nullptr;
 }
 
-//加载动画
+// 播放指定名称的动画
+// @param name 动画名称，如 "idle", "chase", "attack" 等
+// @param loop 是否循环播放动画
 void Enemy::playAnim(const std::string& name, bool loop) {
     if (!_sprite) return;
     _sprite->stopAllActions();
@@ -416,6 +502,8 @@ void Enemy::playAnim(const std::string& name, bool loop) {
     else _sprite->runAction(act);
 }
 
+// 重置敌人状态
+// 将敌人恢复到初始状态，包括生命值和位置
 void Enemy::resetEnemy() {
     if (_health) {
         _health->reset();
